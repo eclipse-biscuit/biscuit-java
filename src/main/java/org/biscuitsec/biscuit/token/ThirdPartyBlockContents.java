@@ -8,9 +8,7 @@ import org.biscuitsec.biscuit.error.Error;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public class ThirdPartyBlockContents {
