@@ -33,8 +33,8 @@ public class SerializedBiscuit {
     public Proof proof;
     public Option<Integer> root_key_id;
 
-    public static int MIN_SCHEMA_VERSION = 3;
-    public static int MAX_SCHEMA_VERSION = 5;
+    public final static int MIN_SCHEMA_VERSION = 3;
+    public final static int MAX_SCHEMA_VERSION = 5;
 
     /**
      * Deserializes a SerializedBiscuit from a byte array
