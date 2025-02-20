@@ -45,11 +45,11 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
 
    public Option<Tuple2<Origin, Map<Long, Term>>> getNext() {
       if (this.predicates.isEmpty()) {
-         final Option<Map<Long, Term>> v_opt = this.variables.complete();
-         if (v_opt.isEmpty()) {
+         final Option<Map<Long, Term>> vOpt = this.variables.complete();
+         if (vOpt.isEmpty()) {
             return Option.none();
          } else {
-            Map<Long, Term> variables = v_opt.get();
+            Map<Long, Term> variables = vOpt.get();
             // if there were no predicates,
             // we should return a value, but only once. To prevent further
             // successful calls, we create a set of variables that cannot
@@ -101,11 +101,11 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
 
                   // there are no more predicates to check
                   if (this.predicates.size() == 1) {
-                     final Option<Map<Long, Term>> v_opt = vars.complete();
-                     if (v_opt.isEmpty()) {
+                     final Option<Map<Long, Term>> vOpt = vars.complete();
+                     if (vOpt.isEmpty()) {
                         continue;
                      } else {
-                        return Option.some(new Tuple2<>(currentOrigin, v_opt.get()));
+                        return Option.some(new Tuple2<>(currentOrigin, vOpt.get()));
                      }
                   } else {
                      this.currentOrigin = currentOrigin;

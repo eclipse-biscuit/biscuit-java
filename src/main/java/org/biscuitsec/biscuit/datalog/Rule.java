@@ -98,12 +98,12 @@ public final class Rule implements Serializable {
    }
 
    private MatchedVariables variablesSet() {
-      final Set<Long> variables_set = new HashSet<>();
+      final Set<Long> variablesSet = new HashSet<>();
 
       for (final Predicate pred : this.body) {
-         variables_set.addAll(pred.terms().stream().filter((id) -> id instanceof Term.Variable).map((id) -> ((Term.Variable) id).value()).collect(Collectors.toSet()));
+         variablesSet.addAll(pred.terms().stream().filter((id) -> id instanceof Term.Variable).map((id) -> ((Term.Variable) id).value()).collect(Collectors.toSet()));
       }
-      return new MatchedVariables(variables_set);
+      return new MatchedVariables(variablesSet);
    }
 
    // do not produce new facts, only find one matching set of facts
