@@ -14,7 +14,9 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.function.Function;
 
-public class Parser {
+public final class Parser {
+    private Parser() {}
+
     /**
      * Takes a datalog string with <code>\n</code> as datalog line separator. It tries to parse
      * each line using fact, rule, check and scope sequentially.

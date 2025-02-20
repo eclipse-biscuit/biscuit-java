@@ -5,7 +5,9 @@ import org.biscuitsec.biscuit.token.builder.Utils;
 /**
  * Signature aggregation
  */
-public class TokenSignature {
+public final class TokenSignature {
+    private TokenSignature() {}
+
     /*
     final ArrayList<RistrettoElement> parameters;
     final Scalar z;

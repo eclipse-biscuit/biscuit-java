@@ -9,7 +9,9 @@ import java.util.List;
 
 import static org.biscuitsec.biscuit.datalog.Check.Kind.One;
 
-public class Utils {
+public final class Utils {
+    private Utils() {}
+
     public static Fact fact(String name, List<Term> ids) throws Error.Language {
         return new Fact(name, ids);
     }

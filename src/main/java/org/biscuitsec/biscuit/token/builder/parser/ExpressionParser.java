@@ -8,7 +8,9 @@ import org.biscuitsec.biscuit.token.builder.Expression;
 import static org.biscuitsec.biscuit.token.builder.parser.Parser.space;
 import static org.biscuitsec.biscuit.token.builder.parser.Parser.term;
 
-public class ExpressionParser {
+public final class ExpressionParser {
+    private ExpressionParser(){}
+
     public static Either<Error, Tuple2<String, Expression>> parse(String s) {
         return expr(space(s));
     }
