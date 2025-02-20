@@ -10,12 +10,24 @@ import io.vavr.control.Either;
 import io.vavr.control.Option;
 import org.biscuitsec.biscuit.token.builder.parser.Parser;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
 import static org.biscuitsec.biscuit.datalog.Check.Kind.One;
 import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.defaultSymbolTable;
-import static org.biscuitsec.biscuit.token.builder.Utils.*;
+import static org.biscuitsec.biscuit.token.builder.Utils.constrainedRule;
+import static org.biscuitsec.biscuit.token.builder.Utils.date;
+import static org.biscuitsec.biscuit.token.builder.Utils.pred;
+import static org.biscuitsec.biscuit.token.builder.Utils.rule;
+import static org.biscuitsec.biscuit.token.builder.Utils.s;
+import static org.biscuitsec.biscuit.token.builder.Utils.string;
+import static org.biscuitsec.biscuit.token.builder.Utils.var;
 
 
-import java.util.*;
+
 
 public class Block {
     String context;

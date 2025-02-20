@@ -5,7 +5,11 @@ import io.vavr.control.Option;
 import org.biscuitsec.biscuit.error.Error;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public final class MatchedVariables implements Serializable {
    private final Map<Long, Optional<Term>> variables;

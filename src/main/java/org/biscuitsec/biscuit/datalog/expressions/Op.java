@@ -11,7 +11,11 @@ import io.vavr.control.Either;
 import io.vavr.control.Option;
 
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static io.vavr.API.Left;
 import static io.vavr.API.Right;

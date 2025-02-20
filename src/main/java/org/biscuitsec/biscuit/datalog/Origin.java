@@ -1,6 +1,7 @@
 package org.biscuitsec.biscuit.datalog;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
 
 public class Origin {
     public HashSet<Long> inner;

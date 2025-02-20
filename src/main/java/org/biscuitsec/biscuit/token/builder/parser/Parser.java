@@ -7,11 +7,25 @@ import org.biscuitsec.biscuit.token.Policy;
 import io.vavr.Tuple2;
 import io.vavr.Tuple4;
 import io.vavr.control.Either;
-import org.biscuitsec.biscuit.token.builder.*;
+import org.biscuitsec.biscuit.token.builder.Block;
+import org.biscuitsec.biscuit.token.builder.Check;
+import org.biscuitsec.biscuit.token.builder.Expression;
+import org.biscuitsec.biscuit.token.builder.Fact;
+import org.biscuitsec.biscuit.token.builder.Predicate;
+import org.biscuitsec.biscuit.token.builder.Rule;
+import org.biscuitsec.biscuit.token.builder.Scope;
+import org.biscuitsec.biscuit.token.builder.Term;
+import org.biscuitsec.biscuit.token.builder.Utils;
+
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public final class Parser {

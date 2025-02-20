@@ -11,8 +11,15 @@ import io.vavr.Tuple2;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
 
-import java.security.*;
-import java.util.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Biscuit auth token

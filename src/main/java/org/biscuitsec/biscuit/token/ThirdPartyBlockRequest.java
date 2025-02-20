@@ -13,7 +13,9 @@ import org.biscuitsec.biscuit.token.builder.Block;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.Objects;
 
 public class ThirdPartyBlockRequest {

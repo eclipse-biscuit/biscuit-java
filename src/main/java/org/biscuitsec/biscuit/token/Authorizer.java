@@ -1,11 +1,18 @@
 package org.biscuitsec.biscuit.token;
 
 import org.biscuitsec.biscuit.crypto.PublicKey;
-import org.biscuitsec.biscuit.datalog.*;
+import org.biscuitsec.biscuit.datalog.FactSet;
+import org.biscuitsec.biscuit.datalog.RuleSet;
+import org.biscuitsec.biscuit.datalog.RunLimits;
+import org.biscuitsec.biscuit.datalog.Origin;
+import org.biscuitsec.biscuit.datalog.SymbolTable;
+import org.biscuitsec.biscuit.datalog.TrustedOrigins;
+import org.biscuitsec.biscuit.datalog.World;
 import org.biscuitsec.biscuit.error.Error;
 import org.biscuitsec.biscuit.error.FailedCheck;
 import org.biscuitsec.biscuit.error.LogicError;
-import org.biscuitsec.biscuit.token.builder.*;
+import org.biscuitsec.biscuit.token.builder.Expression;
+import org.biscuitsec.biscuit.token.builder.Utils;
 import io.vavr.Tuple2;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
@@ -15,7 +22,16 @@ import org.biscuitsec.biscuit.token.builder.Term;
 import org.biscuitsec.biscuit.token.builder.parser.Parser;
 
 import java.time.Instant;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.vavr.API.Left;

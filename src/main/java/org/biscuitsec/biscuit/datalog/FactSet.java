@@ -2,7 +2,9 @@ package org.biscuitsec.biscuit.datalog;
 
 import io.vavr.Tuple2;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class FactSet {
