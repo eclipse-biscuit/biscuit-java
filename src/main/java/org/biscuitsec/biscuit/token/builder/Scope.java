@@ -68,7 +68,7 @@ public final class Scope {
         return null;
     }
 
-    public static Scope convert_from(org.biscuitsec.biscuit.datalog.Scope scope, SymbolTable symbols) {
+    public static Scope convertFrom(org.biscuitsec.biscuit.datalog.Scope scope, SymbolTable symbols) {
         switch (scope.kind()) {
             case Authority:
                 return new Scope(Kind.Authority);
@@ -76,7 +76,7 @@ public final class Scope {
                 return new Scope(Kind.Previous);
             case PublicKey:
                 //FIXME error management should bubble up here
-                return new Scope(Kind.PublicKey, symbols.get_pk((int) scope.publicKey()).get());
+                return new Scope(Kind.PublicKey, symbols.getPublicKey((int) scope.publicKey()).get());
         }
 
         //FIXME error management should bubble up here

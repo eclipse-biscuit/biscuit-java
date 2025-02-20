@@ -17,7 +17,7 @@ public abstract class Term implements Serializable {
    public abstract boolean match(final Term other);
    public abstract Schema.TermV2 serialize();
 
-   static public Either<Error.FormatError, Term> deserialize_enumV2(Schema.TermV2 term) {
+   static public Either<Error.FormatError, Term> deserializeEnumV2(Schema.TermV2 term) {
       if(term.hasDate()) {
          return Date.deserializeV2(term);
       } else if(term.hasInteger()) {
@@ -264,7 +264,7 @@ public abstract class Term implements Serializable {
       }
 
       public org.biscuitsec.biscuit.token.builder.Term toTerm(SymbolTable symbols) {
-         return new org.biscuitsec.biscuit.token.builder.Term.Str(symbols.print_symbol((int) this.value));
+         return new org.biscuitsec.biscuit.token.builder.Term.Str(symbols.formatSymbol((int) this.value));
       }
    }
 
@@ -317,7 +317,7 @@ public abstract class Term implements Serializable {
       }
 
       public org.biscuitsec.biscuit.token.builder.Term toTerm(SymbolTable symbols) {
-         return new org.biscuitsec.biscuit.token.builder.Term.Variable(symbols.print_symbol((int) this.value));
+         return new org.biscuitsec.biscuit.token.builder.Term.Variable(symbols.formatSymbol((int) this.value));
       }
    }
 
@@ -441,7 +441,7 @@ public abstract class Term implements Serializable {
             Schema.TermSet s = term.getSet();
 
             for (Schema.TermV2 l: s.getSetList()) {
-               Either<Error.FormatError, Term> res = Term.deserialize_enumV2(l);
+               Either<Error.FormatError, Term> res = Term.deserializeEnumV2(l);
                if(res.isLeft()) {
                   Error.FormatError e = res.getLeft();
                   return Left(e);

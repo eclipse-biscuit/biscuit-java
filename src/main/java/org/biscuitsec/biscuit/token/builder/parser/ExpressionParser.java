@@ -42,7 +42,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op0(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp0(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -86,7 +86,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op1(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp1(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -126,7 +126,7 @@ public class ExpressionParser {
 
         s = space(s);
 
-        Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op2(s);
+        Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp2(s);
         if (res2.isLeft()) {
             return Either.right(t1);
 
@@ -170,7 +170,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op3(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp3(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -214,7 +214,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op4(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp4(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -258,7 +258,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op5(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp5(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -302,7 +302,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op6(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp6(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -346,7 +346,7 @@ public class ExpressionParser {
                 break;
             }
 
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op7(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp7(s);
             if (res2.isLeft()) {
                 break;
             }
@@ -395,7 +395,7 @@ public class ExpressionParser {
     /// argument in addition to the expression they are called on.
     /// The name of the method decides its arity.
     public static Either<Error, Tuple2<String, Expression>> expr9(String s) {
-        Either<Error, Tuple2<String, Expression>> res1 = expr_term(s);
+        Either<Error, Tuple2<String, Expression>> res1 = exprTerm(s);
         if (res1.isLeft()) {
             return Either.left(res1.getLeft());
         }
@@ -415,7 +415,7 @@ public class ExpressionParser {
             }
 
             s = s.substring(1);
-            Either<Error, Tuple2<String, Expression.Op>> res2 = binary_op8(s);
+            Either<Error, Tuple2<String, Expression.Op>> res2 = binaryOp8(s);
             if (!res2.isLeft()) {
                 Tuple2<String, Expression.Op> t2 = res2.get();
                 s = space(t2._1);
@@ -453,8 +453,8 @@ public class ExpressionParser {
         return Either.right(new Tuple2<>(s, e));
     }
 
-    public static Either<Error, Tuple2<String, Expression>> expr_term(String s) {
-        Either<Error, Tuple2<String, Expression>> res1 = unary_parens(s);
+    public static Either<Error, Tuple2<String, Expression>> exprTerm(String s) {
+        Either<Error, Tuple2<String, Expression>> res1 = unaryParens(s);
         if (res1.isRight()) {
             return res1;
         }
@@ -486,7 +486,7 @@ public class ExpressionParser {
 
 
         if(s.startsWith("(")) {
-            Either<Error, Tuple2<String, Expression>> res = unary_parens(s);
+            Either<Error, Tuple2<String, Expression>> res = unaryParens(s);
             if (res.isLeft()) {
                 return Either.left(res.getLeft());
             }
@@ -502,7 +502,7 @@ public class ExpressionParser {
             s = space(t._1);
             e = new Expression.Value(t._2);
         } else {
-            Either<Error, Tuple2<String, Expression>> res2 = unary_parens(s);
+            Either<Error, Tuple2<String, Expression>> res2 = unaryParens(s);
             if (res2.isLeft()) {
                 return Either.left(res2.getLeft());
             }
@@ -520,7 +520,7 @@ public class ExpressionParser {
         }
     }
 
-    public static Either<Error, Tuple2<String, Expression>> unary_parens(String s) {
+    public static Either<Error, Tuple2<String, Expression>> unaryParens(String s) {
         if(s.startsWith("(")) {
             s = space(s.substring(1));
 
@@ -543,7 +543,7 @@ public class ExpressionParser {
         }
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op0(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp0(String s) {
         if(s.startsWith("||")) {
             return Either.right(new Tuple2<>(s.substring(2), Expression.Op.Or));
         }
@@ -551,7 +551,7 @@ public class ExpressionParser {
         return Either.left(new Error(s, "unrecognized op"));
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op1(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp1(String s) {
         if(s.startsWith("&&")) {
             return Either.right(new Tuple2<>(s.substring(2), Expression.Op.And));
         }
@@ -559,7 +559,7 @@ public class ExpressionParser {
         return Either.left(new Error(s, "unrecognized op"));
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op2(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp2(String s) {
         if(s.startsWith("<=")) {
             return Either.right(new Tuple2<>(s.substring(2), Expression.Op.LessOrEqual));
         }
@@ -583,7 +583,7 @@ public class ExpressionParser {
     }
 
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op3(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp3(String s) {
         if(s.startsWith("^")) {
             return Either.right(new Tuple2<>(s.substring(1), Expression.Op.BitwiseXor));
         }
@@ -591,7 +591,7 @@ public class ExpressionParser {
         return Either.left(new Error(s, "unrecognized op"));
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op4(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp4(String s) {
         if(s.startsWith("|") && !s.startsWith("||")) {
             return Either.right(new Tuple2<>(s.substring(1), Expression.Op.BitwiseOr));
         }
@@ -599,7 +599,7 @@ public class ExpressionParser {
         return Either.left(new Error(s, "unrecognized op"));
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op5(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp5(String s) {
         if(s.startsWith("&") && !s.startsWith("&&")) {
             return Either.right(new Tuple2<>(s.substring(1), Expression.Op.BitwiseAnd));
         }
@@ -607,7 +607,7 @@ public class ExpressionParser {
         return Either.left(new Error(s, "unrecognized op"));
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op6(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp6(String s) {
 
         if(s.startsWith("+")) {
             return Either.right(new Tuple2<>(s.substring(1), Expression.Op.Add));
@@ -620,7 +620,7 @@ public class ExpressionParser {
     }
 
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op7(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp7(String s) {
         if(s.startsWith("*")) {
             return Either.right(new Tuple2<>(s.substring(1), Expression.Op.Mul));
         }
@@ -631,7 +631,7 @@ public class ExpressionParser {
         return Either.left(new Error(s, "unrecognized op"));
     }
 
-    public static Either<Error, Tuple2<String, Expression.Op>> binary_op8(String s) {
+    public static Either<Error, Tuple2<String, Expression.Op>> binaryOp8(String s) {
         if(s.startsWith("intersection")) {
             return Either.right(new Tuple2<>(s.substring(12), Expression.Op.Intersection));
         }

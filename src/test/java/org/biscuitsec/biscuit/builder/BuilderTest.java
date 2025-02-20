@@ -27,12 +27,12 @@ public class BuilderTest {
     public void testBuild() throws Error.Language, Error.SymbolTableOverlap, Error.FormatError {
         SecureRandom rng = new SecureRandom();
         KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
-        SymbolTable symbols = Biscuit.default_symbol_table();
+        SymbolTable symbols = Biscuit.defaultSymbolTable();
 
         Block authority_builder = new Block();
-        authority_builder.add_fact(Utils.fact("revocation_id", Arrays.asList(Utils.date(Date.from(Instant.now())))));
-        authority_builder.add_fact(Utils.fact("right", Arrays.asList(Utils.s("admin"))));
-        authority_builder.add_rule(Utils.constrained_rule("right",
+        authority_builder.addFact(Utils.fact("revocation_id", Arrays.asList(Utils.date(Date.from(Instant.now())))));
+        authority_builder.addFact(Utils.fact("right", Arrays.asList(Utils.s("admin"))));
+        authority_builder.addRule(Utils.constrainedRule("right",
                 Arrays.asList(Utils.s("namespace"), Utils.var("tenant"), Utils.var("namespace"), Utils.var("operation")),
                 Arrays.asList(Utils.pred("ns_operation", Arrays.asList(Utils.s("namespace"), Utils.var("tenant"), Utils.var("namespace"), Utils.var("operation")))),
                 Arrays.asList(
@@ -46,7 +46,7 @@ public class BuilderTest {
                                 )))))
                 )
         ));
-        authority_builder.add_rule(Utils.constrained_rule("right",
+        authority_builder.addRule(Utils.constrainedRule("right",
                 Arrays.asList(Utils.s("topic"), Utils.var("tenant"), Utils.var("namespace"), Utils.var("topic"), Utils.var("operation")),
                 Arrays.asList(Utils.pred("topic_operation", Arrays.asList(Utils.s("topic"), Utils.var("tenant"), Utils.var("namespace"), Utils.var("topic"), Utils.var("operation")))),
                 Arrays.asList(

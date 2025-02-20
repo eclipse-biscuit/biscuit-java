@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Error extends Exception {
-    public Option<List<FailedCheck>> failed_checks() {
+    public Option<List<FailedCheck>> failedChecks() {
         return Option.none();
     }
 
@@ -464,8 +464,8 @@ public class Error extends Exception {
         }
 
         @Override
-        public Option<List<FailedCheck>> failed_checks() {
-            return this.error.failed_checks();
+        public Option<List<FailedCheck>> failedChecks() {
+            return this.error.failedChecks();
         }
 
         @Override

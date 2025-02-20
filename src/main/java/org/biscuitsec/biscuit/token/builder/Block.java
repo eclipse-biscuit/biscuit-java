@@ -11,7 +11,7 @@ import io.vavr.control.Option;
 import org.biscuitsec.biscuit.token.builder.parser.Parser;
 
 import static org.biscuitsec.biscuit.datalog.Check.Kind.One;
-import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.default_symbol_table;
+import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.defaultSymbolTable;
 import static org.biscuitsec.biscuit.token.builder.Utils.*;
 
 
@@ -32,12 +32,12 @@ public class Block {
         this.scopes = new ArrayList<>();
     }
 
-    public Block add_fact(org.biscuitsec.biscuit.token.builder.Fact f) {
+    public Block addFact(org.biscuitsec.biscuit.token.builder.Fact f) {
         this.facts.add(f);
         return this;
     }
 
-    public Block add_fact(String s) throws Error.Parser {
+    public Block addFact(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Fact>> res =
                 Parser.fact(s);
 
@@ -47,15 +47,15 @@ public class Block {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Fact> t = res.get();
 
-        return add_fact(t._2);
+        return addFact(t._2);
     }
 
-    public Block add_rule(org.biscuitsec.biscuit.token.builder.Rule rule) {
+    public Block addRule(org.biscuitsec.biscuit.token.builder.Rule rule) {
         this.rules.add(rule);
         return this;
     }
 
-    public Block add_rule(String s) throws Error.Parser {
+    public Block addRule(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule>> res =
                 Parser.rule(s);
 
@@ -65,15 +65,15 @@ public class Block {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule> t = res.get();
 
-        return add_rule(t._2);
+        return addRule(t._2);
     }
 
-    public Block add_check(org.biscuitsec.biscuit.token.builder.Check check) {
+    public Block addCheck(org.biscuitsec.biscuit.token.builder.Check check) {
         this.checks.add(check);
         return this;
     }
 
-    public Block add_check(String s) throws Error.Parser {
+    public Block addCheck(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Check>> res =
                 Parser.check(s);
 
@@ -83,25 +83,25 @@ public class Block {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Check> t = res.get();
 
-        return add_check(t._2);
+        return addCheck(t._2);
     }
 
-    public Block add_scope(org.biscuitsec.biscuit.token.builder.Scope scope) {
+    public Block addScope(org.biscuitsec.biscuit.token.builder.Scope scope) {
         this.scopes.add(scope);
         return this;
     }
 
-    public Block set_context(String context) {
+    public Block setContext(String context) {
         this.context = context;
         return this;
     }
 
     public org.biscuitsec.biscuit.token.Block build() {
-        return build(default_symbol_table(), Option.none());
+        return build(defaultSymbolTable(), Option.none());
     }
 
     public org.biscuitsec.biscuit.token.Block build(final Option<PublicKey> externalKey) {
-        return build(default_symbol_table(), externalKey);
+        return build(defaultSymbolTable(), externalKey);
     }
 
     public org.biscuitsec.biscuit.token.Block build(SymbolTable symbols) {
@@ -141,7 +141,7 @@ public class Block {
 
         List<PublicKey> publicKeys = new ArrayList<>();
         for (int i = publicKeyStart; i < symbols.currentPublicKeyOffset(); i++) {
-            publicKeys.add(symbols.publicKeys().get(i));
+            publicKeys.add(symbols.getPublicKeys().get(i));
         }
 
         return new org.biscuitsec.biscuit.token.Block(blockSymbols, this.context, facts, rules, checks,
@@ -172,7 +172,7 @@ public class Block {
         return result;
     }
 
-    public Block check_right(String right) {
+    public Block checkRight(String right) {
         ArrayList<org.biscuitsec.biscuit.token.builder.Rule> queries = new ArrayList<>();
         queries.add(rule(
                 "check_right",
@@ -183,45 +183,45 @@ public class Block {
                         pred("right", Arrays.asList(var("resource"), s(right)))
                 )
         ));
-        return this.add_check(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
+        return this.addCheck(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
     }
 
-    public Block resource_prefix(String prefix) {
+    public Block resourcePrefix(String prefix) {
         ArrayList<org.biscuitsec.biscuit.token.builder.Rule> queries = new ArrayList<>();
 
-        queries.add(constrained_rule(
+        queries.add(constrainedRule(
                 "prefix",
                 Arrays.asList(var("resource")),
                 Arrays.asList(pred("resource", Arrays.asList(var("resource")))),
                 Arrays.asList(new Expression.Binary(Expression.Op.Prefix, new Expression.Value(var("resource")),
                         new Expression.Value(string(prefix))))
         ));
-        return this.add_check(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
+        return this.addCheck(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
     }
 
-    public Block resource_suffix(String suffix) {
+    public Block resourceSuffix(String suffix) {
         ArrayList<org.biscuitsec.biscuit.token.builder.Rule> queries = new ArrayList<>();
 
-        queries.add(constrained_rule(
+        queries.add(constrainedRule(
                 "suffix",
                 Arrays.asList(var("resource")),
                 Arrays.asList(pred("resource", Arrays.asList(var("resource")))),
                 Arrays.asList(new Expression.Binary(Expression.Op.Suffix, new Expression.Value(var("resource")),
                         new Expression.Value(string(suffix))))
         ));
-        return this.add_check(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
+        return this.addCheck(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
     }
 
-    public Block expiration_date(Date d) {
+    public Block setExpirationDate(Date d) {
         ArrayList<org.biscuitsec.biscuit.token.builder.Rule> queries = new ArrayList<>();
 
-        queries.add(constrained_rule(
+        queries.add(constrainedRule(
                 "expiration",
                 Arrays.asList(var("date")),
                 Arrays.asList(pred("time", Arrays.asList(var("date")))),
                 Arrays.asList(new Expression.Binary(Expression.Op.LessOrEqual, new Expression.Value(var("date")),
                         new Expression.Value(date(d))))
         ));
-        return this.add_check(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
+        return this.addCheck(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
     }
 }

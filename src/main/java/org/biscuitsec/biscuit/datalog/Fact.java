@@ -18,7 +18,7 @@ public final class Fact implements Serializable {
       return this.predicate;
    }
 
-   public boolean match_predicate(final Predicate rulePredicate) {
+   public boolean matchPredicate(final Predicate rulePredicate) {
       return this.predicate.match(rulePredicate);
    }
 

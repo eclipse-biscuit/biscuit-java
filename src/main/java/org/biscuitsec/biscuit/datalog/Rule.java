@@ -107,11 +107,11 @@ public final class Rule implements Serializable {
    }
 
    // do not produce new facts, only find one matching set of facts
-   public boolean find_match(final FactSet facts, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
+   public boolean findMatch(final FactSet facts, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
       MatchedVariables variables = variablesSet();
 
       if(this.body.isEmpty()) {
-         return variables.check_expressions(this.expressions, symbols).isDefined();
+         return variables.checkExpressions(this.expressions, symbols).isDefined();
       }
 
       Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
@@ -132,11 +132,11 @@ public final class Rule implements Serializable {
    }
 
    // verifies that the expressions return true for every matching set of facts
-   public boolean check_match_all(final FactSet facts, TrustedOrigins scope, SymbolTable symbols) throws Error {
+   public boolean checkMatchAll(final FactSet facts, TrustedOrigins scope, SymbolTable symbols) throws Error {
       MatchedVariables variables = variablesSet();
 
       if(this.body.isEmpty()) {
-         return variables.check_expressions(this.expressions, symbols).isDefined();
+         return variables.checkExpressions(this.expressions, symbols).isDefined();
       }
 
       Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);

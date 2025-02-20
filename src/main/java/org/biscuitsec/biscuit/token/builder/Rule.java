@@ -70,7 +70,7 @@ public class Rule implements Cloneable {
         }
     }
 
-    public void apply_variables() {
+    public void applyVariables() {
         this.variables.forEach(
                 _variables -> {
                     this.head.terms = this.head.terms.stream().flatMap(t -> {
@@ -103,7 +103,7 @@ public class Rule implements Cloneable {
                 });
     }
 
-    public Either<String, Rule> validate_variables() {
+    public Either<String, Rule> validateVariables() {
         Set<String> freeVariables = this.head.terms.stream().flatMap(t -> {
             if (t instanceof Term.Variable) {
                 return Stream.of(((Term.Variable) t).value);
@@ -133,7 +133,7 @@ public class Rule implements Cloneable {
 
     public org.biscuitsec.biscuit.datalog.Rule convert(SymbolTable symbols) {
         Rule r = this.clone();
-        r.apply_variables();
+        r.applyVariables();
         org.biscuitsec.biscuit.datalog.Predicate head = r.head.convert(symbols);
         ArrayList<org.biscuitsec.biscuit.datalog.Predicate> body = new ArrayList<>();
         ArrayList<org.biscuitsec.biscuit.datalog.expressions.Expression> expressions = new ArrayList<>();
@@ -155,8 +155,8 @@ public class Rule implements Cloneable {
         return new org.biscuitsec.biscuit.datalog.Rule(head, body, expressions, scopes);
     }
 
-    public static Rule convert_from(org.biscuitsec.biscuit.datalog.Rule r, SymbolTable symbols) {
-        Predicate head = Predicate.convert_from(r.head(), symbols);
+    public static Rule convertFrom(org.biscuitsec.biscuit.datalog.Rule r, SymbolTable symbols) {
+        Predicate head = Predicate.convertFrom(r.head(), symbols);
 
         ArrayList<Predicate> body = new ArrayList<>();
         ArrayList<Expression> expressions = new ArrayList<>();
@@ -164,15 +164,15 @@ public class Rule implements Cloneable {
 
 
         for (org.biscuitsec.biscuit.datalog.Predicate p : r.body()) {
-            body.add(Predicate.convert_from(p, symbols));
+            body.add(Predicate.convertFrom(p, symbols));
         }
 
         for (org.biscuitsec.biscuit.datalog.expressions.Expression e : r.expressions()) {
-            expressions.add(Expression.convert_from(e, symbols));
+            expressions.add(Expression.convertFrom(e, symbols));
         }
 
         for (org.biscuitsec.biscuit.datalog.Scope s : r.scopes()) {
-            scopes.add(Scope.convert_from(s, symbols));
+            scopes.add(Scope.convertFrom(s, symbols));
         }
 
         return new Rule(head, body, expressions, scopes);
@@ -202,7 +202,7 @@ public class Rule implements Cloneable {
 
     public String bodyToString() {
         Rule r = this.clone();
-        r.apply_variables();
+        r.applyVariables();
         String res = "";
 
         if(!r.body.isEmpty()) {
@@ -231,7 +231,7 @@ public class Rule implements Cloneable {
     @Override
     public String toString() {
         Rule r = this.clone();
-        r.apply_variables();
+        r.applyVariables();
         return r.head.toString() + " <- " + bodyToString();
     }
 }

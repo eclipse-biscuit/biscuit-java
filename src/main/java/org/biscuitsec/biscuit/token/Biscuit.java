@@ -89,7 +89,7 @@ public class Biscuit extends UnverifiedBiscuit {
     static private Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> rootKeyId, final Block authority) throws Error.FormatError {
         ArrayList<Block> blocks = new ArrayList<>();
 
-        KeyPair next = KeyPair.generate(root.public_key().algorithm, rng);
+        KeyPair next = KeyPair.generate(root.getPublicKey().algorithm, rng);
 
         for(PublicKey pk:  authority.publicKeys) {
             authority.symbols.insert(pk);
@@ -113,7 +113,7 @@ public class Biscuit extends UnverifiedBiscuit {
     }
 
     /**
-     * Deserializes a Biscuit token from a hex string
+     * Deserializes a Biscuit token from a base64 url (RFC4648_URLSAFE) string
      * <p>
      * This checks the signature, but does not verify that the first key is the root key,
      * to allow appending blocks without knowing about the root key.
@@ -123,11 +123,10 @@ public class Biscuit extends UnverifiedBiscuit {
      * This method uses the default symbol table
      *
      * @param data
-     * @return
+     * @return Biscuit
      */
-    @Deprecated
-    static public Biscuit from_b64(String data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        return Biscuit.from_bytes(Base64.getUrlDecoder().decode(data), root);
+    static public Biscuit fromBase64Url(String data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+        return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), root);
     }
 
     /**
@@ -143,25 +142,8 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return Biscuit
      */
-    static public Biscuit from_b64url(String data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        return Biscuit.from_bytes(Base64.getUrlDecoder().decode(data), root);
-    }
-
-    /**
-     * Deserializes a Biscuit token from a base64 url (RFC4648_URLSAFE) string
-     * <p>
-     * This checks the signature, but does not verify that the first key is the root key,
-     * to allow appending blocks without knowing about the root key.
-     * <p>
-     * The root key check is performed in the verify method
-     * <p>
-     * This method uses the default symbol table
-     *
-     * @param data
-     * @return Biscuit
-     */
-    static public Biscuit from_b64url(String data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        return Biscuit.from_bytes(Base64.getUrlDecoder().decode(data), delegate);
+    static public Biscuit fromBase64Url(String data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+        return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), delegate);
     }
 
     /**
@@ -177,8 +159,8 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit from_bytes(byte[] data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        return from_bytes_with_symbols(data, root, default_symbol_table());
+    static public Biscuit fromBytes(byte[] data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+        return fromBytesWithSymbols(data, root, defaultSymbolTable());
     }
 
     /**
@@ -194,8 +176,8 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit from_bytes(byte[] data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        return from_bytes_with_symbols(data, delegate, default_symbol_table());
+    static public Biscuit fromBytes(byte[] data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+        return fromBytesWithSymbols(data, delegate, defaultSymbolTable());
     }
 
     /**
@@ -209,12 +191,12 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit from_bytes_with_symbols(byte[] data, PublicKey root, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    static public Biscuit fromBytesWithSymbols(byte[] data, PublicKey root, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         //System.out.println("will deserialize and verify token");
-        SerializedBiscuit ser = SerializedBiscuit.from_bytes(data, root);
+        SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, root);
         //System.out.println("deserialized token, will populate Biscuit structure");
 
-        return Biscuit.from_serialized_biscuit(ser, symbols);
+        return Biscuit.fromSerializedBiscuit(ser, symbols);
     }
 
     /**
@@ -228,12 +210,12 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit from_bytes_with_symbols(byte[] data, KeyDelegate delegate, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    static public Biscuit fromBytesWithSymbols(byte[] data, KeyDelegate delegate, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         //System.out.println("will deserialize and verify token");
-        SerializedBiscuit ser = SerializedBiscuit.from_bytes(data, delegate);
+        SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, delegate);
         //System.out.println("deserialized token, will populate Biscuit structure");
 
-        return Biscuit.from_serialized_biscuit(ser, symbols);
+        return Biscuit.fromSerializedBiscuit(ser, symbols);
     }
 
     /**
@@ -241,7 +223,7 @@ public class Biscuit extends UnverifiedBiscuit {
      *
      * @return
      */
-    static Biscuit from_serialized_biscuit(SerializedBiscuit ser, SymbolTable symbols) throws Error {
+    static Biscuit fromSerializedBiscuit(SerializedBiscuit ser, SymbolTable symbols) throws Error {
         Tuple2<Block, ArrayList<Block>> t = ser.extractBlocks(symbols);
         Block authority = t._1;
         ArrayList<Block> blocks = t._2;
@@ -272,22 +254,12 @@ public class Biscuit extends UnverifiedBiscuit {
     }
 
     /**
-     * Serializes a token to a base 64 String
-     *
-     * @return
-     */
-    @Deprecated
-    public String serialize_b64() throws Error.FormatError.SerializationError {
-        return Base64.getUrlEncoder().encodeToString(serialize());
-    }
-
-    /**
      * Serializes a token to base 64 url String using RFC4648_URLSAFE
      *
      * @return String
      * @throws Error.FormatError.SerializationError
      */
-    public String serialize_b64url() throws Error.FormatError.SerializationError {
+    public String serializeBase64Url() throws Error.FormatError.SerializationError {
         return Base64.getUrlEncoder().encodeToString(serialize());
     }
 
@@ -359,7 +331,7 @@ public class Biscuit extends UnverifiedBiscuit {
        UnverifiedBiscuit b = super.appendThirdPartyBlock(externalKey, blockResponse);
 
        // no need to verify again, we are already working from a verified token
-        return Biscuit.from_serialized_biscuit(b.serializedBiscuit, b.symbols);
+        return Biscuit.fromSerializedBiscuit(b.serializedBiscuit, b.symbols);
     }
 
     /**
@@ -370,7 +342,7 @@ public class Biscuit extends UnverifiedBiscuit {
         s.append("Biscuit {\n\tsymbols: ");
         s.append(this.symbols.getAllSymbols());
         s.append("\n\tpublic keys: ");
-        s.append(this.symbols.publicKeys());
+        s.append(this.symbols.getPublicKeys());
         s.append("\n\tauthority: ");
         s.append(this.authority.print(this.symbols));
         s.append("\n\tblocks: [\n");
@@ -389,6 +361,6 @@ public class Biscuit extends UnverifiedBiscuit {
     }
 
     public Biscuit copy() throws Error {
-        return Biscuit.from_serialized_biscuit(this.serializedBiscuit, this.symbols);
+        return Biscuit.fromSerializedBiscuit(this.serializedBiscuit, this.symbols);
     }
 }

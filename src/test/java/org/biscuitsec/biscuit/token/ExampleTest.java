@@ -19,23 +19,23 @@ public class ExampleTest {
 
     public Biscuit createToken(KeyPair root) throws Error {
         return Biscuit.builder(root)
-                .add_authority_fact("user(\"1234\")")
-                .add_authority_check("check if operation(\"read\")")
+                .addAuthorityFact("user(\"1234\")")
+                .addAuthorityCheck("check if operation(\"read\")")
                 .build();
     }
 
     public Long authorize(KeyPair root, byte[] serializedToken) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        return Biscuit.from_bytes(serializedToken, root.public_key()).authorizer()
-                .add_fact("resource(\"/folder1/file1\")")
-                .add_fact("operation(\"read\")")
+        return Biscuit.fromBytes(serializedToken, root.getPublicKey()).authorizer()
+                .addFact("resource(\"/folder1/file1\")")
+                .addFact("operation(\"read\")")
                 .allow()
                 .authorize();
     }
 
     public Biscuit attenuate(KeyPair root, byte[] serializedToken) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-        Biscuit token = Biscuit.from_bytes(serializedToken, root.public_key());
-        Block block = token.create_block().add_check("check if operation(\"read\")");
-        return token.attenuate(block, root.public_key().algorithm);
+        Biscuit token = Biscuit.fromBytes(serializedToken, root.getPublicKey());
+        Block block = token.createBlock().addCheck("check if operation(\"read\")");
+        return token.attenuate(block, root.getPublicKey().algorithm);
     }
 
     /*public Set<Fact> query(Authorizer authorizer) throws Error.Timeout, Error.TooManyFacts, Error.TooManyIterations, Error.Parser {

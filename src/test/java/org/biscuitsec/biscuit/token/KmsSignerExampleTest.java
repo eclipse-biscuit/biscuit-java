@@ -74,16 +74,16 @@ public class KmsSignerExampleTest {
             }
 
             @Override
-            public PublicKey public_key() {
+            public PublicKey getPublicKey() {
                 return publicKey;
             }
         };
         var biscuit = Biscuit.builder(signer)
-                .add_authority_fact("user(\"1234\")")
-                .add_authority_check("check if operation(\"read\")")
+                .addAuthorityFact("user(\"1234\")")
+                .addAuthorityCheck("check if operation(\"read\")")
                 .build();
         var serializedBiscuit = biscuit.serialize();
-        var deserializedUnverifiedBiscuit = Biscuit.from_bytes(serializedBiscuit);
+        var deserializedUnverifiedBiscuit = Biscuit.fromBytes(serializedBiscuit);
         var verifiedBiscuit = assertDoesNotThrow(() -> deserializedUnverifiedBiscuit.verify(publicKey));
 
         System.out.println(verifiedBiscuit.print());

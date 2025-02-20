@@ -45,8 +45,8 @@ public class UnverifiedBiscuit {
      * @param data
      * @return Biscuit
      */
-    static public UnverifiedBiscuit from_b64url(String data) throws Error {
-        return UnverifiedBiscuit.from_bytes(Base64.getUrlDecoder().decode(data));
+    static public UnverifiedBiscuit fromBase64Url(String data) throws Error {
+        return UnverifiedBiscuit.fromBytes(Base64.getUrlDecoder().decode(data));
     }
 
     /**
@@ -57,8 +57,8 @@ public class UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public UnverifiedBiscuit from_bytes(byte[] data) throws Error {
-        return UnverifiedBiscuit.from_bytes_with_symbols(data, default_symbol_table());
+    static public UnverifiedBiscuit fromBytes(byte[] data) throws Error {
+        return UnverifiedBiscuit.fromBytesWithSymbols(data, defaultSymbolTable());
     }
 
     /**
@@ -67,9 +67,9 @@ public class UnverifiedBiscuit {
      * @param data
      * @return UnverifiedBiscuit
      */
-    static public UnverifiedBiscuit from_bytes_with_symbols(byte[] data, SymbolTable symbols) throws Error {
-        SerializedBiscuit ser = SerializedBiscuit.unsafe_deserialize(data);
-        return UnverifiedBiscuit.from_serialized_biscuit(ser, symbols);
+    static public UnverifiedBiscuit fromBytesWithSymbols(byte[] data, SymbolTable symbols) throws Error {
+        SerializedBiscuit ser = SerializedBiscuit.deserializeUnsafe(data);
+        return UnverifiedBiscuit.fromSerializedBiscuit(ser, symbols);
     }
 
     /**
@@ -77,7 +77,7 @@ public class UnverifiedBiscuit {
      *
      * @return UnverifiedBiscuit
      */
-    static private UnverifiedBiscuit from_serialized_biscuit(SerializedBiscuit ser, SymbolTable symbols) throws Error {
+    static private UnverifiedBiscuit fromSerializedBiscuit(SerializedBiscuit ser, SymbolTable symbols) throws Error {
         Tuple2<Block, ArrayList<Block>> t = ser.extractBlocks(symbols);
         Block authority = t._1;
         ArrayList<Block> blocks = t._2;
@@ -102,7 +102,7 @@ public class UnverifiedBiscuit {
      * @return String
      * @throws Error.FormatError.SerializationError
      */
-    public String serialize_b64url() throws Error.FormatError.SerializationError {
+    public String serializeBase64Url() throws Error.FormatError.SerializationError {
         return Base64.getUrlEncoder().encodeToString(serialize());
     }
 
@@ -111,7 +111,7 @@ public class UnverifiedBiscuit {
      *
      * @return
      */
-    public org.biscuitsec.biscuit.token.builder.Block create_block() {
+    public org.biscuitsec.biscuit.token.builder.Block createBlock() {
         return new org.biscuitsec.biscuit.token.builder.Block();
     }
 
@@ -172,9 +172,9 @@ public class UnverifiedBiscuit {
     }
     //FIXME: attenuate 3rd Party
 
-    public List<RevocationIdentifier> revocation_identifiers() {
+    public List<RevocationIdentifier> revocationIdentifiers() {
         return this.revocationIds.stream()
-                .map(RevocationIdentifier::from_bytes)
+                .map(RevocationIdentifier::fromBytes)
                 .collect(Collectors.toList());
     }
 
@@ -208,7 +208,7 @@ public class UnverifiedBiscuit {
         return res;
     }
 
-    public Option<Integer> root_key_id() {
+    public Option<Integer> getRootKeyId() {
         return this.serializedBiscuit.rootKeyId;
     }
 
@@ -244,7 +244,7 @@ public class UnverifiedBiscuit {
             throw new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied");
         }
 
-        Either<Error.FormatError, Block> res = Block.from_bytes(blockResponse.payload, Option.some(externalKey));
+        Either<Error.FormatError, Block> res = Block.fromBytes(blockResponse.payload, Option.some(externalKey));
         if(res.isLeft()) {
             throw res.getLeft();
         }
@@ -297,7 +297,7 @@ public class UnverifiedBiscuit {
     /**
      * Default symbols list
      */
-    static public SymbolTable default_symbol_table() {
+    static public SymbolTable defaultSymbolTable() {
         return new SymbolTable();
     }
 
@@ -307,7 +307,7 @@ public class UnverifiedBiscuit {
     }
 
     public UnverifiedBiscuit copy() throws Error {
-        return UnverifiedBiscuit.from_bytes(this.serialize());
+        return UnverifiedBiscuit.fromBytes(this.serialize());
     }
 
     public Biscuit verify(PublicKey publicKey) throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
@@ -316,13 +316,13 @@ public class UnverifiedBiscuit {
         if (result.isLeft()) {
             throw result.getLeft();
         }
-        return Biscuit.from_serialized_biscuit(serializedBiscuit, this.symbols);
+        return Biscuit.fromSerializedBiscuit(serializedBiscuit, this.symbols);
     }
 
     public Biscuit verify(KeyDelegate delegate) throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         SerializedBiscuit serializedBiscuit = this.serializedBiscuit;
 
-        Option<PublicKey> root = delegate.root_key(serializedBiscuit.rootKeyId);
+        Option<PublicKey> root = delegate.getRootKey(serializedBiscuit.rootKeyId);
         if(root.isEmpty()) {
             throw new InvalidKeyException("unknown root key id");
         }
@@ -331,6 +331,6 @@ public class UnverifiedBiscuit {
         if (result.isLeft()) {
             throw result.getLeft();
         }
-        return Biscuit.from_serialized_biscuit(serializedBiscuit, this.symbols);
+        return Biscuit.fromSerializedBiscuit(serializedBiscuit, this.symbols);
     }
 }

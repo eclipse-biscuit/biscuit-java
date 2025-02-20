@@ -23,9 +23,9 @@ public class Utils {
         return new Rule(pred(headName, headIds), predicates, new ArrayList<>(), new ArrayList<>());
     }
 
-    public static Rule constrained_rule(String headName, List<Term> headIds,
-                                        List<Predicate> predicates,
-                                        List<Expression> expressions) {
+    public static Rule constrainedRule(String headName, List<Term> headIds,
+                                       List<Predicate> predicates,
+                                       List<Expression> expressions) {
         return new Rule(pred(headName, headIds), predicates, expressions, new ArrayList<>());
     }
 

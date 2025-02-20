@@ -144,7 +144,7 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
       this.allFacts = allFacts;
       this.currentIt = null;
       this.predicates = predicates;
-      this.currentFacts = allFacts.get().filter((tuple) -> tuple._2.match_predicate(predicates.get(0))).iterator();
+      this.currentFacts = allFacts.get().filter((tuple) -> tuple._2.matchPredicate(predicates.get(0))).iterator();
       this.symbols = symbols;
       this.currentOrigin = null;
       this.nextElement = null;

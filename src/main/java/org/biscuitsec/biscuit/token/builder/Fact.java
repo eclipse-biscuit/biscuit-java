@@ -66,7 +66,7 @@ public class Fact implements Cloneable{
         return this;
     }
 
-    public Fact apply_variables() {
+    public Fact applyVariables() {
         this.variables.forEach(
                 _variables -> {
                     this.predicate.terms = this.predicate.terms.stream().flatMap(t -> {
@@ -81,18 +81,18 @@ public class Fact implements Cloneable{
 
     public org.biscuitsec.biscuit.datalog.Fact convert(SymbolTable symbols) {
         Fact f = this.clone();
-        f.apply_variables();
+        f.applyVariables();
         return new org.biscuitsec.biscuit.datalog.Fact(f.predicate.convert(symbols));
     }
 
-    public static Fact convert_from(org.biscuitsec.biscuit.datalog.Fact f, SymbolTable symbols) {
-        return new Fact(Predicate.convert_from(f.predicate(), symbols));
+    public static Fact convertFrom(org.biscuitsec.biscuit.datalog.Fact f, SymbolTable symbols) {
+        return new Fact(Predicate.convertFrom(f.predicate(), symbols));
     }
 
     @Override
     public String toString() {
         Fact f = this.clone();
-        f.apply_variables();
+        f.applyVariables();
         return  f.predicate.toString();
     }
 

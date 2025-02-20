@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.default_symbol_table;
+import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.defaultSymbolTable;
 
 public class Biscuit {
     SecureRandom rng;
@@ -60,13 +60,13 @@ public class Biscuit {
         this.scopes = block.scopes;
     }
 
-    public Biscuit add_authority_fact(org.biscuitsec.biscuit.token.builder.Fact f) throws Error.Language {
+    public Biscuit addAuthorityFact(org.biscuitsec.biscuit.token.builder.Fact f) throws Error.Language {
         f.validate();
         this.facts.add(f);
         return this;
     }
 
-    public Biscuit add_authority_fact(String s) throws Error.Parser, Error.Language {
+    public Biscuit addAuthorityFact(String s) throws Error.Parser, Error.Language {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Fact>> res =
                 Parser.fact(s);
 
@@ -76,15 +76,15 @@ public class Biscuit {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Fact> t = res.get();
 
-        return add_authority_fact(t._2);
+        return addAuthorityFact(t._2);
     }
 
-    public Biscuit add_authority_rule(org.biscuitsec.biscuit.token.builder.Rule rule) {
+    public Biscuit addAuthorityRule(org.biscuitsec.biscuit.token.builder.Rule rule) {
         this.rules.add(rule);
         return this;
     }
 
-    public Biscuit add_authority_rule(String s) throws Error.Parser {
+    public Biscuit addAuthorityRule(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule>> res =
                 Parser.rule(s);
 
@@ -94,15 +94,15 @@ public class Biscuit {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule> t = res.get();
 
-        return add_authority_rule(t._2);
+        return addAuthorityRule(t._2);
     }
 
-    public Biscuit add_authority_check(org.biscuitsec.biscuit.token.builder.Check c) {
+    public Biscuit addAuthorityCheck(org.biscuitsec.biscuit.token.builder.Check c) {
         this.checks.add(c);
         return this;
     }
 
-    public Biscuit add_authority_check(String s) throws Error.Parser {
+    public Biscuit addAuthorityCheck(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Check>> res =
                 Parser.check(s);
 
@@ -112,25 +112,25 @@ public class Biscuit {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Check> t = res.get();
 
-        return add_authority_check(t._2);
+        return addAuthorityCheck(t._2);
     }
 
-    public Biscuit set_context(String context) {
+    public Biscuit setContext(String context) {
         this.context = context;
         return this;
     }
 
-    public Biscuit add_scope(org.biscuitsec.biscuit.token.builder.Scope scope) {
+    public Biscuit addScope(org.biscuitsec.biscuit.token.builder.Scope scope) {
         this.scopes.add(scope);
         return this;
     }
 
-    public void set_root_key_id(Integer i) {
+    public void setRootKeyId(Integer i) {
         this.rootKeyId = Option.some(i);
     }
 
     public org.biscuitsec.biscuit.token.Biscuit build() throws Error {
-        return build(default_symbol_table());
+        return build(defaultSymbolTable());
     }
 
     private org.biscuitsec.biscuit.token.Biscuit build(SymbolTable symbols) throws Error {
@@ -163,7 +163,7 @@ public class Biscuit {
 
         List<PublicKey> publicKeys = new ArrayList<>();
         for (int i = publicKeyStart; i < symbols.currentPublicKeyOffset(); i++) {
-            publicKeys.add(symbols.publicKeys().get(i));
+            publicKeys.add(symbols.getPublicKeys().get(i));
         }
 
         Block authorityBlock = new Block(blockSymbols, context, facts, rules,
@@ -176,7 +176,7 @@ public class Biscuit {
         }
     }
 
-    public Biscuit add_right(String resource, String right) throws Error.Language {
-        return this.add_authority_fact(Utils.fact("right", Arrays.asList(Utils.string(resource), Utils.s(right))));
+    public Biscuit addRight(String resource, String right) throws Error.Language {
+        return this.addAuthorityFact(Utils.fact("right", Arrays.asList(Utils.string(resource), Utils.s(right))));
     }
 }

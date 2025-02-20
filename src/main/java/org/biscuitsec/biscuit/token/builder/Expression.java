@@ -12,13 +12,13 @@ public abstract class Expression {
         return new org.biscuitsec.biscuit.datalog.expressions.Expression(ops);
     }
 
-    public static Expression convert_from(org.biscuitsec.biscuit.datalog.expressions.Expression e, SymbolTable symbols) {
+    public static Expression convertFrom(org.biscuitsec.biscuit.datalog.expressions.Expression e, SymbolTable symbols) {
         ArrayList<Op> ops = new ArrayList<>();
         Deque<Expression> stack = new ArrayDeque<Expression>(16);
         for(org.biscuitsec.biscuit.datalog.expressions.Op op: e.getOps()){
             if(op instanceof org.biscuitsec.biscuit.datalog.expressions.Op.Value) {
                 org.biscuitsec.biscuit.datalog.expressions.Op.Value v = (org.biscuitsec.biscuit.datalog.expressions.Op.Value) op;
-                stack.push(new Expression.Value(Term.convert_from(v.getValue(), symbols)));
+                stack.push(new Expression.Value(Term.convertFrom(v.getValue(), symbols)));
             } else if(op instanceof org.biscuitsec.biscuit.datalog.expressions.Op.Unary) {
                 org.biscuitsec.biscuit.datalog.expressions.Op.Unary v = (org.biscuitsec.biscuit.datalog.expressions.Op.Unary) op;
                 Expression e1 = stack.pop();

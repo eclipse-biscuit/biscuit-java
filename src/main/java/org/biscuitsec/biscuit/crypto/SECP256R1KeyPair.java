@@ -92,7 +92,7 @@ final class SECP256R1KeyPair extends KeyPair {
     }
 
     @Override
-    public PublicKey public_key() {
+    public PublicKey getPublicKey() {
         return new PublicKey(Schema.PublicKey.Algorithm.SECP256R1, publicKey);
     }
 

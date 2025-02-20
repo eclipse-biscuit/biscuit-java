@@ -25,9 +25,9 @@ public class ThirdPartyBlockRequest {
 
     public Either<Error.FormatError, ThirdPartyBlockContents> createBlock(final Signer externalSigner, Block blockBuilder) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         SymbolTable symbols = new SymbolTable();
-        org.biscuitsec.biscuit.token.Block block = blockBuilder.build(symbols, Option.some(externalSigner.public_key()));
+        org.biscuitsec.biscuit.token.Block block = blockBuilder.build(symbols, Option.some(externalSigner.getPublicKey()));
 
-        Either<Error.FormatError, byte[]> res = block.to_bytes();
+        Either<Error.FormatError, byte[]> res = block.toBytes();
         if (res.isLeft()) {
             return Either.left(res.getLeft());
         }
@@ -36,7 +36,7 @@ public class ThirdPartyBlockRequest {
         byte[] payload = BlockSignatureBuffer.getBufferSignature(this.previousKey, serializedBlock);
         byte[] signature = externalSigner.sign(payload);
 
-        PublicKey publicKey = externalSigner.public_key();
+        PublicKey publicKey = externalSigner.getPublicKey();
 
         return Either.right(new ThirdPartyBlockContents(serializedBlock, signature, publicKey));
     }

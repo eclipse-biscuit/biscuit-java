@@ -10,5 +10,5 @@ import io.vavr.control.Option;
  * Tokens can carry a root key id, that can be used to indicate which key will verify it.
  */
 public interface KeyDelegate {
-    public Option<PublicKey> root_key(Option<Integer> keyId);
+    public Option<PublicKey> getRootKey(Option<Integer> keyId);
 }

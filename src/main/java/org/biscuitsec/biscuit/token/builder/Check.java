@@ -34,11 +34,11 @@ public class Check {
         return new org.biscuitsec.biscuit.datalog.Check(this.kind, queries);
     }
 
-    public static Check convert_from(org.biscuitsec.biscuit.datalog.Check r, SymbolTable symbols) {
+    public static Check convertFrom(org.biscuitsec.biscuit.datalog.Check r, SymbolTable symbols) {
         ArrayList<Rule> queries = new ArrayList<>();
 
         for(org.biscuitsec.biscuit.datalog.Rule q: r.queries()) {
-            queries.add(Rule.convert_from(q, symbols));
+            queries.add(Rule.convertFrom(q, symbols));
         }
 
         return new Check(r.kind(), queries);

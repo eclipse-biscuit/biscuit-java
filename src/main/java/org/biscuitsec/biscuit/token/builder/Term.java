@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public abstract class Term {
     abstract public org.biscuitsec.biscuit.datalog.Term convert(SymbolTable symbols);
-    static public Term convert_from(org.biscuitsec.biscuit.datalog.Term id, SymbolTable symbols) {
+    static public Term convertFrom(org.biscuitsec.biscuit.datalog.Term id, SymbolTable symbols) {
         return id.toTerm(symbols);
     }
 

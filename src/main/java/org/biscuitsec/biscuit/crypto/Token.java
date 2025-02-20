@@ -19,14 +19,14 @@ class Token {
 
     public Token(final Signer rootSigner, byte[] message, KeyPair next) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
-        byte[] payload = BlockSignatureBuffer.getBufferSignature(next.public_key(), message);
+        byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
 
         byte[] signature = rootSigner.sign(payload);
 
         this.blocks = new ArrayList<>();
         this.blocks.add(message);
         this.keys = new ArrayList<>();
-        this.keys.add(next.public_key());
+        this.keys.add(next.getPublicKey());
         this.signatures = new ArrayList<>();
         this.signatures.add(signature);
         this.next = next;
@@ -41,13 +41,13 @@ class Token {
     }
 
     public Token append(KeyPair keyPair, byte[] message) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-        byte[] payload = BlockSignatureBuffer.getBufferSignature(keyPair.public_key(), message);
+        byte[] payload = BlockSignatureBuffer.getBufferSignature(keyPair.getPublicKey(), message);
         byte[] signature = this.next.sign(payload);
 
         Token token = new Token(this.blocks, this.keys, this.signatures, keyPair);
         token.blocks.add(message);
         token.signatures.add(signature);
-        token.keys.add(keyPair.public_key());
+        token.keys.add(keyPair.getPublicKey());
 
         return token;
     }
@@ -68,7 +68,7 @@ class Token {
             }
         }
 
-        if (this.next.public_key().equals(currentKey)) {
+        if (this.next.getPublicKey().equals(currentKey)) {
             return Right(null);
         } else {
             return Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied"));

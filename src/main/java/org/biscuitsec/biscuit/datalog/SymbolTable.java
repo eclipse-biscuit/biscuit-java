@@ -84,7 +84,7 @@ public final class SymbolTable implements Serializable {
         return this.publicKeys.size();
     }
 
-    public List<PublicKey> publicKeys() {
+    public List<PublicKey> getPublicKeys() {
         return publicKeys;
     }
 
@@ -118,7 +118,7 @@ public final class SymbolTable implements Serializable {
         }
     }
 
-    public Option<String> get_s(int i) {
+    public Option<String> getSymbol(int i) {
         if (i >= 0 && i < this.DEFAULT_SYMBOLS.size() && i < DEFAULT_SYMBOLS_OFFSET) {
             return Option.some(this.DEFAULT_SYMBOLS.get(i));
         } else if (i >= DEFAULT_SYMBOLS_OFFSET && i < this.symbols.size() + DEFAULT_SYMBOLS_OFFSET) {
@@ -128,7 +128,7 @@ public final class SymbolTable implements Serializable {
         }
     }
 
-    public Option<PublicKey> get_pk(int i) {
+    public Option<PublicKey> getPublicKey(int i) {
         if (i >= 0 && i < this.publicKeys.size()) {
             return Option.some(this.publicKeys.get(i));
         } else {
@@ -136,16 +136,16 @@ public final class SymbolTable implements Serializable {
         }
     }
 
-    public String print_rule(final Rule r) {
-        String res = this.print_predicate(r.head());
-        res += " <- " + this.print_rule_body(r);
+    public String formatRule(final Rule r) {
+        String res = this.formatPredicate(r.head());
+        res += " <- " + this.formatRuleBody(r);
 
         return res;
     }
 
-    public String print_rule_body(final Rule r) {
-        final List<String> preds = r.body().stream().map((p) -> this.print_predicate(p)).collect(Collectors.toList());
-        final List<String> expressions = r.expressions().stream().map((c) -> this.print_expression(c)).collect(Collectors.toList());
+    public String formatRuleBody(final Rule r) {
+        final List<String> preds = r.body().stream().map((p) -> this.formatPredicate(p)).collect(Collectors.toList());
+        final List<String> expressions = r.expressions().stream().map((c) -> this.formatExpression(c)).collect(Collectors.toList());
 
         String res = String.join(", ", preds);
         if (!expressions.isEmpty()) {
@@ -157,24 +157,24 @@ public final class SymbolTable implements Serializable {
 
         if(!r.scopes().isEmpty()) {
             res += " trusting ";
-            final List<String> scopes = r.scopes().stream().map((s) -> this.print_scope(s)).collect(Collectors.toList());
+            final List<String> scopes = r.scopes().stream().map((s) -> this.formatScope(s)).collect(Collectors.toList());
             res += String.join(", ", scopes);
         }
         return res;
     }
 
-    public String print_expression(final Expression e) {
+    public String formatExpression(final Expression e) {
         return e.print(this).get();
     }
 
-    public String print_scope(final Scope scope) {
+    public String formatScope(final Scope scope) {
         switch(scope.kind) {
             case Authority:
                 return "authority";
             case Previous:
                 return "previous";
             case PublicKey:
-                Option<PublicKey> pk = this.get_pk((int) scope.publicKey);
+                Option<PublicKey> pk = this.getPublicKey((int) scope.publicKey);
                 if(pk.isDefined()) {
                     return pk.get().toString();
                 }
@@ -182,16 +182,16 @@ public final class SymbolTable implements Serializable {
         return "<"+ scope.publicKey+"?>";
     }
 
-    public String print_predicate(final Predicate p) {
+    public String formatPredicate(final Predicate p) {
         List<String> ids = p.terms().stream().map((t) -> {
-            return this.print_term(t);
+            return this.formatTerm(t);
         }).collect(Collectors.toList());
-        return Optional.ofNullable(this.print_symbol((int) p.name())).orElse("<?>") + "(" + String.join(", ", ids) + ")";
+        return Optional.ofNullable(this.formatSymbol((int) p.name())).orElse("<?>") + "(" + String.join(", ", ids) + ")";
     }
 
-    public String print_term(final Term i) {
+    public String formatTerm(final Term i) {
         if (i instanceof Term.Variable) {
-            return "$" + this.print_symbol((int) ((Term.Variable) i).value());
+            return "$" + this.formatSymbol((int) ((Term.Variable) i).value());
         } else if(i instanceof Term.Bool) {
             return i.toString();
         } else if (i instanceof Term.Date) {
@@ -199,22 +199,22 @@ public final class SymbolTable implements Serializable {
         } else if (i instanceof Term.Integer) {
             return "" + ((Term.Integer) i).value();
         } else if (i instanceof Term.Str) {
-            return "\"" + this.print_symbol((int) ((Term.Str) i).value()) + "\"";
+            return "\"" + this.formatSymbol((int) ((Term.Str) i).value()) + "\"";
         } else if (i instanceof Term.Bytes) {
             return "hex:" + Utils.byteArrayToHexString(((Term.Bytes) i).value()).toLowerCase();
         } else if (i instanceof Term.Set) {
-            final List<String> values = ((Term.Set) i).value().stream().map((v) -> this.print_term(v)).collect(Collectors.toList());
+            final List<String> values = ((Term.Set) i).value().stream().map((v) -> this.formatTerm(v)).collect(Collectors.toList());
             return "[" + String.join(", ", values) + "]";
         } else {
             return "???";
         }
     }
 
-    public String print_fact(final Fact f) {
-        return this.print_predicate(f.predicate());
+    public String formatFact(final Fact f) {
+        return this.formatPredicate(f.predicate());
     }
 
-    public String print_check(final Check c) {
+    public String formatCheck(final Check c) {
         String prefix;
         switch (c.kind()) {
             case One:
@@ -227,13 +227,13 @@ public final class SymbolTable implements Serializable {
                 prefix = "check if ";
                 break;
         }
-        final List<String> queries = c.queries().stream().map((q) -> this.print_rule_body(q)).collect(Collectors.toList());
+        final List<String> queries = c.queries().stream().map((q) -> this.formatRuleBody(q)).collect(Collectors.toList());
         return prefix + String.join(" or ", queries);
     }
 
-    public String print_world(final World w) {
-        final List<String> facts = w.facts().stream().map((f) -> this.print_fact(f)).collect(Collectors.toList());
-        final List<String> rules = w.rules().stream().map((r) -> this.print_rule(r)).collect(Collectors.toList());
+    public String formatWorld(final World w) {
+        final List<String> facts = w.facts().stream().map((f) -> this.formatFact(f)).collect(Collectors.toList());
+        final List<String> rules = w.rules().stream().map((r) -> this.formatRule(r)).collect(Collectors.toList());
 
         StringBuilder b = new StringBuilder();
         b.append("World {\n\tfacts: [\n\t\t");
@@ -245,8 +245,8 @@ public final class SymbolTable implements Serializable {
         return b.toString();
     }
 
-    public String print_symbol(int i) {
-        return get_s(i).getOrElse("<" + i + "?>");
+    public String formatSymbol(int i) {
+        return getSymbol(i).getOrElse("<" + i + "?>");
     }
 
     public SymbolTable() {

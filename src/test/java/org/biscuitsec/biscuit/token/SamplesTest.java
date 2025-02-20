@@ -14,7 +14,6 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 import org.biscuitsec.biscuit.token.builder.Check;
 import org.biscuitsec.biscuit.token.builder.parser.Parser;
-import org.biscuitsec.biscuit.token.format.SerializedBiscuit;
 import org.biscuitsec.biscuit.token.format.SignedBlock;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -26,10 +25,9 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.biscuitsec.biscuit.token.Block.from_bytes;
+import static org.biscuitsec.biscuit.token.Block.fromBytes;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SamplesTest {
@@ -117,7 +115,7 @@ class SamplesTest {
                 String[] authorizer_facts = validation.getAsJsonPrimitive("authorizer_code").getAsString().split(";");
                 Either<Throwable, Long> res = Try.of(() -> {
                     inputStream.read(data);
-                    Biscuit token = Biscuit.from_bytes(data, publicKey);
+                    Biscuit token = Biscuit.fromBytes(data, publicKey);
                     assertArrayEquals(token.serialize(), data);
 
                     List<org.biscuitsec.biscuit.token.Block> allBlocks = new ArrayList<>();
@@ -126,23 +124,23 @@ class SamplesTest {
 
                     compareBlocks(privateKey, testCase.token, token);
 
-                    byte[] ser_block_authority = token.authority.to_bytes().get();
+                    byte[] ser_block_authority = token.authority.toBytes().get();
                     System.out.println(Arrays.toString(ser_block_authority));
                     System.out.println(Arrays.toString(token.serializedBiscuit.authority.block));
-                    org.biscuitsec.biscuit.token.Block deser_block_authority = from_bytes(ser_block_authority, token.authority.externalKey).get();
+                    org.biscuitsec.biscuit.token.Block deser_block_authority = fromBytes(ser_block_authority, token.authority.externalKey).get();
                     assertEquals(token.authority.print(token.symbols), deser_block_authority.print(token.symbols));
                     assert(Arrays.equals(ser_block_authority, token.serializedBiscuit.authority.block));
 
                     for(int i = 0; i < token.blocks.size() - 1; i++) {
                         org.biscuitsec.biscuit.token.Block block = token.blocks.get(i);
                         SignedBlock signed_block = token.serializedBiscuit.blocks.get(i);
-                        byte[] ser_block = block.to_bytes().get();
-                        org.biscuitsec.biscuit.token.Block deser_block = from_bytes(ser_block,block.externalKey).get();
+                        byte[] ser_block = block.toBytes().get();
+                        org.biscuitsec.biscuit.token.Block deser_block = fromBytes(ser_block,block.externalKey).get();
                         assertEquals(block.print(token.symbols), deser_block.print(token.symbols));
                         assert(Arrays.equals(ser_block, signed_block.block));
                     }
 
-                    List<RevocationIdentifier> revocationIds = token.revocation_identifiers();
+                    List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
                     JsonArray validationRevocationIds = validation.getAsJsonArray("revocation_ids");
                     assertEquals(revocationIds.size(), validationRevocationIds.size());
                     for(int i = 0; i < revocationIds.size(); i++) {
@@ -157,17 +155,17 @@ class SamplesTest {
                         f = f.trim();
                         if (f.length() > 0) {
                             if (f.startsWith("check if") || f.startsWith("check all")) {
-                                authorizer.add_check(f);
+                                authorizer.addCheck(f);
                             } else if (f.startsWith("allow if") || f.startsWith("deny if")) {
-                                authorizer.add_policy(f);
+                                authorizer.addPolicy(f);
                             } else if (f.startsWith("revocation_id")) {
                                 // do nothing
                             } else {
-                                authorizer.add_fact(f);
+                                authorizer.addFact(f);
                             }
                         }
                     }
-                    System.out.println(authorizer.print_world());
+                    System.out.println(authorizer.formatWorld());
                     try {
                         Long authorizeResult = authorizer.authorize(runLimits);
 
@@ -363,7 +361,7 @@ class SamplesTest {
                         ArrayList<Long> origin = new ArrayList<>(entry.getKey().inner);
                         Collections.sort(origin);
                         ArrayList<String> facts = new ArrayList<>(entry.getValue().stream()
-                                .map(f -> authorizer.symbols.print_fact(f)).collect(Collectors.toList()));
+                                .map(f -> authorizer.symbols.formatFact(f)).collect(Collectors.toList()));
                         Collections.sort(facts);
 
                         return new FactSet(origin, facts);
@@ -375,7 +373,7 @@ class SamplesTest {
                     if (!rules.containsKey(t._1)) {
                         rules.put(t._1, new ArrayList<>());
                     }
-                    rules.get(t._1).add(authorizer.symbols.print_rule(t._2));
+                    rules.get(t._1).add(authorizer.symbols.formatRule(t._2));
                 }
             }
             for(Map.Entry<Long, List<String>> entry: rules.entrySet()) {

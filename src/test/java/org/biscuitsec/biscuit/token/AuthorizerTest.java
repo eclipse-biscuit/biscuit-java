@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.biscuitsec.biscuit.token.builder.Utils.constrained_rule;
+import static org.biscuitsec.biscuit.token.builder.Utils.constrainedRule;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AuthorizerTest {
@@ -26,9 +26,9 @@ public class AuthorizerTest {
         authorizer.deny();
         assertEquals(1, policies.size());
 
-        authorizer.add_policy(new Policy(
+        authorizer.addPolicy(new Policy(
                 Arrays.asList(
-                        constrained_rule(
+                        constrainedRule(
                                 "deny",
                                 new ArrayList<>(),
                                 new ArrayList<>(),
@@ -37,7 +37,7 @@ public class AuthorizerTest {
                 ), Policy.Kind.Deny));
         assertEquals(2, policies.size());
 
-        authorizer.add_policy("deny if true");
+        authorizer.addPolicy("deny if true");
         assertEquals(3, policies.size());
     }
 
@@ -48,14 +48,14 @@ public class AuthorizerTest {
         KeyPair keypair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, new SecureRandom());
 
         Biscuit token = Biscuit.builder(keypair)
-                .add_authority_fact("email(\"bob@example.com\")")
-                .add_authority_fact("id(123)")
-                .add_authority_fact("enabled(true)")
-                .add_authority_fact("perms([1,2,3])")
+                .addAuthorityFact("email(\"bob@example.com\")")
+                .addAuthorityFact("id(123)")
+                .addAuthorityFact("enabled(true)")
+                .addAuthorityFact("perms([1,2,3])")
                 .build();
 
-        Authorizer authorizer = Biscuit.from_b64url(token.serialize_b64url(), keypair.public_key())
-                .verify(keypair.public_key())
+        Authorizer authorizer = Biscuit.fromBase64Url(token.serializeBase64Url(), keypair.getPublicKey())
+                .verify(keypair.getPublicKey())
                 .authorizer();
 
         Term emailTerm = queryFirstResult(authorizer, "emailfact($name) <- email($name)");

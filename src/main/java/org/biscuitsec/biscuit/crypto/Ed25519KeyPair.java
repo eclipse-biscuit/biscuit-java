@@ -82,7 +82,7 @@ final class Ed25519KeyPair extends KeyPair {
     }
 
     @Override
-    public PublicKey public_key() {
+    public PublicKey getPublicKey() {
         return new PublicKey(Schema.PublicKey.Algorithm.Ed25519, this.publicKey);
     }
 

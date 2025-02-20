@@ -95,7 +95,7 @@ class ParserTest {
             Either<Error, Tuple2<String, Rule>> res =
                 Parser.rule("valid_date(\"file1\") <- time($0 ), resource( \"file1\"), $0 <= 2019-12-04T09:46:41Z");
         assertEquals(Either.right(new Tuple2<>("",
-                        Utils.constrained_rule("valid_date",
+                        Utils.constrainedRule("valid_date",
                                 List.of(Utils.string("file1")),
                                 Arrays.asList(
                                         Utils.pred("time", List.of(Utils.var("0"))),
@@ -116,7 +116,7 @@ class ParserTest {
         Either<Error, Tuple2<String, Rule>> res =
                 Parser.rule("valid_date(\"file1\") <- time($0 ), $0 <= 2019-12-04T09:46:41Z, resource(\"file1\")");
         assertEquals(Either.right(new Tuple2<>("",
-                        Utils.constrained_rule("valid_date",
+                        Utils.constrainedRule("valid_date",
                                 List.of(Utils.string("file1")),
                                 Arrays.asList(
                                         Utils.pred("time", List.of(Utils.var("0"))),
@@ -175,7 +175,7 @@ class ParserTest {
                 Parser.check("check if !false && true");
         assertEquals(Either.right(new Tuple2<>("",
                         Utils.check(
-                        Utils.constrained_rule("query",
+                        Utils.constrainedRule("query",
                                 new ArrayList<>(),
                                 new ArrayList<>(),
                                 List.of(
@@ -434,10 +434,10 @@ class ParserTest {
         assertTrue(output.isRight());
 
         Block validBlock = new Block();
-        validBlock.add_fact(l1);
-        validBlock.add_fact(l2);
-        validBlock.add_rule(l3);
-        validBlock.add_check(l4);
+        validBlock.addFact(l1);
+        validBlock.addFact(l2);
+        validBlock.addRule(l3);
+        validBlock.addCheck(l4);
 
         output.forEach(block ->
                 assertEquals(block, validBlock)
@@ -446,7 +446,7 @@ class ParserTest {
 
     @Test
     void testDatalogSucceedsArrays() throws org.biscuitsec.biscuit.error.Error.Parser {
-        SymbolTable symbols = Biscuit.default_symbol_table();
+        SymbolTable symbols = Biscuit.defaultSymbolTable();
 
         String l1 = "check if [2, 3].union([2])";
         String toParse = String.join(";", List.of(l1));
@@ -455,7 +455,7 @@ class ParserTest {
         assertTrue(output.isRight());
 
         Block validBlock = new Block();
-        validBlock.add_check(l1);
+        validBlock.addCheck(l1);
 
         output.forEach(block ->
                 assertEquals(block, validBlock)
@@ -464,7 +464,7 @@ class ParserTest {
 
     @Test
     void testDatalogSucceedsArraysContains() throws org.biscuitsec.biscuit.error.Error.Parser {
-        SymbolTable symbols = Biscuit.default_symbol_table();
+        SymbolTable symbols = Biscuit.defaultSymbolTable();
 
         String l1 = "check if [2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z].contains(2020-12-04T09:46:41Z)";
         String toParse = String.join(";", List.of(l1));
@@ -473,7 +473,7 @@ class ParserTest {
         assertTrue(output.isRight());
 
         Block validBlock = new Block();
-        validBlock.add_check(l1);
+        validBlock.addCheck(l1);
 
         output.forEach(block ->
                 assertEquals(block, validBlock)
@@ -482,7 +482,7 @@ class ParserTest {
 
     @Test
     void testDatalogFailed() {
-        SymbolTable symbols = Biscuit.default_symbol_table();
+        SymbolTable symbols = Biscuit.defaultSymbolTable();
 
         String l1 = "fact(1)";
         String l2 = "check fact(1)"; // typo missing "if"
@@ -494,7 +494,7 @@ class ParserTest {
 
     @Test
     void testDatalogRemoveComment() throws org.biscuitsec.biscuit.error.Error.Parser {
-        SymbolTable symbols = Biscuit.default_symbol_table();
+        SymbolTable symbols = Biscuit.defaultSymbolTable();
 
         String l0 = "// test comment";
         String l1 = "fact1(1, 2);";

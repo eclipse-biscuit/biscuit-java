@@ -42,11 +42,11 @@ public class SerializedBiscuit {
      * @param slice
      * @return
      */
-    static public SerializedBiscuit from_bytes(byte[] slice, org.biscuitsec.biscuit.crypto.PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    static public SerializedBiscuit fromBytes(byte[] slice, org.biscuitsec.biscuit.crypto.PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         try {
             Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
 
-            return from_bytes_inner(data, root);
+            return fromBytesInner(data, root);
         } catch (InvalidProtocolBufferException e) {
             throw new Error.FormatError.DeserializationError(e.toString());
         }
@@ -58,7 +58,7 @@ public class SerializedBiscuit {
      * @param slice
      * @return
      */
-    static public SerializedBiscuit from_bytes(byte[] slice, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    static public SerializedBiscuit fromBytes(byte[] slice, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         try {
             Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
 
@@ -67,18 +67,18 @@ public class SerializedBiscuit {
                 rootKeyId = Option.some(data.getRootKeyId());
             }
 
-            Option<org.biscuitsec.biscuit.crypto.PublicKey> root = delegate.root_key(rootKeyId);
+            Option<org.biscuitsec.biscuit.crypto.PublicKey> root = delegate.getRootKey(rootKeyId);
             if (root.isEmpty()) {
                 throw new InvalidKeyException("unknown root key id");
             }
 
-            return from_bytes_inner(data, root.get());
+            return fromBytesInner(data, root.get());
         } catch (InvalidProtocolBufferException e) {
             throw new Error.FormatError.DeserializationError(e.toString());
         }
     }
 
-    static SerializedBiscuit from_bytes_inner(Schema.Biscuit data, org.biscuitsec.biscuit.crypto.PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    static SerializedBiscuit fromBytesInner(Schema.Biscuit data, org.biscuitsec.biscuit.crypto.PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         SerializedBiscuit b = SerializedBiscuit.deserialize(data);
         if (data.hasRootKeyId()) {
             b.rootKeyId = Option.some(data.getRootKeyId());
@@ -100,7 +100,7 @@ public class SerializedBiscuit {
      * @return SerializedBiscuit
      * @throws Error.FormatError.DeserializationError
      */
-    static public SerializedBiscuit unsafe_deserialize(byte[] slice) throws Error.FormatError.DeserializationError {
+    static public SerializedBiscuit deserializeUnsafe(byte[] slice) throws Error.FormatError.DeserializationError {
         try {
             Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
             return SerializedBiscuit.deserialize(data);
@@ -236,7 +236,7 @@ public class SerializedBiscuit {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             b.writeTo(stream);
             byte[] block = stream.toByteArray();
-            org.biscuitsec.biscuit.crypto.PublicKey nextKey = next.public_key();
+            org.biscuitsec.biscuit.crypto.PublicKey nextKey = next.getPublicKey();
             byte[] payload = BlockSignatureBuffer.getBufferSignature(nextKey, block);
             byte[] signature = rootSigner.sign(payload);
             SignedBlock signedBlock = new SignedBlock(block, nextKey, signature, Option.none());
@@ -261,7 +261,7 @@ public class SerializedBiscuit {
 
             byte[] block = stream.toByteArray();
             KeyPair secretKey = this.proof.secretKey.get();
-            org.biscuitsec.biscuit.crypto.PublicKey nextKey = next.public_key();
+            org.biscuitsec.biscuit.crypto.PublicKey nextKey = next.getPublicKey();
 
             byte[] payload = BlockSignatureBuffer.getBufferSignature(nextKey, block, externalSignature.toJavaOptional());
             byte[] signature = this.proof.secretKey.get().sign(payload);
@@ -306,7 +306,7 @@ public class SerializedBiscuit {
             //System.out.println("checking secret key");
             //System.out.println("current key: "+currentKey.toHex());
             //System.out.println("key from proof: "+this.proof.secretKey.get().public_key().toHex());
-            if (this.proof.secretKey.get().public_key().equals(currentKey)) {
+            if (this.proof.secretKey.get().getPublicKey().equals(currentKey)) {
                 //System.out.println("public keys are equal");
 
                 return Right(null);
@@ -385,7 +385,7 @@ public class SerializedBiscuit {
 
     public Tuple2<Block, ArrayList<Block>> extractBlocks(SymbolTable symbols) throws Error {
         ArrayList<Option<org.biscuitsec.biscuit.crypto.PublicKey>> blockExternalKeys = new ArrayList<>();
-        Either<Error.FormatError, Block> authRes = Block.from_bytes(this.authority.block, Option.none());
+        Either<Error.FormatError, Block> authRes = Block.fromBytes(this.authority.block, Option.none());
         if (authRes.isLeft()) {
             throw authRes.getLeft();
         }
@@ -405,7 +405,7 @@ public class SerializedBiscuit {
             if(bdata.externalSignature.isDefined()) {
                 externalKey = Option.some(bdata.externalSignature.get().key);
             }
-            Either<Error.FormatError, Block> blockRes = Block.from_bytes(bdata.block, externalKey);
+            Either<Error.FormatError, Block> blockRes = Block.fromBytes(bdata.block, externalKey);
             if (blockRes.isLeft()) {
                 throw blockRes.getLeft();
             }

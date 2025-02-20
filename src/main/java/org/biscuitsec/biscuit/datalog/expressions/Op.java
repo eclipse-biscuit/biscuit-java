@@ -25,7 +25,7 @@ public abstract class Op {
 
     static public Either<Error.FormatError, Op> deserializeV2(Schema.Op op) {
         if (op.hasValue()) {
-            return Term.deserialize_enumV2(op.getValue()).map(v -> new Op.Value(v));
+            return Term.deserializeEnumV2(op.getValue()).map(v -> new Op.Value(v));
         } else if (op.hasUnary()) {
             return Op.Unary.deserializeV2(op.getUnary());
         } else if (op.hasBinary()) {
@@ -64,7 +64,7 @@ public abstract class Op {
 
         @Override
         public String print(Deque<String> stack, SymbolTable symbols) {
-            String s = symbols.print_term(value);
+            String s = symbols.formatTerm(value);
             stack.push(s);
             return s;
         }
@@ -133,7 +133,7 @@ public abstract class Op {
                     break;
                 case Length:
                     if (value instanceof Term.Str) {
-                        Option<String> s = symbols.get_s((int)((Term.Str) value).value());
+                        Option<String> s = symbols.getSymbol((int)((Term.Str) value).value());
                         if(s.isEmpty()) {
                             throw new Error.Execution("string not found in symbols for id"+value);
                         } else {
@@ -364,8 +364,8 @@ public abstract class Op {
                         stack.push(new Term.Bool(leftSet.containsAll(rightSet)));
                     }
                     if (left instanceof Term.Str && right instanceof Term.Str) {
-                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
 
                         if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
@@ -380,8 +380,8 @@ public abstract class Op {
                     break;
                 case Prefix:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
                         if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
@@ -394,8 +394,8 @@ public abstract class Op {
                     break;
                 case Suffix:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
                         if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
@@ -407,8 +407,8 @@ public abstract class Op {
                     break;
                 case Regex:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
                         if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
@@ -432,8 +432,8 @@ public abstract class Op {
                         }
                     }
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
 
                         if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());

@@ -28,7 +28,7 @@ public final class MatchedVariables implements Serializable {
       return this.variables.get(key);
    }
 
-   public boolean is_complete() {
+   public boolean isComplete() {
       return this.variables.values().stream().allMatch((v) -> v.isPresent());
    }
 
@@ -61,7 +61,7 @@ public final class MatchedVariables implements Serializable {
       }
    }
 
-   public Option<Map<Long, Term>> check_expressions(List<Expression> expressions, SymbolTable symbols) throws Error {
+   public Option<Map<Long, Term>> checkExpressions(List<Expression> expressions, SymbolTable symbols) throws Error {
       final Option<Map<Long, Term>> vars = this.complete();
       if (vars.isDefined()) {
          Map<Long, Term> variables = vars.get();

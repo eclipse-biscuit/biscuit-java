@@ -41,7 +41,7 @@ public class Authorizer {
         this.policies = new ArrayList<>();
         this.scopes = new ArrayList<>();
         this.publicKeyToBlockId = new HashMap<>();
-        update_on_token();
+        updateOnToken();
     }
 
     /**
@@ -52,7 +52,7 @@ public class Authorizer {
      */
     public Authorizer() {
         this.world = new World();
-        this.symbols = Biscuit.default_symbol_table();
+        this.symbols = Biscuit.defaultSymbolTable();
         this.checks = new ArrayList<>();
         this.policies = new ArrayList<>();
         this.scopes = new ArrayList<>();
@@ -87,7 +87,7 @@ public class Authorizer {
                 new World(this.world), new SymbolTable(this.symbols));
     }
 
-    public void update_on_token() throws Error.FailedLogic {
+    public void updateOnToken() throws Error.FailedLogic {
         if (token != null) {
             for(long i =0; i < token.blocks.size(); i++) {
                 Block block = token.blocks.get((int) i);
@@ -113,16 +113,16 @@ public class Authorizer {
             );
 
             for (org.biscuitsec.biscuit.datalog.Fact fact : token.authority.facts) {
-                org.biscuitsec.biscuit.datalog.Fact convertedFact = org.biscuitsec.biscuit.token.builder.Fact.convert_from(fact, token.symbols).convert(this.symbols);
-                world.add_fact(new Origin(0), convertedFact);
+                org.biscuitsec.biscuit.datalog.Fact convertedFact = org.biscuitsec.biscuit.token.builder.Fact.convertFrom(fact, token.symbols).convert(this.symbols);
+                world.addFact(new Origin(0), convertedFact);
             }
             for (org.biscuitsec.biscuit.datalog.Rule rule : token.authority.rules) {
-                org.biscuitsec.biscuit.token.builder.Rule lRule = org.biscuitsec.biscuit.token.builder.Rule.convert_from(rule, token.symbols);
+                org.biscuitsec.biscuit.token.builder.Rule lRule = org.biscuitsec.biscuit.token.builder.Rule.convertFrom(rule, token.symbols);
                 org.biscuitsec.biscuit.datalog.Rule convertedRule = lRule.convert(this.symbols);
 
-                Either<String, org.biscuitsec.biscuit.token.builder.Rule> res = lRule.validate_variables();
+                Either<String, org.biscuitsec.biscuit.token.builder.Rule> res = lRule.validateVariables();
                 if(res.isLeft()){
-                    throw new Error.FailedLogic(new LogicError.InvalidBlockRule(0, token.symbols.print_rule(convertedRule)));
+                    throw new Error.FailedLogic(new LogicError.InvalidBlockRule(0, token.symbols.formatRule(convertedRule)));
                 }
                 TrustedOrigins ruleTrustedOrigins = TrustedOrigins.fromScopes(
                         convertedRule.scopes(),
@@ -130,7 +130,7 @@ public class Authorizer {
                         0,
                         this.publicKeyToBlockId
                 );
-                world.add_rule((long) 0, ruleTrustedOrigins, convertedRule);
+                world.addRule((long) 0, ruleTrustedOrigins, convertedRule);
             }
 
             for(long i =0; i < token.blocks.size(); i++) {
@@ -149,17 +149,17 @@ public class Authorizer {
                 }
 
                 for (org.biscuitsec.biscuit.datalog.Fact fact : block.facts) {
-                    org.biscuitsec.biscuit.datalog.Fact convertedFact = org.biscuitsec.biscuit.token.builder.Fact.convert_from(fact, blockSymbols).convert(this.symbols);
-                    world.add_fact(new Origin(i + 1), convertedFact);
+                    org.biscuitsec.biscuit.datalog.Fact convertedFact = org.biscuitsec.biscuit.token.builder.Fact.convertFrom(fact, blockSymbols).convert(this.symbols);
+                    world.addFact(new Origin(i + 1), convertedFact);
                 }
 
                 for (org.biscuitsec.biscuit.datalog.Rule rule : block.rules) {
-                    org.biscuitsec.biscuit.token.builder.Rule sRule = org.biscuitsec.biscuit.token.builder.Rule.convert_from(rule, blockSymbols);
+                    org.biscuitsec.biscuit.token.builder.Rule sRule = org.biscuitsec.biscuit.token.builder.Rule.convertFrom(rule, blockSymbols);
                     org.biscuitsec.biscuit.datalog.Rule convertedRule = sRule.convert(this.symbols);
 
-                    Either<String, org.biscuitsec.biscuit.token.builder.Rule> res = sRule.validate_variables();
+                    Either<String, org.biscuitsec.biscuit.token.builder.Rule> res = sRule.validateVariables();
                     if (res.isLeft()) {
-                        throw new Error.FailedLogic(new LogicError.InvalidBlockRule(0, this.symbols.print_rule(convertedRule)));
+                        throw new Error.FailedLogic(new LogicError.InvalidBlockRule(0, this.symbols.formatRule(convertedRule)));
                     }
                     TrustedOrigins ruleTrustedOrigins = TrustedOrigins.fromScopes(
                             convertedRule.scopes(),
@@ -167,28 +167,28 @@ public class Authorizer {
                             i + 1,
                             this.publicKeyToBlockId
                     );
-                    world.add_rule((long) i + 1, ruleTrustedOrigins, convertedRule);
+                    world.addRule((long) i + 1, ruleTrustedOrigins, convertedRule);
                 }
             }
         }
     }
 
-    public Authorizer add_token(Biscuit token) throws Error.FailedLogic {
+    public Authorizer addToken(Biscuit token) throws Error.FailedLogic {
         if (this.token != null) {
             throw new Error.FailedLogic(new LogicError.AuthorizerNotEmpty());
         }
 
         this.token = token;
-        update_on_token();
+        updateOnToken();
         return this;
     }
 
-    public Authorizer add_fact(org.biscuitsec.biscuit.token.builder.Fact fact) {
-        world.add_fact(Origin.authorizer(), fact.convert(symbols));
+    public Authorizer addFact(org.biscuitsec.biscuit.token.builder.Fact fact) {
+        world.addFact(Origin.authorizer(), fact.convert(symbols));
         return this;
     }
 
-    public Authorizer add_fact(String s) throws Error.Parser {
+    public Authorizer addFact(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Fact>> res =
                 Parser.fact(s);
 
@@ -198,10 +198,10 @@ public class Authorizer {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Fact> t = res.get();
 
-        return this.add_fact(t._2);
+        return this.addFact(t._2);
     }
 
-    public Authorizer add_rule(org.biscuitsec.biscuit.token.builder.Rule rule) {
+    public Authorizer addRule(org.biscuitsec.biscuit.token.builder.Rule rule) {
        org.biscuitsec.biscuit.datalog.Rule r = rule.convert(symbols);
         TrustedOrigins ruleTrustedOrigins = TrustedOrigins.fromScopes(
                 r.scopes(),
@@ -209,7 +209,7 @@ public class Authorizer {
                 Long.MAX_VALUE,
                 this.publicKeyToBlockId
             );
-        world.add_rule(Long.MAX_VALUE, ruleTrustedOrigins, r);
+        world.addRule(Long.MAX_VALUE, ruleTrustedOrigins, r);
         return this;
     }
 
@@ -222,7 +222,7 @@ public class Authorizer {
         );
     }
 
-    public Authorizer add_rule(String s) throws Error.Parser {
+    public Authorizer addRule(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule>> res =
                 Parser.rule(s);
 
@@ -232,15 +232,15 @@ public class Authorizer {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule> t = res.get();
 
-        return add_rule(t._2);
+        return addRule(t._2);
     }
 
-    public Authorizer add_check(org.biscuitsec.biscuit.token.builder.Check check) {
+    public Authorizer addCheck(org.biscuitsec.biscuit.token.builder.Check check) {
         this.checks.add(check);
         return this;
     }
 
-    public Authorizer add_check(String s) throws Error.Parser {
+    public Authorizer addCheck(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, org.biscuitsec.biscuit.token.builder.Check>> res =
                 Parser.check(s);
 
@@ -250,15 +250,15 @@ public class Authorizer {
 
         Tuple2<String, org.biscuitsec.biscuit.token.builder.Check> t = res.get();
 
-        return add_check(t._2);
+        return addCheck(t._2);
     }
 
-    public Authorizer set_time() throws Error.Language {
-        world.add_fact(Origin.authorizer(), Utils.fact("time", List.of(Utils.date(new Date()))).convert(symbols));
+    public Authorizer setTime() throws Error.Language {
+        world.addFact(Origin.authorizer(), Utils.fact("time", List.of(Utils.date(new Date()))).convert(symbols));
         return this;
     }
 
-    public List<String> get_revocation_ids() throws Error {
+    public List<String> getRevocationIds() throws Error {
         ArrayList<String> ids = new ArrayList<>();
 
         final org.biscuitsec.biscuit.token.builder.Rule getRevocationIds = Utils.rule(
@@ -281,7 +281,7 @@ public class Authorizer {
     public Authorizer allow() {
         ArrayList<org.biscuitsec.biscuit.token.builder.Rule> q = new ArrayList<>();
 
-        q.add(Utils.constrained_rule(
+        q.add(Utils.constrainedRule(
                 "allow",
                 new ArrayList<>(),
                 new ArrayList<>(),
@@ -295,7 +295,7 @@ public class Authorizer {
     public Authorizer deny() {
         ArrayList<org.biscuitsec.biscuit.token.builder.Rule> q = new ArrayList<>();
 
-        q.add(Utils.constrained_rule(
+        q.add(Utils.constrainedRule(
                 "deny",
                 new ArrayList<>(),
                 new ArrayList<>(),
@@ -306,7 +306,7 @@ public class Authorizer {
         return this;
     }
 
-    public Authorizer add_policy(String s) throws Error.Parser {
+    public Authorizer addPolicy(String s) throws Error.Parser {
         Either<org.biscuitsec.biscuit.token.builder.parser.Error, Tuple2<String, Policy>> res =
                 Parser.policy(s);
 
@@ -320,12 +320,12 @@ public class Authorizer {
         return this;
     }
 
-    public Authorizer add_policy(Policy p) {
+    public Authorizer addPolicy(Policy p) {
         this.policies.add(p);
         return this;
     }
 
-    public Authorizer add_scope(Scope s) {
+    public Authorizer addScope(Scope s) {
         this.scopes.add(s);
         return this;
     }
@@ -358,13 +358,13 @@ public class Authorizer {
                 this.publicKeyToBlockId
         );
 
-        FactSet facts = world.query_rule(rule, Long.MAX_VALUE,
+        FactSet facts = world.queryRule(rule, Long.MAX_VALUE,
                 ruleTrustedorigins, symbols);
         Set<org.biscuitsec.biscuit.token.builder.Fact> s = new HashSet<>();
 
         for (Iterator<org.biscuitsec.biscuit.datalog.Fact> it = facts.stream().iterator(); it.hasNext(); ) {
             org.biscuitsec.biscuit.datalog.Fact f = it.next();
-            s.add(org.biscuitsec.biscuit.token.builder.Fact.convert_from(f, symbols));
+            s.add(org.biscuitsec.biscuit.token.builder.Fact.convertFrom(f, symbols));
         }
 
         return s;
@@ -411,10 +411,10 @@ public class Authorizer {
                 );
                 switch (c.kind()) {
                     case One:
-                        res = world.query_match(query, Long.MAX_VALUE, ruleTrustedOrigins, symbols);
+                        res = world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbols);
                         break;
                     case All:
-                        res = world.query_match_all(query, ruleTrustedOrigins, symbols);
+                        res = world.queryMatchAll(query, ruleTrustedOrigins, symbols);
                         break;
                 }
 
@@ -429,7 +429,7 @@ public class Authorizer {
             }
 
             if (!successful) {
-                errors.add(new FailedCheck.FailedAuthorizer(i, symbols.print_check(c)));
+                errors.add(new FailedCheck.FailedAuthorizer(i, symbols.formatCheck(c)));
             }
         }
 
@@ -444,7 +444,7 @@ public class Authorizer {
             for (int j = 0; j < token.authority.checks.size(); j++) {
                 boolean successful = false;
 
-                org.biscuitsec.biscuit.token.builder.Check c = org.biscuitsec.biscuit.token.builder.Check.convert_from(token.authority.checks.get(j), token.symbols);
+                org.biscuitsec.biscuit.token.builder.Check c = org.biscuitsec.biscuit.token.builder.Check.convertFrom(token.authority.checks.get(j), token.symbols);
                 org.biscuitsec.biscuit.datalog.Check check = c.convert(symbols);
 
                 for (int k = 0; k < check.queries().size(); k++) {
@@ -458,10 +458,10 @@ public class Authorizer {
                     );
                     switch (check.kind()) {
                         case One:
-                            res = world.query_match(query, (long)0, ruleTrustedOrigins, symbols);
+                            res = world.queryMatch(query, (long)0, ruleTrustedOrigins, symbols);
                             break;
                         case All:
-                            res = world.query_match_all(query, ruleTrustedOrigins, symbols);
+                            res = world.queryMatchAll(query, ruleTrustedOrigins, symbols);
                             break;
                     }
 
@@ -476,7 +476,7 @@ public class Authorizer {
                 }
 
                 if (!successful) {
-                    errors.add(new FailedCheck.FailedBlock(0, j, symbols.print_check(check)));
+                    errors.add(new FailedCheck.FailedBlock(0, j, symbols.formatCheck(check)));
                 }
             }
         }
@@ -493,7 +493,7 @@ public class Authorizer {
                         Long.MAX_VALUE,
                         this.publicKeyToBlockId
                 );
-                boolean res = world.query_match(query, Long.MAX_VALUE, policyTrustedOrigins, symbols);
+                boolean res = world.queryMatch(query, Long.MAX_VALUE, policyTrustedOrigins, symbols);
 
                 if (Instant.now().compareTo(timeLimit) >= 0) {
                     throw new Error.Timeout();
@@ -527,7 +527,7 @@ public class Authorizer {
                 for (int j = 0; j < b.checks.size(); j++) {
                     boolean successful = false;
 
-                    org.biscuitsec.biscuit.token.builder.Check c = org.biscuitsec.biscuit.token.builder.Check.convert_from(b.checks.get(j), blockSymbols);
+                    org.biscuitsec.biscuit.token.builder.Check c = org.biscuitsec.biscuit.token.builder.Check.convertFrom(b.checks.get(j), blockSymbols);
                     org.biscuitsec.biscuit.datalog.Check check = c.convert(symbols);
 
                     for (int k = 0; k < check.queries().size(); k++) {
@@ -541,10 +541,10 @@ public class Authorizer {
                         );
                         switch (check.kind()) {
                             case One:
-                                res = world.query_match(query, (long)i+1, ruleTrustedOrigins, symbols);
+                                res = world.queryMatch(query, (long)i+1, ruleTrustedOrigins, symbols);
                                 break;
                             case All:
-                                res = world.query_match_all(query, ruleTrustedOrigins, symbols);
+                                res = world.queryMatchAll(query, ruleTrustedOrigins, symbols);
                                 break;
                         }
 
@@ -559,7 +559,7 @@ public class Authorizer {
                     }
 
                     if (!successful) {
-                        errors.add(new FailedCheck.FailedBlock(i + 1, j, symbols.print_check(check)));
+                        errors.add(new FailedCheck.FailedBlock(i + 1, j, symbols.formatCheck(check)));
                     }
                 }
             }
@@ -581,16 +581,16 @@ public class Authorizer {
         }
     }
 
-    public String print_world() {
+    public String formatWorld() {
         StringBuilder facts = new StringBuilder();
         for(Map.Entry<Origin, HashSet<org.biscuitsec.biscuit.datalog.Fact>> entry: this.world.facts().facts().entrySet()) {
             facts.append("\n\t\t"+entry.getKey()+":");
             for(org.biscuitsec.biscuit.datalog.Fact f: entry.getValue()) {
                 facts.append("\n\t\t\t");
-                facts.append(this.symbols.print_fact(f));
+                facts.append(this.symbols.formatFact(f));
             }
         }
-        final List<String> rules = this.world.rules().stream().map((r) -> this.symbols.print_rule(r)).collect(Collectors.toList());
+        final List<String> rules = this.world.rules().stream().map((r) -> this.symbols.formatRule(r)).collect(Collectors.toList());
 
         List<String> checks = new ArrayList<>();
 
@@ -600,7 +600,7 @@ public class Authorizer {
 
         if (this.token != null) {
             for (int j = 0; j < this.token.authority.checks.size(); j++) {
-                checks.add("Block[0][" + j + "]: " + token.symbols.print_check(this.token.authority.checks.get(j)));
+                checks.add("Block[0][" + j + "]: " + token.symbols.formatCheck(this.token.authority.checks.get(j)));
             }
 
             for (int i = 0; i < this.token.blocks.size(); i++) {
@@ -612,7 +612,7 @@ public class Authorizer {
                 }
 
                 for (int j = 0; j < b.checks.size(); j++) {
-                    checks.add("Block[" + (i+1) + "][" + j + "]: " + blockSymbols.print_check(b.checks.get(j)));
+                    checks.add("Block[" + (i+1) + "][" + j + "]: " + blockSymbols.formatCheck(b.checks.get(j)));
                 }
             }
         }
@@ -643,7 +643,7 @@ public class Authorizer {
 
         List<Check> authorityChecks = new ArrayList<>();
         for(org.biscuitsec.biscuit.datalog.Check check: this.token.authority.checks) {
-            authorityChecks.add(Check.convert_from(check, this.token.symbols));
+            authorityChecks.add(Check.convertFrom(check, this.token.symbols));
         }
         if(!authorityChecks.isEmpty()) {
             allChecks.add(new Tuple2<>((long) 0, authorityChecks));
@@ -656,11 +656,11 @@ public class Authorizer {
             if(block.externalKey.isDefined()) {
                 SymbolTable blockSymbols = new SymbolTable(block.symbols.symbols, block.publicKeys());
                 for(org.biscuitsec.biscuit.datalog.Check check: block.checks) {
-                    blockChecks.add(Check.convert_from(check, blockSymbols));
+                    blockChecks.add(Check.convertFrom(check, blockSymbols));
                 }
             } else {
                 for(org.biscuitsec.biscuit.datalog.Check check: block.checks) {
-                    blockChecks.add(Check.convert_from(check, token.symbols));
+                    blockChecks.add(Check.convertFrom(check, token.symbols));
                 }
             }
             if(!blockChecks.isEmpty()) {

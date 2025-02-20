@@ -25,5 +25,5 @@ public interface Signer {
      *
      * @return
      */
-    public PublicKey public_key();
+    public PublicKey getPublicKey();
 }

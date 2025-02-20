@@ -14,12 +14,12 @@ public class World implements Serializable {
    private final FactSet facts;
    private final RuleSet rules;
 
-   public void add_fact(final Origin origin, final Fact fact) {
+   public void addFact(final Origin origin, final Fact fact) {
       this.facts.add(origin, fact);
    }
 
 
-   public void add_rule(Long origin, TrustedOrigins scope, Rule rule) {
+   public void addRule(Long origin, TrustedOrigins scope, Rule rule) {
       this.rules.add(origin, scope, rule);
    }
 
@@ -85,7 +85,7 @@ public class World implements Serializable {
       return this.rules;
    }
 
-   public final FactSet query_rule(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
+   public final FactSet queryRule(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
       final FactSet newFacts = new FactSet();
 
       Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
@@ -105,12 +105,12 @@ public class World implements Serializable {
       return newFacts;
    }
 
-   public final boolean query_match(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
-      return rule.find_match(this.facts, origin, scope, symbols);
+   public final boolean queryMatch(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
+      return rule.findMatch(this.facts, origin, scope, symbols);
    }
 
-   public final boolean query_match_all(final Rule rule, TrustedOrigins scope, SymbolTable symbols) throws Error {
-      return rule.check_match_all(this.facts, scope, symbols);
+   public final boolean queryMatchAll(final Rule rule, TrustedOrigins scope, SymbolTable symbols) throws Error {
+      return rule.checkMatchAll(this.facts, scope, symbols);
    }
 
 
@@ -142,7 +142,7 @@ public class World implements Serializable {
          s.append("\n\t\t\t"+entry.getKey()+":");
          for(Fact f: entry.getValue()) {
             s.append("\n\t\t\t\t");
-            s.append(symbolTable.print_fact(f));
+            s.append(symbolTable.formatFact(f));
          }
       }
 
@@ -150,7 +150,7 @@ public class World implements Serializable {
        for (Iterator<Rule> it = this.rules.stream().iterator(); it.hasNext(); ) {
            Rule r = it.next();
            s.append("\n\t\t\t");
-           s.append(symbolTable.print_rule(r));
+           s.append(symbolTable.formatRule(r));
        }
 
       s.append("\n\t\t]\n\t}");

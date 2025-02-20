@@ -93,7 +93,7 @@ public class Block {
         SymbolTable localSymbols;
         if(this.externalKey.isDefined()) {
             localSymbols = new SymbolTable(this.symbols);
-            for(PublicKey pk: symbolTable.publicKeys()) {
+            for(PublicKey pk: symbolTable.getPublicKeys()) {
                 localSymbols.insert(pk);
             }
         } else {
@@ -103,7 +103,7 @@ public class Block {
         s.append(" {\n\t\tsymbols: ");
         s.append(this.symbols.symbols);
         s.append("\n\t\tsymbol public keys: ");
-        s.append(this.symbols.publicKeys());
+        s.append(this.symbols.getPublicKeys());
         s.append("\n\t\tblock public keys: ");
         s.append(this.publicKeys);
         s.append("\n\t\tcontext: ");
@@ -115,22 +115,22 @@ public class Block {
         s.append("\n\t\tscopes: [");
         for (Scope scope : this.scopes) {
             s.append("\n\t\t\t");
-            s.append(symbolTable.print_scope(scope));
+            s.append(symbolTable.formatScope(scope));
         }
         s.append("\n\t\t]\n\t\tfacts: [");
         for (Fact f : this.facts) {
             s.append("\n\t\t\t");
-            s.append(localSymbols.print_fact(f));
+            s.append(localSymbols.formatFact(f));
         }
         s.append("\n\t\t]\n\t\trules: [");
         for (Rule r : this.rules) {
             s.append("\n\t\t\t");
-            s.append(localSymbols.print_rule(r));
+            s.append(localSymbols.formatRule(r));
         }
         s.append("\n\t\t]\n\t\tchecks: [");
         for (Check c : this.checks) {
             s.append("\n\t\t\t");
-            s.append(localSymbols.print_check(c));
+            s.append(localSymbols.formatCheck(c));
         }
         s.append("\n\t\t]\n\t}");
 
@@ -143,7 +143,7 @@ public class Block {
         SymbolTable localSymbols;
         if(this.externalKey.isDefined()) {
             localSymbols = new SymbolTable(this.symbols);
-            for(PublicKey pk: symbolTable.publicKeys()) {
+            for(PublicKey pk: symbolTable.getPublicKeys()) {
                 localSymbols.insert(pk);
             }
         } else {
@@ -163,16 +163,16 @@ public class Block {
             s.append(this.externalKey.get().toString());
         }*/
         for (Scope scope : this.scopes) {
-            s.append("trusting "+localSymbols.print_scope(scope)+"\n");
+            s.append("trusting "+localSymbols.formatScope(scope)+"\n");
         }
         for (Fact f : this.facts) {
-            s.append(localSymbols.print_fact(f)+";\n");
+            s.append(localSymbols.formatFact(f)+";\n");
         }
         for (Rule r : this.rules) {
-            s.append(localSymbols.print_rule(r)+";\n");
+            s.append(localSymbols.formatRule(r)+";\n");
         }
         for (Check c : this.checks) {
-            s.append(localSymbols.print_check(c)+";\n");
+            s.append(localSymbols.formatCheck(c)+";\n");
         }
 
         return s.toString();
@@ -332,7 +332,7 @@ public class Block {
             try {
                 PublicKey key =PublicKey.deserialize(pk);
                 publicKeys.add(key);
-                symbols.publicKeys().add(key);
+                symbols.getPublicKeys().add(key);
             } catch(Error.FormatError e) {
                 return Left(e);
             }
@@ -354,7 +354,7 @@ public class Block {
      * @param slice
      * @return
      */
-    static public Either<Error.FormatError, Block> from_bytes(byte[] slice, Option<PublicKey> externalKey) {
+    static public Either<Error.FormatError, Block> fromBytes(byte[] slice, Option<PublicKey> externalKey) {
         try {
             Schema.Block data = Schema.Block.parseFrom(slice);
             return Block.deserialize(data, externalKey);
@@ -363,7 +363,7 @@ public class Block {
         }
     }
 
-    public Either<Error.FormatError, byte[]> to_bytes() {
+    public Either<Error.FormatError, byte[]> toBytes() {
         Schema.Block b = this.serialize();
         try {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();

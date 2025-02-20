@@ -65,5 +65,5 @@ public abstract class KeyPair implements Signer {
     public abstract String toHex();
 
     @Override
-    public abstract PublicKey public_key();
+    public abstract PublicKey getPublicKey();
 }
