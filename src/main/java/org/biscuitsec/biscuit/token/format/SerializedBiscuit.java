@@ -31,7 +31,7 @@ public class SerializedBiscuit {
     public SignedBlock authority;
     public List<SignedBlock> blocks;
     public Proof proof;
-    public Option<Integer> root_key_id;
+    public Option<Integer> rootKeyId;
 
     public final static int MIN_SCHEMA_VERSION = 3;
     public final static int MAX_SCHEMA_VERSION = 5;
@@ -81,7 +81,7 @@ public class SerializedBiscuit {
     static SerializedBiscuit from_bytes_inner(Schema.Biscuit data, org.biscuitsec.biscuit.crypto.PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         SerializedBiscuit b = SerializedBiscuit.deserialize(data);
         if (data.hasRootKeyId()) {
-            b.root_key_id = Option.some(data.getRootKeyId());
+            b.rootKeyId = Option.some(data.getRootKeyId());
         }
 
         Either<Error, Void> res = b.verify(root);
@@ -207,8 +207,8 @@ public class SerializedBiscuit {
         }
 
         biscuitBuilder.setProof(proofBuilder.build());
-        if (!this.root_key_id.isEmpty()) {
-            biscuitBuilder.setRootKeyId(this.root_key_id.get());
+        if (!this.rootKeyId.isEmpty()) {
+            biscuitBuilder.setRootKeyId(this.rootKeyId.get());
         }
 
         Schema.Biscuit biscuit = biscuitBuilder.build();
@@ -276,7 +276,7 @@ public class SerializedBiscuit {
 
             Proof proof = new Proof(next);
 
-            return Right(new SerializedBiscuit(this.authority, blocks, proof, root_key_id));
+            return Right(new SerializedBiscuit(this.authority, blocks, proof, rootKeyId));
         } catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
             return Left(new Error.FormatError.SerializationError(e.toString()));
         }
@@ -467,13 +467,13 @@ public class SerializedBiscuit {
         this.authority = authority;
         this.blocks = blocks;
         this.proof = proof;
-        this.root_key_id = Option.none();
+        this.rootKeyId = Option.none();
     }
 
-    SerializedBiscuit(SignedBlock authority, List<SignedBlock> blocks, Proof proof, Option<Integer> root_key_id) {
+    SerializedBiscuit(SignedBlock authority, List<SignedBlock> blocks, Proof proof, Option<Integer> rootKeyId) {
         this.authority = authority;
         this.blocks = blocks;
         this.proof = proof;
-        this.root_key_id = root_key_id;
+        this.rootKeyId = rootKeyId;
     }
 }

@@ -25,7 +25,7 @@ public class Biscuit {
     List<Rule> rules;
     List<Check> checks;
     List<Scope> scopes;
-    Option<Integer> root_key_id;
+    Option<Integer> rootKeyId;
 
     public Biscuit(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root) {
         this.rng = rng;
@@ -35,10 +35,10 @@ public class Biscuit {
         this.rules = new ArrayList<>();
         this.checks = new ArrayList<>();
         this.scopes = new ArrayList<>();
-        this.root_key_id = Option.none();
+        this.rootKeyId = Option.none();
     }
 
-    public Biscuit(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, Option<Integer> root_key_id) {
+    public Biscuit(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, Option<Integer> rootKeyId) {
         this.rng = rng;
         this.root = root;
         this.context = "";
@@ -46,13 +46,13 @@ public class Biscuit {
         this.rules = new ArrayList<>();
         this.checks = new ArrayList<>();
         this.scopes = new ArrayList<>();
-        this.root_key_id = root_key_id;
+        this.rootKeyId = rootKeyId;
     }
 
-    public Biscuit(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, Option<Integer> root_key_id, org.biscuitsec.biscuit.token.builder.Block block) {
+    public Biscuit(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, Option<Integer> rootKeyId, org.biscuitsec.biscuit.token.builder.Block block) {
         this.rng = rng;
         this.root = root;
-        this.root_key_id = root_key_id;
+        this.rootKeyId = rootKeyId;
         this.context = block.context;
         this.facts = block.facts;
         this.rules = block.rules;
@@ -126,7 +126,7 @@ public class Biscuit {
     }
 
     public void set_root_key_id(Integer i) {
-        this.root_key_id = Option.some(i);
+        this.rootKeyId = Option.some(i);
     }
 
     public org.biscuitsec.biscuit.token.Biscuit build() throws Error {
@@ -169,8 +169,8 @@ public class Biscuit {
         Block authority_block = new Block(block_symbols, context, facts, rules,
                 checks, scopes, publicKeys, Option.none(), schemaVersion.version());
 
-        if (this.root_key_id.isDefined()) {
-            return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, this.root_key_id.get(), authority_block);
+        if (this.rootKeyId.isDefined()) {
+            return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, this.rootKeyId.get(), authority_block);
         } else {
             return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, authority_block);
         }

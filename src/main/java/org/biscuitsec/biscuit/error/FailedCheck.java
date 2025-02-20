@@ -12,13 +12,13 @@ public class FailedCheck {
     }
 
     public static class FailedBlock extends FailedCheck {
-        final public long block_id;
-        final public long check_id;
+        final public long blockId;
+        final public long checkId;
         final public String rule;
 
-        public FailedBlock(long block_id, long check_id, String rule) {
-            this.block_id = block_id;
-            this.check_id = check_id;
+        public FailedBlock(long blockId, long checkId, String rule) {
+            this.blockId = blockId;
+            this.checkId = checkId;
             this.rule = rule;
         }
 
@@ -27,12 +27,12 @@ public class FailedCheck {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             FailedBlock b = (FailedBlock) o;
-            return block_id == b.block_id && check_id == b.check_id && rule.equals(b.rule);
+            return blockId == b.blockId && checkId == b.checkId && rule.equals(b.rule);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(block_id, check_id, rule);
+            return Objects.hash(blockId, checkId, rule);
         }
 
         @Override
@@ -43,8 +43,8 @@ public class FailedCheck {
         @Override
         public JsonElement toJson() {
             JsonObject jo = new JsonObject();
-            jo.addProperty("block_id", block_id);
-            jo.addProperty("check_id", check_id);
+            jo.addProperty("block_id", blockId);
+            jo.addProperty("check_id", checkId);
             jo.addProperty("rule", rule);
             JsonObject block = new JsonObject();
             block.add("Block", jo);
@@ -53,11 +53,11 @@ public class FailedCheck {
     }
 
     public static class FailedAuthorizer extends FailedCheck {
-        final public long check_id;
+        final public long checkId   ;
         final public String rule;
 
-        public FailedAuthorizer(long check_id, String rule) {
-            this.check_id = check_id;
+        public FailedAuthorizer(long checkId, String rule) {
+            this.checkId = checkId;
             this.rule = rule;
         }
 
@@ -66,24 +66,24 @@ public class FailedCheck {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             FailedAuthorizer b = (FailedAuthorizer) o;
-            return check_id == b.check_id && rule.equals(b.rule);
+            return checkId == b.checkId && rule.equals(b.rule);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(check_id, rule);
+            return Objects.hash(checkId, rule);
         }
 
         @Override
         public String toString() {
-            return "FailedCaveat.FailedAuthorizer { check_id: "+check_id+
+            return "FailedCaveat.FailedAuthorizer { check_id: "+ checkId +
                     ", rule: "+rule+" }";
         }
 
         @Override
         public JsonElement toJson() {
             JsonObject jo = new JsonObject();
-            jo.addProperty("check_id", check_id);
+            jo.addProperty("check_id", checkId);
             jo.addProperty("rule", rule);
             JsonObject authorizer = new JsonObject();
             authorizer.add("Authorizer", jo);
@@ -104,9 +104,9 @@ public class FailedCheck {
             }
         }
         public static class Builder extends LanguageError {
-            List<String> invalid_variables;
-            public Builder(List<String> invalid_variables) {
-                this.invalid_variables = invalid_variables;
+            List<String> invalidVariables;
+            public Builder(List<String> invalidVariables) {
+                this.invalidVariables = invalidVariables;
             }
 
             @Override
@@ -114,24 +114,24 @@ public class FailedCheck {
                 if (this == o) return true;
                 if (o == null || getClass() != o.getClass()) return false;
                 Builder b = (Builder) o;
-                return invalid_variables == b.invalid_variables && invalid_variables.equals(b.invalid_variables);
+                return invalidVariables == b.invalidVariables && invalidVariables.equals(b.invalidVariables);
             }
 
             @Override
             public int hashCode() {
-                return Objects.hash(invalid_variables);
+                return Objects.hash(invalidVariables);
             }
 
             @Override
             public String toString() {
-                return "InvalidVariables { message: "+invalid_variables+" }";
+                return "InvalidVariables { message: "+ invalidVariables +" }";
             }
 
             @Override
             public JsonElement toJson() {
                 JsonObject authorizer = new JsonObject();
                 JsonArray ja = new JsonArray();
-                for(String s : invalid_variables){
+                for(String s : invalidVariables){
                     ja.add(s);
                 }
                 authorizer.add("InvalidVariables", ja);
