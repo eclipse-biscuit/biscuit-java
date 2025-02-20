@@ -134,7 +134,7 @@ public class World implements Serializable {
       this.rules = w.rules.clone();
    }
 
-   public String print(SymbolTable symbol_table) {
+   public String print(SymbolTable symbolTable) {
       StringBuilder s = new StringBuilder();
 
       s.append("World {\n\t\tfacts: [");
@@ -142,7 +142,7 @@ public class World implements Serializable {
          s.append("\n\t\t\t"+entry.getKey()+":");
          for(Fact f: entry.getValue()) {
             s.append("\n\t\t\t\t");
-            s.append(symbol_table.print_fact(f));
+            s.append(symbolTable.print_fact(f));
          }
       }
 
@@ -150,7 +150,7 @@ public class World implements Serializable {
        for (Iterator<Rule> it = this.rules.stream().iterator(); it.hasNext(); ) {
            Rule r = it.next();
            s.append("\n\t\t\t");
-           s.append(symbol_table.print_rule(r));
+           s.append(symbolTable.print_rule(r));
        }
 
       s.append("\n\t\t]\n\t}");

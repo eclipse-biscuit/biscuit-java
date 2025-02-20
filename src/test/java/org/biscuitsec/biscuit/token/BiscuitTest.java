@@ -640,7 +640,7 @@ public class BiscuitTest {
         assertThrows(InvalidKeyException.class, () -> {
             Biscuit deser = Biscuit.from_bytes(data, new KeyDelegate() {
                 @Override
-                public Option<PublicKey> root_key(Option<Integer> key_id) {
+                public Option<PublicKey> root_key(Option<Integer> keyId) {
                     return Option.none();
                 }
             });
@@ -650,7 +650,7 @@ public class BiscuitTest {
         assertThrows(Error.FormatError.Signature.InvalidSignature.class, () -> {
             Biscuit deser = Biscuit.from_bytes(data, new KeyDelegate() {
                 @Override
-                public Option<PublicKey> root_key(Option<Integer> key_id) {
+                public Option<PublicKey> root_key(Option<Integer> keyId) {
 
                     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
                     return Option.some(root.public_key());
@@ -660,8 +660,8 @@ public class BiscuitTest {
 
         Biscuit deser = Biscuit.from_bytes(data, new KeyDelegate() {
             @Override
-            public Option<PublicKey> root_key(Option<Integer> key_id) {
-                if (key_id.get() == 1) {
+            public Option<PublicKey> root_key(Option<Integer> keyId) {
+                if (keyId.get() == 1) {
                     return Option.some(root.public_key());
                 } else {
                     return Option.none();

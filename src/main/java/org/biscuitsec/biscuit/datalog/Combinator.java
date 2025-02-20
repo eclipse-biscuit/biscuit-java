@@ -139,12 +139,12 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
 
 
    public Combinator(final MatchedVariables variables, final List<Predicate> predicates,
-                     Supplier<Stream<Tuple2<Origin, Fact>>> all_facts, final SymbolTable symbols) {
+                     Supplier<Stream<Tuple2<Origin, Fact>>> allFacts, final SymbolTable symbols) {
       this.variables = variables;
-      this.allFacts = all_facts;
+      this.allFacts = allFacts;
       this.currentIt = null;
       this.predicates = predicates;
-      this.currentFacts = all_facts.get().filter((tuple) -> tuple._2.match_predicate(predicates.get(0))).iterator();
+      this.currentFacts = allFacts.get().filter((tuple) -> tuple._2.match_predicate(predicates.get(0))).iterator();
       this.symbols = symbols;
       this.currentOrigin = null;
       this.nextElement = null;

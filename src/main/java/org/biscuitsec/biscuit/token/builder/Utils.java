@@ -18,15 +18,15 @@ public class Utils {
         return new Predicate(name, ids);
     }
 
-    public static Rule rule(String head_name, List<Term> head_ids,
+    public static Rule rule(String headName, List<Term> headIds,
                             List<Predicate> predicates) {
-        return new Rule(pred(head_name, head_ids), predicates, new ArrayList<>(), new ArrayList<>());
+        return new Rule(pred(headName, headIds), predicates, new ArrayList<>(), new ArrayList<>());
     }
 
-    public static Rule constrained_rule(String head_name, List<Term> head_ids,
+    public static Rule constrained_rule(String headName, List<Term> headIds,
                                         List<Predicate> predicates,
                                         List<Expression> expressions) {
-        return new Rule(pred(head_name, head_ids), predicates, expressions, new ArrayList<>());
+        return new Rule(pred(headName, headIds), predicates, expressions, new ArrayList<>());
     }
 
     public static Check check(Rule rule) {

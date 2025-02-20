@@ -50,8 +50,8 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param root root private key
      * @return
      */
-    public static org.biscuitsec.biscuit.token.builder.Biscuit builder(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> root_key_id) {
-        return new org.biscuitsec.biscuit.token.builder.Biscuit(rng, root, root_key_id);
+    public static org.biscuitsec.biscuit.token.builder.Biscuit builder(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> rootKeyId) {
+        return new org.biscuitsec.biscuit.token.builder.Biscuit(rng, root, rootKeyId);
     }
 
     /**
@@ -74,8 +74,8 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param authority authority block
      * @return Biscuit
      */
-    public static Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Integer root_key_id, final Block authority) throws Error.FormatError {
-        return Biscuit.make(rng, root, Option.of(root_key_id), authority);
+    public static Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Integer rootKeyId, final Block authority) throws Error.FormatError {
+        return Biscuit.make(rng, root, Option.of(rootKeyId), authority);
     }
 
     /**
@@ -86,7 +86,7 @@ public class Biscuit extends UnverifiedBiscuit {
      * @param authority authority block
      * @return Biscuit
      */
-    static private Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> root_key_id, final Block authority) throws Error.FormatError {
+    static private Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> rootKeyId, final Block authority) throws Error.FormatError {
         ArrayList<Block> blocks = new ArrayList<>();
 
         KeyPair next = KeyPair.generate(root.public_key().algorithm, rng);
@@ -95,21 +95,21 @@ public class Biscuit extends UnverifiedBiscuit {
             authority.symbols.insert(pk);
         }
 
-        Either<Error.FormatError, SerializedBiscuit> container = SerializedBiscuit.make(root, root_key_id, authority, next);
+        Either<Error.FormatError, SerializedBiscuit> container = SerializedBiscuit.make(root, rootKeyId, authority, next);
         if (container.isLeft()) {
             throw container.getLeft();
         } else {
             SerializedBiscuit s = container.get();
-            List<byte[]> revocation_ids = s.revocation_identifiers();
+            List<byte[]> revocationIds = s.revocationIdentifiers();
 
             Option<SerializedBiscuit> c = Option.some(s);
-            return new Biscuit(authority, blocks, authority.symbols, s, revocation_ids);
+            return new Biscuit(authority, blocks, authority.symbols, s, revocationIds);
         }
     }
 
     Biscuit(Block authority, List<Block> blocks, SymbolTable symbols, SerializedBiscuit serializedBiscuit,
-            List<byte[]> revocation_ids) {
-        super(authority, blocks, symbols, serializedBiscuit,  revocation_ids);
+            List<byte[]> revocationIds) {
+        super(authority, blocks, symbols, serializedBiscuit,  revocationIds);
     }
 
     /**
@@ -246,9 +246,9 @@ public class Biscuit extends UnverifiedBiscuit {
         Block authority = t._1;
         ArrayList<Block> blocks = t._2;
 
-        List<byte[]> revocation_ids = ser.revocation_identifiers();
+        List<byte[]> revocationIds = ser.revocationIdentifiers();
 
-        return new Biscuit(authority, blocks, symbols, ser, revocation_ids);
+        return new Biscuit(authority, blocks, symbols, ser, revocationIds);
     }
 
     /**
@@ -346,9 +346,9 @@ public class Biscuit extends UnverifiedBiscuit {
         }
         blocks.add(block);
 
-        List<byte[]> revocation_ids = container.revocation_identifiers();
+        List<byte[]> revocationIds = container.revocationIdentifiers();
 
-        return new Biscuit(copiedBiscuit.authority, blocks, symbols, container, revocation_ids);
+        return new Biscuit(copiedBiscuit.authority, blocks, symbols, container, revocationIds);
     }
 
     /**

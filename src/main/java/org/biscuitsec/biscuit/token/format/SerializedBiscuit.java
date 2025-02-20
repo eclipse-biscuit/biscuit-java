@@ -62,12 +62,12 @@ public class SerializedBiscuit {
         try {
             Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
 
-            Option<Integer> root_key_id = Option.none();
+            Option<Integer> rootKeyId = Option.none();
             if (data.hasRootKeyId()) {
-                root_key_id = Option.some(data.getRootKeyId());
+                rootKeyId = Option.some(data.getRootKeyId());
             }
 
-            Option<org.biscuitsec.biscuit.crypto.PublicKey> root = delegate.root_key(root_key_id);
+            Option<org.biscuitsec.biscuit.crypto.PublicKey> root = delegate.root_key(rootKeyId);
             if (root.isEmpty()) {
                 throw new InvalidKeyException("unknown root key id");
             }
@@ -229,7 +229,7 @@ public class SerializedBiscuit {
         return make(root, Option.none(), authority, next);
     }
 
-    static public Either<Error.FormatError, SerializedBiscuit> make(final org.biscuitsec.biscuit.crypto.Signer rootSigner, final Option<Integer> root_key_id,
+    static public Either<Error.FormatError, SerializedBiscuit> make(final org.biscuitsec.biscuit.crypto.Signer rootSigner, final Option<Integer> rootKeyId,
                                                                     final Block authority, final org.biscuitsec.biscuit.crypto.KeyPair next) {
         Schema.Block b = authority.serialize();
         try {
@@ -242,7 +242,7 @@ public class SerializedBiscuit {
             SignedBlock signedBlock = new SignedBlock(block, next_key, signature, Option.none());
             Proof proof = new Proof(next);
 
-            return Right(new SerializedBiscuit(signedBlock, new ArrayList<>(), proof, root_key_id));
+            return Right(new SerializedBiscuit(signedBlock, new ArrayList<>(), proof, rootKeyId));
         } catch (IOException | NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
             return Left(new Error.FormatError.SerializationError(e.toString()));
         }
@@ -453,7 +453,7 @@ public class SerializedBiscuit {
         return Right(null);
     }
 
-    public List<byte[]> revocation_identifiers() {
+    public List<byte[]> revocationIdentifiers() {
         ArrayList<byte[]> l = new ArrayList<>();
         l.add(this.authority.signature);
 

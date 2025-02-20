@@ -18,8 +18,8 @@ public class PublicKey {
 
     private static final Set<Algorithm> SUPPORTED_ALGORITHMS = Set.of(Algorithm.Ed25519, Algorithm.SECP256R1);
 
-    public PublicKey(Algorithm algorithm, java.security.PublicKey public_key) {
-        this.key = public_key;
+    public PublicKey(Algorithm algorithm, java.security.PublicKey publicKey) {
+        this.key = publicKey;
         this.algorithm = algorithm;
     }
 

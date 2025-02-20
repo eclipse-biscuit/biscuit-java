@@ -37,10 +37,10 @@ public class Block {
     /**
      * creates a new block
      *
-     * @param base_symbols
+     * @param baseSymbols
      */
-    public Block(SymbolTable base_symbols) {
-        this.symbols = base_symbols;
+    public Block(SymbolTable baseSymbols) {
+        this.symbols = baseSymbols;
         this.context = "";
         this.facts = new ArrayList<>();
         this.rules = new ArrayList<>();
@@ -53,13 +53,13 @@ public class Block {
     /**
      * creates a new block
      *
-     * @param base_symbols
+     * @param baseSymbols
      * @param facts
      * @param checks
      */
-    public Block(SymbolTable base_symbols, String context, List<Fact> facts, List<Rule> rules, List<Check> checks,
+    public Block(SymbolTable baseSymbols, String context, List<Fact> facts, List<Rule> rules, List<Check> checks,
                  List<Scope> scopes, List<PublicKey> publicKeys, Option<PublicKey> externalKey, int version) {
-        this.symbols = base_symbols;
+        this.symbols = baseSymbols;
         this.context = context;
         this.facts = facts;
         this.rules = rules;
@@ -84,20 +84,20 @@ public class Block {
     /**
      * pretty printing for a block
      *
-     * @param symbol_table
+     * @param symbolTable
      * @return
      */
-    public String print(SymbolTable symbol_table) {
+    public String print(SymbolTable symbolTable) {
         StringBuilder s = new StringBuilder();
 
         SymbolTable local_symbols;
         if(this.externalKey.isDefined()) {
             local_symbols = new SymbolTable(this.symbols);
-            for(PublicKey pk: symbol_table.publicKeys()) {
+            for(PublicKey pk: symbolTable.publicKeys()) {
                 local_symbols.insert(pk);
             }
         } else {
-            local_symbols = symbol_table;
+            local_symbols = symbolTable;
         }
         s.append("Block");
         s.append(" {\n\t\tsymbols: ");
@@ -115,7 +115,7 @@ public class Block {
         s.append("\n\t\tscopes: [");
         for (Scope scope : this.scopes) {
             s.append("\n\t\t\t");
-            s.append(symbol_table.print_scope(scope));
+            s.append(symbolTable.print_scope(scope));
         }
         s.append("\n\t\t]\n\t\tfacts: [");
         for (Fact f : this.facts) {
@@ -137,17 +137,17 @@ public class Block {
         return s.toString();
     }
 
-    public String printCode(SymbolTable symbol_table) {
+    public String printCode(SymbolTable symbolTable) {
         StringBuilder s = new StringBuilder();
 
         SymbolTable local_symbols;
         if(this.externalKey.isDefined()) {
             local_symbols = new SymbolTable(this.symbols);
-            for(PublicKey pk: symbol_table.publicKeys()) {
+            for(PublicKey pk: symbolTable.publicKeys()) {
                 local_symbols.insert(pk);
             }
         } else {
-            local_symbols = symbol_table;
+            local_symbols = symbolTable;
         }
         /*s.append("Block");
         s.append(" {\n\t\tsymbols: ");
