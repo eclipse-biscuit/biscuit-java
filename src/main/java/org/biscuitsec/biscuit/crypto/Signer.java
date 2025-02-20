@@ -18,12 +18,12 @@ public interface Signer {
      * @throws InvalidKeyException
      * @throws SignatureException
      */
-    public byte[] sign(byte[] payload) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException;
+    byte[] sign(byte[] payload) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException;
 
     /**
      * Return the public key of the signer and the associated algorithm
      *
      * @return
      */
-    public PublicKey getPublicKey();
+    PublicKey getPublicKey();
 }

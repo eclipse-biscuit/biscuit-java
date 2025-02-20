@@ -34,7 +34,7 @@ final class SECP256R1KeyPair extends KeyPair {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public SECP256R1KeyPair(byte[] bytes) {
+    SECP256R1KeyPair(byte[] bytes) {
         var privateKeySpec = new ECPrivateKeySpec(BigIntegers.fromUnsignedByteArray(bytes), SECP256R1);
         var privateKey = new BCECPrivateKey(ALGORITHM, privateKeySpec, BouncyCastleProvider.CONFIGURATION);
 
@@ -45,7 +45,7 @@ final class SECP256R1KeyPair extends KeyPair {
         this.publicKey = publicKey;
     }
 
-    public SECP256R1KeyPair(SecureRandom rng) {
+    SECP256R1KeyPair(SecureRandom rng) {
         byte[] bytes = new byte[32];
         rng.nextBytes(bytes);
 
@@ -59,7 +59,7 @@ final class SECP256R1KeyPair extends KeyPair {
         this.publicKey = publicKey;
     }
 
-    public SECP256R1KeyPair(String hex) {
+    SECP256R1KeyPair(String hex) {
         this(Utils.hexStringToByteArray(hex));
     }
 

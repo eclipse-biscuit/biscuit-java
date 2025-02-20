@@ -31,15 +31,15 @@ public final class Rule implements Serializable {
    private final List<Expression> expressions;
    private final List<Scope> scopes;
 
-   public final Predicate head() {
+   public Predicate head() {
       return this.head;
    }
 
-   public final List<Predicate> body() {
+   public List<Predicate> body() {
       return this.body;
    }
 
-   public final List<Expression> expressions() {
+   public List<Expression> expressions() {
       return this.expressions;
    }
 

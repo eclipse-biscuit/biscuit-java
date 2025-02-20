@@ -17,7 +17,7 @@ class Token {
     public final ArrayList<byte[]> signatures;
     public final KeyPair next;
 
-    public Token(final Signer rootSigner, byte[] message, KeyPair next) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    Token(final Signer rootSigner, byte[] message, KeyPair next) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
         byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
 
@@ -32,7 +32,7 @@ class Token {
         this.next = next;
     }
 
-    public Token(final ArrayList<byte[]> blocks, final ArrayList<PublicKey> keys, final ArrayList<byte[]> signatures,
+    Token(final ArrayList<byte[]> blocks, final ArrayList<PublicKey> keys, final ArrayList<byte[]> signatures,
                  final KeyPair next) {
         this.signatures = signatures;
         this.blocks = blocks;
@@ -40,7 +40,7 @@ class Token {
         this.next = next;
     }
 
-    public Token append(KeyPair keyPair, byte[] message) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    Token append(KeyPair keyPair, byte[] message) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         byte[] payload = BlockSignatureBuffer.getBufferSignature(keyPair.getPublicKey(), message);
         byte[] signature = this.next.sign(payload);
 

@@ -14,7 +14,7 @@ import static io.vavr.API.Right;
 public final class Fact implements Serializable {
    private final Predicate predicate;
 
-   public final Predicate predicate() {
+   public Predicate predicate() {
       return this.predicate;
    }
 

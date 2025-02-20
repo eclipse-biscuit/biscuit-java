@@ -14,7 +14,7 @@ import java.util.HashSet;
 
 
 public abstract class Term implements Serializable {
-   public abstract boolean match(final Term other);
+   public abstract boolean match(Term other);
    public abstract Schema.TermV2 serialize();
 
    static public Either<Error.FormatError, Term> deserializeEnumV2(Schema.TermV2 term) {
