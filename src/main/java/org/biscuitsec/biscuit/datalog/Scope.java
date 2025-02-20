@@ -8,7 +8,7 @@ import io.vavr.control.Either;
 import static io.vavr.API.Left;
 import static io.vavr.API.Right;
 
-public class Scope {
+public final class Scope {
     public enum Kind {
         Authority,
         Previous,

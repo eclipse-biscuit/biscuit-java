@@ -5,7 +5,7 @@ import org.biscuitsec.biscuit.datalog.SymbolTable;
 
 import java.util.Objects;
 
-public class Scope {
+public final class Scope {
     enum Kind {
         Authority,
         Previous,
