@@ -176,22 +176,20 @@ public class SerializedBiscuit {
     public byte[] serialize() throws Error.FormatError.SerializationError {
         Schema.Biscuit.Builder biscuitBuilder = Schema.Biscuit.newBuilder();
         Schema.SignedBlock.Builder authorityBuilder = Schema.SignedBlock.newBuilder();
-        {
-            SignedBlock block = this.authority;
-            authorityBuilder.setBlock(ByteString.copyFrom(block.block));
-            authorityBuilder.setNextKey(block.key.serialize());
-            authorityBuilder.setSignature(ByteString.copyFrom(block.signature));
-        }
+        SignedBlock authorityBlock = this.authority;
+        authorityBuilder.setBlock(ByteString.copyFrom(authorityBlock.block));
+        authorityBuilder.setNextKey(authorityBlock.key.serialize());
+        authorityBuilder.setSignature(ByteString.copyFrom(authorityBlock.signature));
         biscuitBuilder.setAuthority(authorityBuilder.build());
 
-        for (SignedBlock block : this.blocks) {
+        for (SignedBlock b : this.blocks) {
             Schema.SignedBlock.Builder blockBuilder = Schema.SignedBlock.newBuilder();
-            blockBuilder.setBlock(ByteString.copyFrom(block.block));
-            blockBuilder.setNextKey(block.key.serialize());
-            blockBuilder.setSignature(ByteString.copyFrom(block.signature));
+            blockBuilder.setBlock(ByteString.copyFrom(b.block));
+            blockBuilder.setNextKey(b.key.serialize());
+            blockBuilder.setSignature(ByteString.copyFrom(b.signature));
 
-            if (block.externalSignature.isDefined()) {
-                ExternalSignature externalSignature = block.externalSignature.get();
+            if (b.externalSignature.isDefined()) {
+                ExternalSignature externalSignature = b.externalSignature.get();
                 Schema.ExternalSignature.Builder externalSignatureBuilder = Schema.ExternalSignature.newBuilder();
                 externalSignatureBuilder.setPublicKey(externalSignature.key.serialize());
                 externalSignatureBuilder.setSignature(ByteString.copyFrom(externalSignature.signature));
@@ -286,17 +284,15 @@ public class SerializedBiscuit {
 
     public Either<Error, Void> verify(org.biscuitsec.biscuit.crypto.PublicKey root) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         org.biscuitsec.biscuit.crypto.PublicKey current_key = root;
-        {
-            Either<Error, org.biscuitsec.biscuit.crypto.PublicKey> res = verifyBlockSignature(this.authority, current_key);
-            if(res.isRight()) {
-                current_key = res.get();
-            } else {
-                return Left(res.getLeft());
-            }
+        Either<Error, org.biscuitsec.biscuit.crypto.PublicKey> res = verifyBlockSignature(this.authority, current_key);
+        if(res.isRight()) {
+            current_key = res.get();
+        } else {
+            return Left(res.getLeft());
         }
 
         for (SignedBlock b : this.blocks) {
-            Either<Error, org.biscuitsec.biscuit.crypto.PublicKey> res = verifyBlockSignature(b, current_key);
+            res = verifyBlockSignature(b, current_key);
             if(res.isRight()) {
                 current_key = res.get();
             } else {
