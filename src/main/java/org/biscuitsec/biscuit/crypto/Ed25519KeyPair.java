@@ -24,13 +24,13 @@ final class Ed25519KeyPair extends KeyPair {
     private final EdDSAPrivateKey privateKey;
     private final EdDSAPublicKey publicKey;
 
-    private static final EdDSANamedCurveSpec ed25519 = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519);
+    private static final EdDSANamedCurveSpec ED_25519 = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519);
 
     public Ed25519KeyPair(byte[] bytes) {
-        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(bytes, ed25519);
+        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(bytes, ED_25519);
         EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
 
-        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), ed25519);
+        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), ED_25519);
         EdDSAPublicKey pubKey = new EdDSAPublicKey(pubKeySpec);
 
         this.privateKey = privKey;
@@ -41,10 +41,10 @@ final class Ed25519KeyPair extends KeyPair {
         byte[] b = new byte[32];
         rng.nextBytes(b);
 
-        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(b, ed25519);
+        EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(b, ED_25519);
         EdDSAPrivateKey privKey = new EdDSAPrivateKey(privKeySpec);
 
-        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), ed25519);
+        EdDSAPublicKeySpec pubKeySpec = new EdDSAPublicKeySpec(privKey.getA(), ED_25519);
         EdDSAPublicKey pubKey = new EdDSAPublicKey(pubKeySpec);
 
         this.privateKey = privKey;
@@ -56,11 +56,11 @@ final class Ed25519KeyPair extends KeyPair {
     }
 
     public static java.security.PublicKey decode(byte[] data) {
-        return new EdDSAPublicKey(new EdDSAPublicKeySpec(data, ed25519));
+        return new EdDSAPublicKey(new EdDSAPublicKeySpec(data, ED_25519));
     }
 
     public static Signature getSignature() throws NoSuchAlgorithmException {
-        return new EdDSAEngine(MessageDigest.getInstance(ed25519.getHashAlgorithm()));
+        return new EdDSAEngine(MessageDigest.getInstance(ED_25519.getHashAlgorithm()));
     }
 
     @Override

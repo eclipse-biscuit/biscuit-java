@@ -29,7 +29,7 @@ public final class SymbolTable implements Serializable {
      * * one for the defaults symbols indexed from 0 et 1023 in <code>defaultSymbols</code> list
      * * one for the usages symbols indexed from 1024 in <code>symbols</code> list
      */
-    public final static List<String> defaultSymbols = List.of(
+    public final static List<String> DEFAULT_SYMBOLS = List.of(
             "read",
             "write",
             "resource",
@@ -63,7 +63,7 @@ public final class SymbolTable implements Serializable {
     private final List<PublicKey> publicKeys;
 
     public long insert(final String symbol) {
-        int index = this.defaultSymbols.indexOf(symbol);
+        int index = this.DEFAULT_SYMBOLS.indexOf(symbol);
         if (index == -1) {
             index = this.symbols.indexOf(symbol);
             if (index == -1) {
@@ -104,7 +104,7 @@ public final class SymbolTable implements Serializable {
 
     public Option<Long> get(final String symbol) {
         // looking for symbol in default symbols
-        long index = this.defaultSymbols.indexOf(symbol);
+        long index = this.DEFAULT_SYMBOLS.indexOf(symbol);
         if (index == -1) {
             // looking for symbol in usages defined symbols
             index = this.symbols.indexOf(symbol);
@@ -119,8 +119,8 @@ public final class SymbolTable implements Serializable {
     }
 
     public Option<String> get_s(int i) {
-        if (i >= 0 && i < this.defaultSymbols.size() && i < DEFAULT_SYMBOLS_OFFSET) {
-            return Option.some(this.defaultSymbols.get(i));
+        if (i >= 0 && i < this.DEFAULT_SYMBOLS.size() && i < DEFAULT_SYMBOLS_OFFSET) {
+            return Option.some(this.DEFAULT_SYMBOLS.get(i));
         } else if (i >= DEFAULT_SYMBOLS_OFFSET && i < this.symbols.size() + DEFAULT_SYMBOLS_OFFSET) {
             return Option.some(this.symbols.get(i - DEFAULT_SYMBOLS_OFFSET));
         } else {
@@ -275,7 +275,7 @@ public final class SymbolTable implements Serializable {
 
     public List<String> getAllSymbols() {
         ArrayList<String> allSymbols = new ArrayList<>();
-        allSymbols.addAll(defaultSymbols);
+        allSymbols.addAll(DEFAULT_SYMBOLS);
         allSymbols.addAll(symbols);
         return allSymbols;
     }
