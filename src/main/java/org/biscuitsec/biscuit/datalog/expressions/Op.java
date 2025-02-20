@@ -156,22 +156,22 @@ public abstract class Op {
         @Override
         public String print(Deque<String> stack, SymbolTable symbols) {
             String prec = stack.pop();
-            String _s = "";
+            String s = "";
             switch (this.op) {
                 case Negate:
-                    _s = "!" + prec;
-                    stack.push(_s);
+                    s = "!" + prec;
+                    stack.push(s);
                     break;
                 case Parens:
-                    _s = "(" + prec + ")";
-                    stack.push(_s);
+                    s = "(" + prec + ")";
+                    stack.push(s);
                     break;
                 case Length:
-                    _s = prec+".length()";
-                    stack.push(_s);
+                    s = prec+".length()";
+                    stack.push(s);
                     break;
             }
-            return _s;
+            return s;
         }
 
         @Override
@@ -364,60 +364,60 @@ public abstract class Op {
                         stack.push(new Term.Bool(leftSet.containsAll(rightSet)));
                     }
                     if (left instanceof Term.Str && right instanceof Term.Str) {
-                        Option<String> left_s = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> right_s = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
 
-                        if(left_s.isEmpty()) {
+                        if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(right_s.isEmpty()) {
+                        if(rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
 
-                        stack.push(new Term.Bool(left_s.get().contains(right_s.get())));
+                        stack.push(new Term.Bool(leftS.get().contains(rightS.get())));
                     }
                     break;
                 case Prefix:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> left_s = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> right_s = symbols.get_s((int)((Term.Str) right).value());
-                        if(left_s.isEmpty()) {
+                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(right_s.isEmpty()) {
+                        if(rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
-                        stack.push(new Term.Bool(left_s.get().startsWith(right_s.get())));
+                        stack.push(new Term.Bool(leftS.get().startsWith(rightS.get())));
                     }
                     break;
                 case Suffix:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> left_s = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> right_s = symbols.get_s((int)((Term.Str) right).value());
-                        if(left_s.isEmpty()) {
+                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(right_s.isEmpty()) {
+                        if(rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
-                        stack.push(new Term.Bool(left_s.get().endsWith(right_s.get())));
+                        stack.push(new Term.Bool(leftS.get().endsWith(rightS.get())));
                     }
                     break;
                 case Regex:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> left_s = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> right_s = symbols.get_s((int)((Term.Str) right).value());
-                        if(left_s.isEmpty()) {
+                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
+                        if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(right_s.isEmpty()) {
+                        if(rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
-                        Pattern p = Pattern.compile(right_s.get());
-                        Matcher m = p.matcher(left_s.get());
+                        Pattern p = Pattern.compile(rightS.get());
+                        Matcher m = p.matcher(leftS.get());
                         stack.push(new Term.Bool(m.find()));
                     }
                     break;
@@ -432,17 +432,17 @@ public abstract class Op {
                         }
                     }
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> left_s = symbols.get_s((int)((Term.Str) left).value());
-                        Option<String> right_s = symbols.get_s((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.get_s((int)((Term.Str) left).value());
+                        Option<String> rightS = symbols.get_s((int)((Term.Str) right).value());
 
-                        if(left_s.isEmpty()) {
+                        if(leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(right_s.isEmpty()) {
+                        if(rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
-                        String concatenation = left_s.get() + right_s.get();
+                        String concatenation = leftS.get() + rightS.get();
                         long index = symbols.insert(concatenation);
                         stack.push(new Term.Str(index));
                     }
@@ -490,11 +490,11 @@ public abstract class Op {
                 case Intersection:
                     if (right instanceof Term.Set && left instanceof Term.Set) {
                         HashSet<Term> intersec = new HashSet<Term>();
-                        HashSet<Term> _right = ((Term.Set) right).value();
-                        HashSet<Term> _left = ((Term.Set) left).value();
-                        for (Term _id : _right) {
-                            if (_left.contains(_id)) {
-                                intersec.add(_id);
+                        HashSet<Term> sRight = ((Term.Set) right).value();
+                        HashSet<Term> sLeft = ((Term.Set) left).value();
+                        for (Term lId : sRight) {
+                            if (sLeft.contains(lId)) {
+                                intersec.add(lId);
                             }
                         }
                         stack.push(new Term.Set(intersec));
@@ -503,10 +503,10 @@ public abstract class Op {
                 case Union:
                     if (right instanceof Term.Set && left instanceof Term.Set) {
                         HashSet<Term> union = new HashSet<Term>();
-                        HashSet<Term> _right = ((Term.Set) right).value();
-                        HashSet<Term> _left = ((Term.Set) left).value();
-                        union.addAll(_right);
-                        union.addAll(_left);
+                        HashSet<Term> sRight = ((Term.Set) right).value();
+                        HashSet<Term> sLeft = ((Term.Set) left).value();
+                        union.addAll(sRight);
+                        union.addAll(sLeft);
                         stack.push(new Term.Set(union));
                     }
                     break;
@@ -540,95 +540,95 @@ public abstract class Op {
         public String print(Deque<String> stack, SymbolTable symbols) {
             String right = stack.pop();
             String left = stack.pop();
-            String _s = "";
+            String s = "";
             switch (this.op) {
                 case LessThan:
-                    _s = left + " < " + right;
-                    stack.push(_s);
+                    s = left + " < " + right;
+                    stack.push(s);
                     break;
                 case GreaterThan:
-                    _s = left + " > " + right;
-                    stack.push(_s);
+                    s = left + " > " + right;
+                    stack.push(s);
                     break;
                 case LessOrEqual:
-                    _s = left + " <= " + right;
-                    stack.push(_s);
+                    s = left + " <= " + right;
+                    stack.push(s);
                     break;
                 case GreaterOrEqual:
-                    _s = left + " >= " + right;
-                    stack.push(_s);
+                    s = left + " >= " + right;
+                    stack.push(s);
                     break;
                 case Equal:
-                    _s = left + " == " + right;
-                    stack.push(_s);
+                    s = left + " == " + right;
+                    stack.push(s);
                     break;
                 case NotEqual:
-                    _s = left + " != " + right;
-                    stack.push(_s);
+                    s = left + " != " + right;
+                    stack.push(s);
                     break;
                 case Contains:
-                    _s = left + ".contains(" + right + ")";
-                    stack.push(_s);
+                    s = left + ".contains(" + right + ")";
+                    stack.push(s);
                     break;
                 case Prefix:
-                    _s = left + ".starts_with(" + right + ")";
-                    stack.push(_s);
+                    s = left + ".starts_with(" + right + ")";
+                    stack.push(s);
                     break;
                 case Suffix:
-                    _s = left + ".ends_with(" + right + ")";
-                    stack.push(_s);
+                    s = left + ".ends_with(" + right + ")";
+                    stack.push(s);
                     break;
                 case Regex:
-                    _s = left + ".matches(" + right + ")";
-                    stack.push(_s);
+                    s = left + ".matches(" + right + ")";
+                    stack.push(s);
                     break;
                 case Add:
-                    _s = left + " + " + right;
-                    stack.push(_s);
+                    s = left + " + " + right;
+                    stack.push(s);
                     break;
                 case Sub:
-                    _s = left + " - " + right;
-                    stack.push(_s);
+                    s = left + " - " + right;
+                    stack.push(s);
                     break;
                 case Mul:
-                    _s = left + " * " + right;
-                    stack.push(_s);
+                    s = left + " * " + right;
+                    stack.push(s);
                     break;
                 case Div:
-                    _s = left + " / " + right;
-                    stack.push(_s);
+                    s = left + " / " + right;
+                    stack.push(s);
                     break;
                 case And:
-                    _s = left + " && " + right;
-                    stack.push(_s);
+                    s = left + " && " + right;
+                    stack.push(s);
                     break;
                 case Or:
-                    _s = left + " || " + right;
-                    stack.push(_s);
+                    s = left + " || " + right;
+                    stack.push(s);
                     break;
                 case Intersection:
-                    _s = left + ".intersection("+right+")";
-                    stack.push(_s);
+                    s = left + ".intersection("+right+")";
+                    stack.push(s);
                     break;
                 case Union:
-                    _s = left + ".union("+right+")";
-                    stack.push(_s);
+                    s = left + ".union("+right+")";
+                    stack.push(s);
                     break;
                 case BitwiseAnd:
-                    _s = left + " & " + right;
-                    stack.push(_s);
+                    s = left + " & " + right;
+                    stack.push(s);
                     break;
                 case BitwiseOr:
-                    _s = left + " | " + right;
-                    stack.push(_s);
+                    s = left + " | " + right;
+                    stack.push(s);
                     break;
                 case BitwiseXor:
-                    _s = left + " ^ " + right;
-                    stack.push(_s);
+                    s = left + " ^ " + right;
+                    stack.push(s);
                     break;
             }
 
-            return _s;
+            return s;
         }
 
         @Override

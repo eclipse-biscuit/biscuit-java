@@ -38,7 +38,7 @@ public class Fact implements Cloneable{
 
     public void validate() throws Error.Language {
         if (!this.variables.isEmpty()) {
-            List<String> invalid_variables = variables.get().entrySet().stream().flatMap(
+            List<String> invalidVariables = variables.get().entrySet().stream().flatMap(
                     e -> {
                         if (e.getValue().isEmpty()) {
                             return Stream.of(e.getKey());
@@ -46,8 +46,8 @@ public class Fact implements Cloneable{
                             return Stream.empty();
                         }
                     }).collect(Collectors.toList());
-            if (!invalid_variables.isEmpty()) {
-                throw new Error.Language(new FailedCheck.LanguageError.Builder(invalid_variables));
+            if (!invalidVariables.isEmpty()) {
+                throw new Error.Language(new FailedCheck.LanguageError.Builder(invalidVariables));
             }
         }
     }
@@ -56,10 +56,10 @@ public class Fact implements Cloneable{
         if (this.variables.isEmpty()) {
             throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable(name));
         }
-        Map<String, Option<Term>> _variables = this.variables.get();
-        Option<Term> r = _variables.get(name);
+        Map<String, Option<Term>> lVariables = this.variables.get();
+        Option<Term> r = lVariables.get(name);
         if (r != null) {
-            _variables.put(name, Option.some(term));
+            lVariables.put(name, Option.some(term));
         } else {
             throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable(name));
         }

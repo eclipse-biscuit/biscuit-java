@@ -54,21 +54,21 @@ class Token {
 
     // FIXME: rust version returns a Result<(), error::Signature>
     public Either<Error, Void> verify(PublicKey root) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        PublicKey current_key = root;
+        PublicKey currentKey = root;
         for(int i = 0; i < this.blocks.size(); i++) {
             byte[] block = this.blocks.get(i);
-            PublicKey next_key  = this.keys.get(i);
+            PublicKey nextKey  = this.keys.get(i);
             byte[] signature = this.signatures.get(i);
 
-            byte[] payload = BlockSignatureBuffer.getBufferSignature(next_key, block);
-            if (KeyPair.verify(current_key, payload, signature)) {
-                current_key = next_key;
+            byte[] payload = BlockSignatureBuffer.getBufferSignature(nextKey, block);
+            if (KeyPair.verify(currentKey, payload, signature)) {
+                currentKey = nextKey;
             } else {
                 return Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied"));
             }
         }
 
-        if (this.next.public_key().equals(current_key)) {
+        if (this.next.public_key().equals(currentKey)) {
             return Right(null);
         } else {
             return Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied"));

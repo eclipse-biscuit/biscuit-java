@@ -82,9 +82,9 @@ public class UnverifiedBiscuit {
         Block authority = t._1;
         ArrayList<Block> blocks = t._2;
 
-        List<byte[]> revocation_ids = ser.revocationIdentifiers();
+        List<byte[]> revocationIds = ser.revocationIdentifiers();
 
-        return new UnverifiedBiscuit(authority, blocks, symbols, ser, revocation_ids);
+        return new UnverifiedBiscuit(authority, blocks, symbols, ser, revocationIds);
     }
 
     /**
@@ -166,9 +166,9 @@ public class UnverifiedBiscuit {
         }
         blocks.add(block);
 
-        List<byte[]> revocation_ids = container.revocationIdentifiers();
+        List<byte[]> revocationIds = container.revocationIdentifiers();
 
-        return new UnverifiedBiscuit(copiedBiscuit.authority, blocks, symbols, container, revocation_ids);
+        return new UnverifiedBiscuit(copiedBiscuit.authority, blocks, symbols, container, revocationIds);
     }
     //FIXME: attenuate 3rd Party
 
@@ -270,8 +270,8 @@ public class UnverifiedBiscuit {
         }
         blocks.add(block);
 
-        List<byte[]> revocation_ids = container.revocationIdentifiers();
-        return new UnverifiedBiscuit(copiedBiscuit.authority, blocks, symbols, container, revocation_ids);
+        List<byte[]> revocationIds = container.revocationIdentifiers();
+        return new UnverifiedBiscuit(copiedBiscuit.authority, blocks, symbols, container, revocationIds);
     }
 
     /**

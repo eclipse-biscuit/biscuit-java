@@ -104,31 +104,31 @@ public class Rule implements Cloneable {
     }
 
     public Either<String, Rule> validate_variables() {
-        Set<String> free_variables = this.head.terms.stream().flatMap(t -> {
+        Set<String> freeVariables = this.head.terms.stream().flatMap(t -> {
             if (t instanceof Term.Variable) {
                 return Stream.of(((Term.Variable) t).value);
             } else return Stream.empty();
         }).collect(Collectors.toSet());
 
         for(Expression e: this.expressions) {
-            e.gatherVariables(free_variables);
+            e.gatherVariables(freeVariables);
         }
-        if (free_variables.isEmpty()) {
+        if (freeVariables.isEmpty()) {
             return Either.right(this);
         }
 
         for (Predicate p : this.body) {
             for (Term term : p.terms) {
                 if (term instanceof Term.Variable) {
-                    free_variables.remove(((Term.Variable) term).value);
-                    if (free_variables.isEmpty()) {
+                    freeVariables.remove(((Term.Variable) term).value);
+                    if (freeVariables.isEmpty()) {
                         return Either.right(this);
                     }
                 }
             }
         }
 
-        return Either.left("rule head or expressions contains variables that are not used in predicates of the rule's body: " + free_variables.toString());
+        return Either.left("rule head or expressions contains variables that are not used in predicates of the rule's body: " + freeVariables.toString());
     }
 
     public org.biscuitsec.biscuit.datalog.Rule convert(SymbolTable symbols) {

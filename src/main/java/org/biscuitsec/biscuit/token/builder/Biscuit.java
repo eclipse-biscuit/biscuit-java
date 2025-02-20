@@ -134,7 +134,7 @@ public class Biscuit {
     }
 
     private org.biscuitsec.biscuit.token.Biscuit build(SymbolTable symbols) throws Error {
-        int symbol_start = symbols.currentOffset();
+        int symbolStart = symbols.currentOffset();
         int publicKeyStart = symbols.currentPublicKeyOffset();
 
         List<org.biscuitsec.biscuit.datalog.Fact> facts = new ArrayList<>();
@@ -155,10 +155,10 @@ public class Biscuit {
         }
         SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
 
-        SymbolTable block_symbols = new SymbolTable();
+        SymbolTable blockSymbols = new SymbolTable();
 
-        for (int i = symbol_start; i < symbols.symbols.size(); i++) {
-            block_symbols.add(symbols.symbols.get(i));
+        for (int i = symbolStart; i < symbols.symbols.size(); i++) {
+            blockSymbols.add(symbols.symbols.get(i));
         }
 
         List<PublicKey> publicKeys = new ArrayList<>();
@@ -166,13 +166,13 @@ public class Biscuit {
             publicKeys.add(symbols.publicKeys().get(i));
         }
 
-        Block authority_block = new Block(block_symbols, context, facts, rules,
+        Block authorityBlock = new Block(blockSymbols, context, facts, rules,
                 checks, scopes, publicKeys, Option.none(), schemaVersion.version());
 
         if (this.rootKeyId.isDefined()) {
-            return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, this.rootKeyId.get(), authority_block);
+            return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, this.rootKeyId.get(), authorityBlock);
         } else {
-            return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, authority_block);
+            return org.biscuitsec.biscuit.token.Biscuit.make(this.rng, this.root, authorityBlock);
         }
     }
 

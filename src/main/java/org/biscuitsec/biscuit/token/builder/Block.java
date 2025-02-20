@@ -112,7 +112,7 @@ public class Block {
         if(externalKey.isDefined()) {
             symbols = new SymbolTable();
         }
-        int symbol_start = symbols.currentOffset();
+        int symbolStart = symbols.currentOffset();
         int publicKeyStart = symbols.currentPublicKeyOffset();
 
         List<org.biscuitsec.biscuit.datalog.Fact> facts = new ArrayList<>();
@@ -133,10 +133,10 @@ public class Block {
         }
         SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
 
-        SymbolTable block_symbols = new SymbolTable();
+        SymbolTable blockSymbols = new SymbolTable();
 
-        for (int i = symbol_start; i < symbols.symbols.size(); i++) {
-            block_symbols.add(symbols.symbols.get(i));
+        for (int i = symbolStart; i < symbols.symbols.size(); i++) {
+            blockSymbols.add(symbols.symbols.get(i));
         }
 
         List<PublicKey> publicKeys = new ArrayList<>();
@@ -144,7 +144,7 @@ public class Block {
             publicKeys.add(symbols.publicKeys().get(i));
         }
 
-        return new org.biscuitsec.biscuit.token.Block(block_symbols, this.context, facts, rules, checks,
+        return new org.biscuitsec.biscuit.token.Block(blockSymbols, this.context, facts, rules, checks,
                 scopes, publicKeys, externalKey, schemaVersion.version());
     }
 
