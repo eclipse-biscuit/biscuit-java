@@ -122,8 +122,7 @@ public class Fact implements Cloneable{
     @Override
     public Fact clone(){
         Predicate p = this.predicate.clone();
-        Option<Map<String, Option<Term>>> variables = this.variables.map(_v ->
-        {
+        Option<Map<String, Option<Term>>> variables = this.variables.map(_v -> {
             Map<String, Option<Term>> m = new HashMap<>();
             m.putAll(_v);
             return m;

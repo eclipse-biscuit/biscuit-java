@@ -7,7 +7,9 @@ import java.util.Objects;
 
 public class FailedCheck {
 
-    public JsonElement toJson(){ return new JsonObject();}
+    public JsonElement toJson(){
+        return new JsonObject();
+    }
 
     public static class FailedBlock extends FailedCheck {
         final public long block_id;

@@ -81,7 +81,9 @@ public class World implements Serializable {
       return this.facts;
    }
 
-   public RuleSet rules() { return this.rules; }
+   public RuleSet rules() {
+      return this.rules;
+   }
 
    public final FactSet query_rule(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
       final FactSet newFacts = new FactSet();
