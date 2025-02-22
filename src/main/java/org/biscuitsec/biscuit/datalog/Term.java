@@ -39,7 +39,7 @@ public abstract class Term implements Serializable {
 
    public abstract org.biscuitsec.biscuit.token.builder.Term toTerm(SymbolTable symbols);
 
-   public final static class Date extends Term implements Serializable {
+   public static final class Date extends Term implements Serializable {
       private final long value;
 
       public long value() {
@@ -96,7 +96,7 @@ public abstract class Term implements Serializable {
       }
    }
 
-   public final static class Integer extends Term implements Serializable {
+   public static final class Integer extends Term implements Serializable {
       private final long value;
 
       public long value() {
@@ -155,7 +155,7 @@ public abstract class Term implements Serializable {
       }
    }
 
-   public final static class Bytes extends Term implements Serializable {
+   public static final class Bytes extends Term implements Serializable {
       private final byte[] value;
 
       public byte[] value() {
@@ -214,7 +214,7 @@ public abstract class Term implements Serializable {
       }
    }
 
-   public final static class Str extends Term implements Serializable {
+   public static final class Str extends Term implements Serializable {
       private final long value;
 
       public long value() {
@@ -268,7 +268,7 @@ public abstract class Term implements Serializable {
       }
    }
 
-   public final static class Variable extends Term implements Serializable {
+   public static final class Variable extends Term implements Serializable {
       private final long value;
 
       public long value() {
@@ -321,7 +321,7 @@ public abstract class Term implements Serializable {
       }
    }
 
-   public final static class Bool extends Term implements Serializable {
+   public static final class Bool extends Term implements Serializable {
       private final boolean value;
 
       public boolean value() {
@@ -380,7 +380,7 @@ public abstract class Term implements Serializable {
       }
    }
 
-   public final static class Set extends Term implements Serializable {
+   public static final class Set extends Term implements Serializable {
       private final HashSet<Term> value;
 
       public HashSet<Term> value() {

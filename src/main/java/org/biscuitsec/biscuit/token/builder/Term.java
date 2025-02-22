@@ -16,7 +16,7 @@ public abstract class Term {
         return id.toTerm(symbols);
     }
 
-    public static class Str extends Term {
+    public static final class Str extends Term {
         final String value;
 
         public Str(String value) {
@@ -51,7 +51,7 @@ public abstract class Term {
         }
     }
 
-    public static class Variable extends Term {
+    public static final class Variable extends Term {
         final String value;
 
         public Variable(String value) {
@@ -88,7 +88,7 @@ public abstract class Term {
         }
     }
 
-    public static class Integer extends Term {
+    public static final class Integer extends Term {
         final long value;
 
         public Integer(long value) {
@@ -125,7 +125,7 @@ public abstract class Term {
         }
     }
 
-    public static class Bytes extends Term {
+    public static final class Bytes extends Term {
         final byte[] value;
 
         public Bytes(byte[] value) {
@@ -162,7 +162,7 @@ public abstract class Term {
         }
     }
 
-    public static class Date extends Term {
+    public static final class Date extends Term {
         final long value;
 
         public Date(long value) {
@@ -200,7 +200,7 @@ public abstract class Term {
         }
     }
 
-    public static class Bool extends Term {
+    public static final class Bool extends Term {
         final boolean value;
 
         public Bool(boolean value) {
@@ -241,7 +241,7 @@ public abstract class Term {
         }
     }
 
-    public static class Set extends Term {
+    public static final class Set extends Term {
         final java.util.Set<Term> value;
 
         public Set(java.util.Set<Term> value) {

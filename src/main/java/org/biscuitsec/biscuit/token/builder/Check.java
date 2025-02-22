@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import static org.biscuitsec.biscuit.datalog.Check.Kind.One;
 
-public class Check {
+public final class Check {
     private final org.biscuitsec.biscuit.datalog.Check.Kind kind;
     List<Rule> queries;
 

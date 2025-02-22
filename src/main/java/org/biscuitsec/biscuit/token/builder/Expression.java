@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class Expression {
-    public org.biscuitsec.biscuit.datalog.expressions.Expression convert(SymbolTable symbols) {
+
+    public final org.biscuitsec.biscuit.datalog.expressions.Expression convert(SymbolTable symbols) {
         ArrayList<org.biscuitsec.biscuit.datalog.expressions.Op> ops = new ArrayList<>();
         this.toOpcodes(symbols, ops);
 
@@ -148,7 +149,7 @@ public abstract class Expression {
         BitwiseXor
     }
 
-    public final static class Value extends Expression {
+    public static final class Value extends Expression {
         public final Term value;
 
         public Value(Term value) {
@@ -186,7 +187,7 @@ public abstract class Expression {
         }
     }
 
-    public final static class Unary extends Expression {
+    public static final class Unary extends Expression {
         private final Op op;
         private final Expression arg1;
 
@@ -247,7 +248,7 @@ public abstract class Expression {
         }
     }
 
-    public final static class Binary extends Expression {
+    public static final class Binary extends Expression {
         private final Op op;
         private final Expression arg1;
         private final Expression arg2;

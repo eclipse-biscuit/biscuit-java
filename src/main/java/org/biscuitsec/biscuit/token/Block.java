@@ -28,7 +28,7 @@ import static io.vavr.API.Right;
 /**
  * Represents a token's block with its checks
  */
-public class Block {
+public final class Block {
     final SymbolTable symbols;
     final String context;
     final List<Fact> facts;

@@ -3,7 +3,7 @@ package org.biscuitsec.biscuit.datalog;
 import java.util.HashSet;
 import java.util.Objects;
 
-public class Origin {
+public final class Origin {
     public HashSet<Long> inner;
 
     public Origin() {

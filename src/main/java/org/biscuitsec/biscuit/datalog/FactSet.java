@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class FactSet {
+public final class FactSet {
     private final HashMap<Origin, HashSet<Fact>> facts;
 
     public FactSet() {

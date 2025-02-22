@@ -3,7 +3,7 @@ package org.biscuitsec.biscuit.datalog;
 import java.util.HashMap;
 import java.util.List;
 
-public class TrustedOrigins {
+public final class TrustedOrigins {
     private final Origin inner;
 
     public TrustedOrigins(int... origins) {

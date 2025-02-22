@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class RuleSet {
+public final class RuleSet {
     public final HashMap<TrustedOrigins, List<Tuple2<Long, Rule>>> rules;
 
     public RuleSet() {

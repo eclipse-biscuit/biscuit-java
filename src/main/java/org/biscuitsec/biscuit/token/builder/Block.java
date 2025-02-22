@@ -29,7 +29,7 @@ import static org.biscuitsec.biscuit.token.builder.Utils.var;
 
 
 
-public class Block {
+public final class Block {
     String context;
     List<Fact> facts;
     List<Rule> rules;

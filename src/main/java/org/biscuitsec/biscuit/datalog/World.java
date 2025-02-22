@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class World implements Serializable {
+public final class World implements Serializable {
    private final FactSet facts;
    private final RuleSet rules;
 

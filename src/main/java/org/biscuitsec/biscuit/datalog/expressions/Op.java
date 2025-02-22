@@ -39,7 +39,7 @@ public abstract class Op {
         }
     }
 
-    public final static class Value extends Op {
+    public static final class Value extends Op {
         private final Term value;
 
         public Value(Term value) {
@@ -109,7 +109,7 @@ public abstract class Op {
         Length,
     }
 
-    public final static class Unary extends Op {
+    public static final class Unary extends Op {
         private final UnaryOp op;
 
         public Unary(UnaryOp op) {
@@ -259,7 +259,7 @@ public abstract class Op {
         BitwiseXor,
     }
 
-    public final static class Binary extends Op {
+    public static final class Binary extends Op {
         private final BinaryOp op;
 
         public Binary(BinaryOp value) {

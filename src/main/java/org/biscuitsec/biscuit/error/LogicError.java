@@ -14,11 +14,12 @@ public class LogicError {
     public Option<List<FailedCheck>> failedChecks() {
         return Option.none();
     }
+
     public JsonElement toJson() {
         return new JsonObject();
     }
 
-    public static class InvalidAuthorityFact extends LogicError {
+    public static final class InvalidAuthorityFact extends LogicError {
         final public String e;
 
         public InvalidAuthorityFact(String e) {
@@ -50,7 +51,7 @@ public class LogicError {
 
     }
 
-    public static class InvalidAmbientFact extends LogicError {
+    public static final class InvalidAmbientFact extends LogicError {
         final public String e;
 
         public InvalidAmbientFact(String e) {
@@ -85,7 +86,7 @@ public class LogicError {
         }
     }
 
-    public static class InvalidBlockFact extends LogicError {
+    public static final class InvalidBlockFact extends LogicError {
         final public long id;
         final public String e;
 
@@ -125,7 +126,7 @@ public class LogicError {
 
     }
 
-    public static class InvalidBlockRule extends LogicError {
+    public static final class InvalidBlockRule extends LogicError {
         final public long id;
         final public String e;
 
@@ -165,7 +166,7 @@ public class LogicError {
 
     }
 
-    public static class Unauthorized extends LogicError {
+    public static final class Unauthorized extends LogicError {
         final public List<FailedCheck> errors;
         final public MatchedPolicy policy;
 
@@ -219,7 +220,7 @@ public class LogicError {
         }
     }
 
-    public static class NoMatchingPolicy extends LogicError {
+    public static final class NoMatchingPolicy extends LogicError {
         final public List<FailedCheck> errors;
         public NoMatchingPolicy(List<FailedCheck> errors) {
             this.errors = errors;
@@ -269,7 +270,7 @@ public class LogicError {
         }
     }
 
-    public static class AuthorizerNotEmpty extends LogicError {
+    public static final class AuthorizerNotEmpty extends LogicError {
 
         public AuthorizerNotEmpty() {
 
@@ -294,7 +295,7 @@ public class LogicError {
     public static abstract class MatchedPolicy {
         public abstract JsonElement toJson();
 
-        public static class Allow extends MatchedPolicy {
+        public static final class Allow extends MatchedPolicy {
             final public long nb;
             public Allow(long nb){
                 this.nb = nb;
@@ -312,7 +313,7 @@ public class LogicError {
             }
         }
 
-        public static class Deny extends MatchedPolicy {
+        public static final class Deny extends MatchedPolicy {
             public final long nb;
             public Deny(long nb){
                 this.nb = nb;

@@ -17,7 +17,7 @@ import java.util.Objects;
 import static io.vavr.API.Left;
 import static io.vavr.API.Right;
 
-public class Expression {
+public final class Expression {
     private final ArrayList<Op> ops;
 
     public Expression(ArrayList<Op> ops) {

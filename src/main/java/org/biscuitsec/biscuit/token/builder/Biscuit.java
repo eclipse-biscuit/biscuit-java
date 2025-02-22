@@ -17,7 +17,7 @@ import java.util.List;
 
 import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.defaultSymbolTable;
 
-public class Biscuit {
+public final class Biscuit {
     SecureRandom rng;
     org.biscuitsec.biscuit.crypto.Signer root;
     String context;

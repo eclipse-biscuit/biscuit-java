@@ -32,7 +32,7 @@ import static io.vavr.API.Right;
 /**
  * Intermediate representation of a token before full serialization
  */
-public class SerializedBiscuit {
+public final class SerializedBiscuit {
     public SignedBlock authority;
     public List<SignedBlock> blocks;
     public Proof proof;

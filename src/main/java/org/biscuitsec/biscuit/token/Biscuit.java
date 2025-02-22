@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Biscuit auth token
  */
-public class Biscuit extends UnverifiedBiscuit {
+public final class Biscuit extends UnverifiedBiscuit {
     /**
      * Creates a token builder
      * <p>

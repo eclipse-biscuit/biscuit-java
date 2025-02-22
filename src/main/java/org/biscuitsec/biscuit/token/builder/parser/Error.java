@@ -3,7 +3,7 @@ package org.biscuitsec.biscuit.token.builder.parser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class Error extends Exception {
+public final class Error extends Exception {
     String input;
     String message;
 

@@ -11,7 +11,7 @@ import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import java.util.Optional;
 import java.util.Set;
 
-public class PublicKey {
+public final class PublicKey {
 
     public final java.security.PublicKey key;
     public final Algorithm algorithm;

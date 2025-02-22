@@ -12,7 +12,7 @@ import static biscuit.format.schema.Schema.CheckV2.Kind.All;
 import static io.vavr.API.Left;
 import static io.vavr.API.Right;
 
-public class Check {
+public final class Check {
     public enum Kind {
         One,
         All

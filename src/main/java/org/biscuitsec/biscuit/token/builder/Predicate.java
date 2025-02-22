@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Predicate implements Cloneable {
+public final class Predicate implements Cloneable {
     String name;
     List<Term> terms;
 

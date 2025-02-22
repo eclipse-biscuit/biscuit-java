@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class ThirdPartyBlockContents {
+public final class ThirdPartyBlockContents {
     byte[] payload;
     byte[] signature;
     PublicKey publicKey;

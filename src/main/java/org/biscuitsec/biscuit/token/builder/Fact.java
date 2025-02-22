@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Fact implements Cloneable{
+public final class Fact implements Cloneable{
     Predicate predicate;
     Option<Map<String, Option<Term>>> variables;
 

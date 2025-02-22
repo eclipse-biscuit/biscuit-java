@@ -11,7 +11,7 @@ import java.util.List;
 import static io.vavr.API.Left;
 import static io.vavr.API.Right;
 
-public class SchemaVersion {
+public final class SchemaVersion {
     private boolean containsScopes;
     private boolean containsCheckAll;
     private boolean containsV4;

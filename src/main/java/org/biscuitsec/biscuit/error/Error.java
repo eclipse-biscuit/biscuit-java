@@ -14,11 +14,15 @@ public class Error extends Exception {
         return Option.none();
     }
 
+    /**
+     * Serialize error to JSON
+     * @return json object
+     */
     public JsonElement toJson() {
         return new JsonObject();
     }
 
-    public static class InternalError extends Error {}
+    public static final class InternalError extends Error {}
 
     public static class FormatError extends Error {
 
@@ -33,7 +37,7 @@ public class Error extends Exception {
                 signature.add("Signature", e);
                 return FormatError.jsonWrapper(signature);
             }
-            public static class InvalidFormat extends Signature {
+            public static final class InvalidFormat extends Signature {
                 public InvalidFormat() {}
                 @Override
                 public boolean equals(Object o) {
@@ -50,7 +54,7 @@ public class Error extends Exception {
                     return "Err(Format(Signature(InvalidFormat)))";
                 }
             }
-            public static class InvalidSignature extends Signature {
+            public static final class InvalidSignature extends Signature {
                 final public String e;
                 public InvalidSignature(String e) {
                     this.e = e;
@@ -73,7 +77,7 @@ public class Error extends Exception {
             }
         }
 
-        public static class SealedSignature extends FormatError {
+        public static final class SealedSignature extends FormatError {
             @Override
             public boolean equals(Object o) {
                 if (this == o) return true;
@@ -88,7 +92,7 @@ public class Error extends Exception {
                 return "Err(Format(SealedSignature))";
             }
         }
-        public static class EmptyKeys extends FormatError {
+        public static final class EmptyKeys extends FormatError {
             @Override
             public boolean equals(Object o) {
                 if (this == o) return true;
@@ -103,7 +107,7 @@ public class Error extends Exception {
                 return "Err(Format(EmptyKeys))";
             }
         }
-        public static class UnknownPublicKey extends FormatError {
+        public static final class UnknownPublicKey extends FormatError {
             @Override
             public boolean equals(Object o) {
                 if (this == o) return true;
@@ -118,7 +122,7 @@ public class Error extends Exception {
                 return "Err(Format(UnknownPublicKey))";
             }
         }
-        public static class DeserializationError extends FormatError {
+        public static final class DeserializationError extends FormatError {
             final public String e;
 
             public DeserializationError(String e) {
@@ -152,7 +156,7 @@ public class Error extends Exception {
 
         }
 
-        public static class SerializationError extends FormatError {
+        public static final class SerializationError extends FormatError {
             final public String e;
 
             public SerializationError(String e) {
@@ -184,7 +188,7 @@ public class Error extends Exception {
                 return FormatError.jsonWrapper(jo);
             }
         }
-        public static class BlockDeserializationError extends FormatError {
+        public static final class BlockDeserializationError extends FormatError {
             final public String e;
 
             public BlockDeserializationError(String e) {
@@ -216,7 +220,7 @@ public class Error extends Exception {
                 return FormatError.jsonWrapper(jo);
             }
         }
-        public static class BlockSerializationError extends FormatError {
+        public static final class BlockSerializationError extends FormatError {
             final public String e;
 
             public BlockSerializationError(String e) {
@@ -249,7 +253,7 @@ public class Error extends Exception {
             }
         }
 
-        public static class Version extends FormatError {
+        public static final class Version extends FormatError {
             final public int minimum;
             final public int maximum;
             final public int actual;
@@ -297,7 +301,7 @@ public class Error extends Exception {
             }
         }
 
-        public static class InvalidSignatureSize extends FormatError {
+        public static final class InvalidSignatureSize extends FormatError {
             final public int size;
 
             public InvalidSignatureSize(int size) {
@@ -333,7 +337,7 @@ public class Error extends Exception {
             }
         }
     }
-    public static class InvalidAuthorityIndex extends Error {
+    public static final class InvalidAuthorityIndex extends Error {
         final public long index;
 
         public InvalidAuthorityIndex(long index) {
@@ -367,7 +371,7 @@ public class Error extends Exception {
             return jo;
         }
     }
-    public static class InvalidBlockIndex extends Error {
+    public static final class InvalidBlockIndex extends Error {
         final public long expected;
         final public long found;
 
@@ -404,7 +408,7 @@ public class Error extends Exception {
             return jo;
         }
     }
-    public static class SymbolTableOverlap extends Error {
+    public static final class SymbolTableOverlap extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -416,7 +420,7 @@ public class Error extends Exception {
             return new JsonPrimitive("SymbolTableOverlap");
         }
     }
-    public static class MissingSymbols extends Error {
+    public static final class MissingSymbols extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -427,7 +431,7 @@ public class Error extends Exception {
             return new JsonPrimitive("MissingSymbols");
         }
     }
-    public static class Sealed extends Error {
+    public static final class Sealed extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -438,7 +442,7 @@ public class Error extends Exception {
             return new JsonPrimitive("Sealed");
         }
     }
-    public static class FailedLogic extends Error {
+    public static final class FailedLogic extends Error {
         final public LogicError error;
 
         public FailedLogic(LogicError error) {
@@ -477,7 +481,7 @@ public class Error extends Exception {
 
     }
 
-    public static class Language extends Error {
+    public static final class Language extends Error {
         final public FailedCheck.LanguageError langError;
         public Language(FailedCheck.LanguageError langError){
             this.langError = langError;
@@ -496,7 +500,7 @@ public class Error extends Exception {
         }
     }
 
-    public static class TooManyFacts extends Error {
+    public static final class TooManyFacts extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -508,7 +512,7 @@ public class Error extends Exception {
         }
     }
 
-    public static class TooManyIterations extends Error {
+    public static final class TooManyIterations extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -520,7 +524,7 @@ public class Error extends Exception {
         }
     }
 
-    public static class Timeout extends Error {
+    public static final class Timeout extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -532,7 +536,7 @@ public class Error extends Exception {
         }
     }
 
-    public static class Execution extends Error {
+    public static final class Execution extends Error {
         public enum Kind {
             Execution,
             Overflow
@@ -581,7 +585,7 @@ public class Error extends Exception {
         }
     }
 
-    public static class InvalidType extends Error {
+    public static final class InvalidType extends Error {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -593,7 +597,7 @@ public class Error extends Exception {
         }
     }
 
-    public static class Parser extends Error {
+    public static final class Parser extends Error {
         final public org.biscuitsec.biscuit.token.builder.parser.Error error;
 
         public Parser(org.biscuitsec.biscuit.token.builder.parser.Error error) {

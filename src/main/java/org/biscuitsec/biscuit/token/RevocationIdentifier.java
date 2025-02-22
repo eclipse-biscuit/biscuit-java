@@ -4,7 +4,7 @@ import org.biscuitsec.biscuit.token.builder.Utils;
 
 import java.util.Base64;
 
-public class RevocationIdentifier {
+public final class RevocationIdentifier {
     private byte[] bytes;
 
     public RevocationIdentifier(byte[] bytes) {

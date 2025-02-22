@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Rule implements Cloneable {
+public final class Rule implements Cloneable {
     Predicate head;
     List<Predicate> body;
     List<Expression> expressions;

@@ -7,7 +7,7 @@ import java.util.List;
 
 import static org.biscuitsec.biscuit.datalog.SymbolTable.DEFAULT_SYMBOLS_OFFSET;
 
-public class TemporarySymbolTable {
+public final class TemporarySymbolTable {
     SymbolTable base;
     int offset;
     List<String> symbols;

@@ -14,11 +14,15 @@ import java.util.Objects;
 
 public class FailedCheck {
 
+    /**
+     * serialize to Json Object
+     * @return json object
+     */
     public JsonElement toJson(){
         return new JsonObject();
     }
 
-    public static class FailedBlock extends FailedCheck {
+    public static final class FailedBlock extends FailedCheck {
         final public long blockId;
         final public long checkId;
         final public String rule;
@@ -59,7 +63,7 @@ public class FailedCheck {
         }
     }
 
-    public static class FailedAuthorizer extends FailedCheck {
+    public static final class FailedAuthorizer extends FailedCheck {
         final public long checkId   ;
         final public String rule;
 
@@ -98,19 +102,19 @@ public class FailedCheck {
         }
     }
 
-    public static class ParseErrors extends FailedCheck {
+    public static final class ParseErrors extends FailedCheck {
 
     }
 
-    public static class LanguageError extends FailedCheck {
-        public static class ParseError extends LanguageError {
+        public static class LanguageError extends FailedCheck {
+        public static final class ParseError extends LanguageError {
 
             @Override
             public JsonElement toJson() {
                 return new JsonPrimitive("ParseError");
             }
         }
-        public static class Builder extends LanguageError {
+        public static final class Builder extends LanguageError {
             List<String> invalidVariables;
             public Builder(List<String> invalidVariables) {
                 this.invalidVariables = invalidVariables;
@@ -146,7 +150,7 @@ public class FailedCheck {
             }
         }
 
-        public static class UnknownVariable extends LanguageError {
+        public static final class UnknownVariable extends LanguageError {
             String message;
             public UnknownVariable(String message) {
                 this.message = message;

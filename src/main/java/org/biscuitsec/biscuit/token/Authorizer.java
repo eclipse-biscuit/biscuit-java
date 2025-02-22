@@ -40,7 +40,7 @@ import static io.vavr.API.Right;
 /**
  * Token verification class
  */
-public class Authorizer {
+public final class Authorizer {
     Biscuit token;
     List<org.biscuitsec.biscuit.token.builder.Check> checks;
     List<Policy> policies;

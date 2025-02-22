@@ -18,7 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Objects;
 
-public class ThirdPartyBlockRequest {
+public final class ThirdPartyBlockRequest {
     PublicKey previousKey;
 
     ThirdPartyBlockRequest(PublicKey previousKey) {
