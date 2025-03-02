@@ -44,13 +44,13 @@ class SamplesTest {
     }
 
     void compareBlocks(KeyPair root, List<Block> sampleBlocks, Biscuit token) throws Error {
-        assertEquals(sampleBlocks.size(), 1+token.blocks.size());
+        assertEquals(sampleBlocks.size(), 1 + token.blocks.size());
         Option<Biscuit> sampleToken = Option.none();
         Biscuit b = compareBlock(root, sampleToken, 0, sampleBlocks.get(0), token.authority, token.symbols);
         sampleToken = Option.some(b);
 
-        for (int i=0; i < token.blocks.size(); i++) {
-            b = compareBlock(root, sampleToken, i+1, sampleBlocks.get(i+1), token.blocks.get(i), token.symbols);
+        for (int i = 0; i < token.blocks.size(); i++) {
+            b = compareBlock(root, sampleToken, i + 1, sampleBlocks.get(i + 1), token.blocks.get(i), token.symbols);
             sampleToken = Option.some(b);
         }
     }
@@ -101,9 +101,9 @@ class SamplesTest {
     }
 
     DynamicTest process_testcase(final TestCase testCase, final PublicKey publicKey, final KeyPair privateKey) {
-        return DynamicTest.dynamicTest(testCase.title + ": "+testCase.filename, () -> {
-            System.out.println("Testcase name: \""+testCase.title+"\"");
-            System.out.println("filename: \""+testCase.filename+"\"");
+        return DynamicTest.dynamicTest(testCase.title + ": " + testCase.filename, () -> {
+            System.out.println("Testcase name: \"" + testCase.title + "\"");
+            System.out.println("filename: \"" + testCase.filename + "\"");
             InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("samples/" + testCase.filename);
             byte[] data = new byte[inputStream.available()];
 
@@ -202,7 +202,7 @@ class SamplesTest {
 
                 if (expected_result.has("Ok")) {
                     if (res.isLeft()) {
-                        System.out.println("validation '"+validationName+"' expected result Ok("+expected_result.getAsJsonPrimitive("Ok").getAsLong()+"), got error");
+                        System.out.println("validation '" + validationName + "' expected result Ok(" + expected_result.getAsJsonPrimitive("Ok").getAsLong() + "), got error");
                         throw res.getLeft();
                     } else {
                         assertEquals(expected_result.getAsJsonPrimitive("Ok").getAsLong(), res.get());
@@ -211,14 +211,14 @@ class SamplesTest {
                     if (res.isLeft()) {
                         if (res.getLeft() instanceof Error) {
                             Error e = (Error) res.getLeft();
-                            System.out.println("validation '"+validationName+"' got error: " + e);
+                            System.out.println("validation '" + validationName + "' got error: " + e);
                             JsonElement err_json = e.toJson();
                             assertEquals(expected_result.get("Err"), err_json);
                         } else {
                             throw res.getLeft();
                         }
                     } else {
-                        throw new Exception("validation '"+validationName+"' expected result error("+expected_result.get("Err")+"), got success: "+res.get());
+                        throw new Exception("validation '" + validationName + "' expected result error(" + expected_result.get("Err") + "), got success: " + res.get());
                     }
                 }
             }

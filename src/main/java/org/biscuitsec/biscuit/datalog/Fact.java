@@ -26,7 +26,7 @@ public final class Fact implements Serializable {
       this.predicate = predicate;
    }
 
-   public Fact(final long name, final List<Term> terms){
+   public Fact(final long name, final List<Term> terms) {
       this.predicate = new Predicate(name, terms);
    }
 

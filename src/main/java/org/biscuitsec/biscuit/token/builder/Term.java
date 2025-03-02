@@ -34,7 +34,7 @@ public abstract class Term {
 
         @Override
         public String toString() {
-            return "\""+value+"\"";
+            return "\"" + value + "\"";
         }
 
         @Override
@@ -69,7 +69,7 @@ public abstract class Term {
 
         @Override
         public String toString() {
-            return "$"+value;
+            return "$" + value;
         }
 
         @Override

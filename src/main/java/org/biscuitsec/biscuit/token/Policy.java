@@ -40,11 +40,11 @@ public final class Policy {
     public String toString() {
         final List<String> qs = queries.stream().map((q) ->  q.bodyToString()).collect(Collectors.toList());
 
-        switch(this.kind) {
+        switch (this.kind) {
             case Allow:
-                return "allow if "+String.join(" or ", qs);
+                return "allow if " + String.join(" or ", qs);
             case Deny:
-                return "deny if "+String.join(" or ", qs);
+                return "deny if " + String.join(" or ", qs);
             default:
                 return null;
         }

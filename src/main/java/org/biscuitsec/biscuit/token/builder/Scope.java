@@ -60,7 +60,7 @@ public final class Scope {
             case Parameter:
                 //FIXME
                 return null;
-            //throw new Exception("Remaining parameter: "+this.parameter);
+            //throw new Exception("Remaining parameter: " + this.parameter);
             case PublicKey:
                 return org.biscuitsec.biscuit.datalog.Scope.publicKey(symbols.insert(this.publicKey));
             default:

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 public final class Parser {
-    private Parser() {}
+    private Parser() { }
 
     /**
      * Takes a datalog string with <code>\n</code> as datalog line separator. It tries to parse
@@ -311,13 +311,13 @@ public final class Parser {
     }
 
     public static Either<Error, Tuple2<String, Predicate>> predicate(String s) {
-        Tuple2<String, String> tn = takewhile (s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
+        Tuple2<String, String> tn = takewhile(s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
         String name = tn._1;
         s = tn._2;
 
         s = space(s);
         if (s.length() == 0 || s.charAt(0) != '(') {
-            return Either.left(new Error(s, "opening parens not found for predicate "+name));
+            return Either.left(new Error(s, "opening parens not found for predicate " + name));
         }
         s = s.substring(1);
 
@@ -434,13 +434,13 @@ public final class Parser {
     }
 
     public static Either<Error, Tuple2<String, Predicate>> factPredicate(String s) {
-        Tuple2<String, String> tn = takewhile (s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
+        Tuple2<String, String> tn = takewhile(s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
         String name = tn._1;
         s = tn._2;
 
         s = space(s);
         if (s.length() == 0 || s.charAt(0) != '(') {
-            return Either.left(new Error(s, "opening parens not found for fact "+name));
+            return Either.left(new Error(s, "opening parens not found for fact " + name));
         }
         s = s.substring(1);
 
@@ -477,7 +477,7 @@ public final class Parser {
     }
 
     public static Either<Error, Tuple2<String, String>> name(String s) {
-        Tuple2<String, String> t = takewhile (s, (c) -> Character.isAlphabetic(c) || c == '_');
+        Tuple2<String, String> t = takewhile(s, (c) -> Character.isAlphabetic(c) || c == '_');
         String name = t._1;
         String remaining = t._2;
 
@@ -636,7 +636,7 @@ public final class Parser {
     }
 
     public static Either<Error, Tuple2<String, Term.Date>> date(String s) {
-        Tuple2<String, String> t = takewhile (s, (c) -> c != ' ' && c != ',' && c != ')' && c != ']');
+        Tuple2<String, String> t = takewhile(s, (c) -> c != ' ' && c != ',' && c != ')' && c != ']');
 
         try {
             OffsetDateTime d = OffsetDateTime.parse(t._1);
@@ -653,7 +653,7 @@ public final class Parser {
             return Either.left(new Error(s, "not a variable"));
         }
 
-        Tuple2<String, String> t = takewhile (s.substring(1), (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_');
+        Tuple2<String, String> t = takewhile(s.substring(1), (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_');
 
         return Either.right(new Tuple2<String, Term.Variable>(t._2, (Term.Variable) Utils.var(t._1)));
     }
@@ -763,7 +763,7 @@ public final class Parser {
         return s.substring(index);
     }
 
-    public static Tuple2<String, String> takewhile (String s, Function<Character, Boolean> f) {
+    public static Tuple2<String, String> takewhile(String s, Function<Character, Boolean> f) {
         int index = s.length();
         for (int i = 0; i < s.length(); i++) {
             Character c = s.charAt(i);
@@ -793,12 +793,12 @@ public final class Parser {
                 // Find the end of the multiline comment
                 remaining = remaining.substring(2); // Skip "/*"
                 String finalRemaining = remaining;
-                Tuple2<String, String> split = takewhile (remaining, c -> !finalRemaining.startsWith("*/"));
+                Tuple2<String, String> split = takewhile(remaining, c -> !finalRemaining.startsWith("*/"));
                 remaining = split._2.length() > 2 ? split._2.substring(2) : ""; // Skip "*/"
             } else if (remaining.startsWith("//")) {
                 // Find the end of the single-line comment
                 remaining = remaining.substring(2); // Skip "//"
-                Tuple2<String, String> split = takewhile (remaining, c -> c != '\n' && c != '\r');
+                Tuple2<String, String> split = takewhile(remaining, c -> c != '\n' && c != '\r');
                 remaining = split._2;
                 if (!remaining.isEmpty()) {
                     result.append(remaining.charAt(0)); // Preserve line break
@@ -807,7 +807,7 @@ public final class Parser {
             } else {
                 // Take non-comment text until the next comment or end of string
                 String finalRemaining = remaining;
-                Tuple2<String, String> split = takewhile (remaining, c -> !finalRemaining.startsWith("/*") && !finalRemaining.startsWith("//"));
+                Tuple2<String, String> split = takewhile(remaining, c -> !finalRemaining.startsWith("/*") && !finalRemaining.startsWith("//"));
                 result.append(split._1);
                 remaining = split._2;
             }

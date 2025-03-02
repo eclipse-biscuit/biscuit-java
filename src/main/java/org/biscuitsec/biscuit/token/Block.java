@@ -169,16 +169,16 @@ public final class Block {
             s.append(this.externalKey.get().toString());
         }*/
         for (Scope scope : this.scopes) {
-            s.append("trusting "+localSymbols.formatScope(scope)+"\n");
+            s.append("trusting " + localSymbols.formatScope(scope) + "\n");
         }
         for (Fact f : this.facts) {
-            s.append(localSymbols.formatFact(f)+";\n");
+            s.append(localSymbols.formatFact(f) + ";\n");
         }
         for (Rule r : this.rules) {
-            s.append(localSymbols.formatRule(r)+";\n");
+            s.append(localSymbols.formatRule(r) + ";\n");
         }
         for (Check c : this.checks) {
-            s.append(localSymbols.formatCheck(c)+";\n");
+            s.append(localSymbols.formatCheck(c) + ";\n");
         }
 
         return s.toString();
@@ -249,7 +249,7 @@ public final class Block {
         if (this.externalKey.isDefined()) {
             return SerializedBiscuit.MAX_SCHEMA_VERSION;
 
-        }else if (containsScopes || containsCheckAll || containsV4) {
+        } else if (containsScopes || containsCheckAll || containsV4) {
             return 4;
         } else {
             return SerializedBiscuit.MIN_SCHEMA_VERSION;
@@ -336,10 +336,10 @@ public final class Block {
         ArrayList<PublicKey> publicKeys = new ArrayList<>();
         for (Schema.PublicKey pk: b.getPublicKeysList()) {
             try {
-                PublicKey key =PublicKey.deserialize(pk);
+                PublicKey key = PublicKey.deserialize(pk);
                 publicKeys.add(key);
                 symbols.getPublicKeys().add(key);
-            } catch(Error.FormatError e) {
+            } catch (Error.FormatError e) {
                 return Left(e);
             }
         }

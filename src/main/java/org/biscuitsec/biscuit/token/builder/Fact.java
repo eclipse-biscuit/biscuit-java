@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class Fact implements Cloneable{
+public final class Fact implements Cloneable {
     Predicate predicate;
     Option<Map<String, Option<Term>>> variables;
 
@@ -31,7 +31,7 @@ public final class Fact implements Cloneable{
         this.variables = Option.none();
     }
 
-    private Fact(Predicate predicate, Option<Map<String, Option<Term>>> variables){
+    private Fact(Predicate predicate, Option<Map<String, Option<Term>>> variables) {
         this.predicate = predicate;
         this.variables = variables;
     }
@@ -70,7 +70,7 @@ public final class Fact implements Cloneable{
         this.variables.forEach(
                 _variables -> {
                     this.predicate.terms = this.predicate.terms.stream().flatMap(t -> {
-                        if (t instanceof Term.Variable){
+                        if (t instanceof Term.Variable) {
                             Option<Term> term = _variables.getOrDefault(((Term.Variable) t).value, Option.none());
                             return term.map(_t -> Stream.of(_t)).getOrElse(Stream.empty());
                         } else return Stream.of(t);
@@ -120,7 +120,7 @@ public final class Fact implements Cloneable{
     }
 
     @Override
-    public Fact clone(){
+    public Fact clone() {
         Predicate p = this.predicate.clone();
         Option<Map<String, Option<Term>>> variables = this.variables.map(_v -> {
             Map<String, Option<Term>> m = new HashMap<>();

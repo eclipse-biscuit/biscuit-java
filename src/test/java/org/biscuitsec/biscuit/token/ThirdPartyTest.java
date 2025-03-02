@@ -30,11 +30,11 @@ public class ThirdPartyTest {
 
         KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
         KeyPair external = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
-        System.out.println("external: ed25519/"+external.getPublicKey().toHex());
+        System.out.println("external: ed25519/" + external.getPublicKey().toHex());
 
         Block authority_builder = new Block();
         authority_builder.addFact("right(\"read\")");
-        authority_builder.addCheck("check if group(\"admin\") trusting ed25519/"+external.getPublicKey().toHex());
+        authority_builder.addCheck("check if group(\"admin\") trusting ed25519/" + external.getPublicKey().toHex());
 
         Biscuit b1 = Biscuit.make(rng, root, authority_builder.build());
         ThirdPartyBlockRequest request = b1.thirdPartyRequest();
@@ -93,39 +93,39 @@ public class ThirdPartyTest {
         KeyPair external1 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
         KeyPair external2 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
         KeyPair external3 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
-        //System.out.println("external: ed25519/"+external.public_key().toHex());
+        //System.out.println("external: ed25519/" + external.public_key().toHex());
 
         Block authority_builder = new Block();
         authority_builder.addFact("right(\"read\")");
-        authority_builder.addCheck("check if first(\"admin\") trusting ed25519/"+external1.getPublicKey().toHex());
+        authority_builder.addCheck("check if first(\"admin\") trusting ed25519/" + external1.getPublicKey().toHex());
 
         org.biscuitsec.biscuit.token.Block authority_block =  authority_builder.build();
         System.out.println(authority_block);
         Biscuit b1 = Biscuit.make(rng, root, authority_block);
-        System.out.println("TOKEN: "+b1.print());
+        System.out.println("TOKEN: " + b1.print());
 
         ThirdPartyBlockRequest request1 = b1.thirdPartyRequest();
         Block builder = new Block();
         builder.addFact("first(\"admin\")");
         builder.addFact("second(\"A\")");
-        builder.addCheck("check if third(3) trusting ed25519/"+external2.getPublicKey().toHex());
+        builder.addCheck("check if third(3) trusting ed25519/" + external2.getPublicKey().toHex());
         ThirdPartyBlockContents blockResponse = request1.createBlock(external1, builder).get();
         Biscuit b2 = b1.appendThirdPartyBlock(external1.getPublicKey(), blockResponse);
         byte[] data = b2.serialize();
         Biscuit deser2 = Biscuit.fromBytes(data, root.getPublicKey());
         assertEquals(b2.print(), deser2.print());
-        System.out.println("TOKEN: "+deser2.print());
+        System.out.println("TOKEN: " + deser2.print());
 
         ThirdPartyBlockRequest request2 = deser2.thirdPartyRequest();
         Block builder2 = new Block();
         builder2.addFact("third(3)");
-        builder2.addCheck("check if fourth(1) trusting ed25519/"+external3.getPublicKey().toHex()+", ed25519/"+external1.getPublicKey().toHex());
+        builder2.addCheck("check if fourth(1) trusting ed25519/" + external3.getPublicKey().toHex() + ", ed25519/" + external1.getPublicKey().toHex());
         ThirdPartyBlockContents blockResponse2 = request2.createBlock(external2, builder2).get();
         Biscuit b3 = deser2.appendThirdPartyBlock(external2.getPublicKey(), blockResponse2);
         byte[] data2 = b3.serialize();
         Biscuit deser3 = Biscuit.fromBytes(data2, root.getPublicKey());
         assertEquals(b3.print(), deser3.print());
-        System.out.println("TOKEN: "+deser3.print());
+        System.out.println("TOKEN: " + deser3.print());
 
 
         ThirdPartyBlockRequest request3 = deser3.thirdPartyRequest();
@@ -137,21 +137,21 @@ public class ThirdPartyTest {
         byte[] data3 = b4.serialize();
         Biscuit deser4 = Biscuit.fromBytes(data3, root.getPublicKey());
         assertEquals(b4.print(), deser4.print());
-        System.out.println("TOKEN: "+deser4.print());
+        System.out.println("TOKEN: " + deser4.print());
 
 
         System.out.println("will check the token for resource=file1");
         Authorizer authorizer = deser4.authorizer();
         authorizer.addFact("resource(\"file1\")");
         authorizer.addPolicy("allow if true");
-        System.out.println("Authorizer world:\n"+authorizer.formatWorld());
+        System.out.println("Authorizer world:\n" + authorizer.formatWorld());
         authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
         System.out.println("will check the token for resource=file2");
         Authorizer authorizer2 = deser4.authorizer();
         authorizer2.addFact("resource(\"file2\")");
         authorizer2.addPolicy("allow if true");
-        System.out.println("Authorizer world 2:\n"+authorizer2.formatWorld());
+        System.out.println("Authorizer world 2:\n" + authorizer2.formatWorld());
 
         try {
             authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
@@ -174,11 +174,11 @@ public class ThirdPartyTest {
 
         KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
         KeyPair external = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
-        System.out.println("external: ed25519/"+external.getPublicKey().toHex());
+        System.out.println("external: ed25519/" + external.getPublicKey().toHex());
 
         Block authority_builder = new Block();
         authority_builder.addFact("right(\"read\")");
-        authority_builder.addCheck("check if group(\"admin\") trusting ed25519/"+external.getPublicKey().toHex());
+        authority_builder.addCheck("check if group(\"admin\") trusting ed25519/" + external.getPublicKey().toHex());
 
         Biscuit b1 = Biscuit.make(rng, root, authority_builder.build());
         ThirdPartyBlockRequest request = b1.thirdPartyRequest();
@@ -200,7 +200,7 @@ public class ThirdPartyTest {
         authorizer.addFact("resource(\"file1\")");
         authorizer.addPolicy("allow if true");
         authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
-        System.out.println("Authorizer world:\n"+authorizer.formatWorld());
+        System.out.println("Authorizer world:\n" + authorizer.formatWorld());
 
 
         System.out.println("will check the token for resource=file2");

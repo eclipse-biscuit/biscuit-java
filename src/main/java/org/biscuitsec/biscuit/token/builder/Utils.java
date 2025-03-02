@@ -10,7 +10,7 @@ import java.util.List;
 import static org.biscuitsec.biscuit.datalog.Check.Kind.One;
 
 public final class Utils {
-    private Utils() {}
+    private Utils() { }
 
     public static Fact fact(String name, List<Term> ids) throws Error.Language {
         return new Fact(name, ids);
@@ -73,10 +73,10 @@ public final class Utils {
     public static byte[] hexStringToByteArray(String hex) {
         hex = hex.toUpperCase();
         int l = hex.length();
-        byte[] data = new byte[l/2];
+        byte[] data = new byte[l / 2];
         for (int i = 0; i < l; i += 2) {
-            data[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                    + Character.digit(hex.charAt(i+1), 16));
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i + 1), 16));
         }
         return data;
     }

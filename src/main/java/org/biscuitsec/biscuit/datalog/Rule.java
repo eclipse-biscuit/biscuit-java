@@ -74,7 +74,7 @@ public final class Rule implements Serializable {
                        } else {
                           return Either.left(new Error.InvalidType());
                        }
-                    } catch(Error error) {
+                    } catch (Error error) {
                        return Either.left(error);
                     }
 

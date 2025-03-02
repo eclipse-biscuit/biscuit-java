@@ -22,7 +22,7 @@ public class Error extends Exception {
         return new JsonObject();
     }
 
-    public static final class InternalError extends Error {}
+    public static final class InternalError extends Error { }
 
     public static class FormatError extends Error {
 
@@ -38,7 +38,7 @@ public class Error extends Exception {
                 return FormatError.jsonWrapper(signature);
             }
             public static final class InvalidFormat extends Signature {
-                public InvalidFormat() {}
+                public InvalidFormat() { }
                 @Override
                 public boolean equals(Object o) {
                     if (this == o) return true;
@@ -50,7 +50,7 @@ public class Error extends Exception {
                     return Signature.jsonWrapper(new JsonPrimitive("InvalidFormat"));
                 }
                 @Override
-                public String toString(){
+                public String toString() {
                     return "Err(Format(Signature(InvalidFormat)))";
                 }
             }
@@ -71,8 +71,8 @@ public class Error extends Exception {
                     return Signature.jsonWrapper(jo);
                 }
                 @Override
-                public String toString(){
-                    return "Err(Format(Signature(InvalidFormat(\""+this.e+"\"))))";
+                public String toString() {
+                    return "Err(Format(Signature(InvalidFormat(\"" + this.e + "\"))))";
                 }
             }
         }
@@ -88,7 +88,7 @@ public class Error extends Exception {
                 return FormatError.jsonWrapper(new JsonPrimitive("SealedSignature"));
             }
             @Override
-            public String toString(){
+            public String toString() {
                 return "Err(Format(SealedSignature))";
             }
         }
@@ -103,7 +103,7 @@ public class Error extends Exception {
                 return FormatError.jsonWrapper(new JsonPrimitive("EmptyKeys"));
             }
             @Override
-            public String toString(){
+            public String toString() {
                 return "Err(Format(EmptyKeys))";
             }
         }
@@ -118,7 +118,7 @@ public class Error extends Exception {
                 return FormatError.jsonWrapper(new JsonPrimitive("UnknownPublicKey"));
             }
             @Override
-            public String toString(){
+            public String toString() {
                 return "Err(Format(UnknownPublicKey))";
             }
         }
@@ -143,8 +143,8 @@ public class Error extends Exception {
             }
 
             @Override
-            public String toString(){
-                return "Err(Format(DeserializationError(\""+this.e+"\"))";
+            public String toString() {
+                return "Err(Format(DeserializationError(\"" + this.e + "\"))";
             }
 
             @Override
@@ -177,8 +177,8 @@ public class Error extends Exception {
             }
 
             @Override
-            public String toString(){
-                return "Err(Format(SerializationError(\""+this.e+"\"))";
+            public String toString() {
+                return "Err(Format(SerializationError(\"" + this.e + "\"))";
             }
 
             @Override
@@ -210,7 +210,7 @@ public class Error extends Exception {
 
             @Override
             public String toString() {
-                return "Err(FormatError.BlockDeserializationError{ error: "+  e + " }";
+                return "Err(FormatError.BlockDeserializationError{ error: " + e + " }";
             }
 
             @Override
@@ -242,7 +242,7 @@ public class Error extends Exception {
 
             @Override
             public String toString() {
-                return "Err(FormatError.BlockSerializationError{ error: "+  e + " }";
+                return "Err(FormatError.BlockSerializationError{ error: " + e + " }";
             }
 
             @Override
@@ -416,7 +416,7 @@ public class Error extends Exception {
         }
 
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("SymbolTableOverlap");
         }
     }
@@ -427,7 +427,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("MissingSymbols");
         }
     }
@@ -438,7 +438,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("Sealed");
         }
     }
@@ -464,7 +464,7 @@ public class Error extends Exception {
 
         @Override
         public String toString() {
-            return "Err(FailedLogic("+ error +"))";
+            return "Err(FailedLogic(" + error + "))";
         }
 
         @Override
@@ -473,7 +473,7 @@ public class Error extends Exception {
         }
 
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             JsonObject jo = new JsonObject();
             jo.add("FailedLogic", this.error.toJson());
             return jo;
@@ -483,7 +483,7 @@ public class Error extends Exception {
 
     public static final class Language extends Error {
         public final FailedCheck.LanguageError langError;
-        public Language(FailedCheck.LanguageError langError){
+        public Language(FailedCheck.LanguageError langError) {
             this.langError = langError;
         }
         @Override
@@ -493,7 +493,7 @@ public class Error extends Exception {
         }
 
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             JsonObject jo = new JsonObject();
             jo.add("Language", langError.toJson());
             return jo;
@@ -507,7 +507,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("TooManyFacts");
         }
     }
@@ -519,7 +519,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("TooManyIterations");
         }
     }
@@ -531,7 +531,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("Timeout");
         }
     }
@@ -571,7 +571,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             JsonObject jo = new JsonObject();
             jo.add("Execution", new JsonPrimitive(this.kind.toString()));
             return jo;
@@ -592,7 +592,7 @@ public class Error extends Exception {
             return o != null && getClass() == o.getClass();
         }
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             return new JsonPrimitive("InvalidType");
         }
     }
@@ -625,7 +625,7 @@ public class Error extends Exception {
         }
 
         @Override
-        public JsonElement toJson(){
+        public JsonElement toJson() {
             JsonObject error = new JsonObject();
             error.add("error", this.error.toJson());
             return error;

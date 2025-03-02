@@ -305,8 +305,8 @@ public final class SerializedBiscuit {
 
         if (!this.proof.isSealed()) {
             //System.out.println("checking secret key");
-            //System.out.println("current key: "+currentKey.toHex());
-            //System.out.println("key from proof: "+this.proof.secretKey.get().public_key().toHex());
+            //System.out.println("current key: " + currentKey.toHex());
+            //System.out.println("key from proof: " + this.proof.secretKey.get().public_key().toHex());
             if (this.proof.secretKey().getPublicKey().equals(currentKey)) {
                 //System.out.println("public keys are equal");
 

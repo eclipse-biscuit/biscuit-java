@@ -6,7 +6,7 @@ import org.biscuitsec.biscuit.token.builder.Utils;
  * Signature aggregation
  */
 public final class TokenSignature {
-    private TokenSignature() {}
+    private TokenSignature() { }
 
     /*
     final ArrayList<RistrettoElement> parameters;
@@ -137,7 +137,7 @@ public final class TokenSignature {
             return Right(new TokenSignature(parameters, z));
         } catch (InvalidEncodingException e) {
             return Left(new Error.FormatError.Signature.InvalidFormat());
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return Left(new Error.FormatError.DeserializationError(e.toString()));
         }
     }

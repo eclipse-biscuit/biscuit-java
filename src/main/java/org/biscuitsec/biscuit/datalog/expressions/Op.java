@@ -58,7 +58,7 @@ public abstract class Op {
                 if (valueVar != null) {
                     stack.push(valueVar);
                 } else {
-                    throw new Error.Execution("cannot find a variable for index "+value);
+                    throw new Error.Execution("cannot find a variable for index " + value);
                 }
             } else {
                 stack.push(value);
@@ -139,12 +139,12 @@ public abstract class Op {
                     if (value instanceof Term.Str) {
                         Option<String> s = symbols.getSymbol((int) ((Term.Str) value).value());
                         if (s.isEmpty()) {
-                            throw new Error.Execution("string not found in symbols for id"+value);
+                            throw new Error.Execution("string not found in symbols for id" + value);
                         } else {
                             try {
                                 stack.push(new Term.Integer(s.get().getBytes("UTF-8").length));
                             } catch (UnsupportedEncodingException e) {
-                                throw new Error.Execution("cannot calculate string length: "+e.toString());
+                                throw new Error.Execution("cannot calculate string length: " + e.toString());
                             }
                         }
                     } else if (value instanceof Term.Bytes) {
@@ -174,7 +174,7 @@ public abstract class Op {
                     stack.push(s);
                     break;
                 case Length:
-                    s = prec+".length()";
+                    s = prec + ".length()";
                     stack.push(s);
                     break;
                 default:
@@ -222,7 +222,7 @@ public abstract class Op {
 
         @Override
         public String toString() {
-            return "Unary."+op;
+            return "Unary." + op;
         }
 
         @Override
@@ -378,10 +378,10 @@ public abstract class Op {
                         Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
 
                         if (leftS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) left).value());
                         }
                         if (rightS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) right).value());
                         }
 
 
@@ -393,10 +393,10 @@ public abstract class Op {
                         Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
                         Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
                         if (leftS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) left).value());
                         }
                         if (rightS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) right).value());
                         }
 
                         stack.push(new Term.Bool(leftS.get().startsWith(rightS.get())));
@@ -407,10 +407,10 @@ public abstract class Op {
                         Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
                         Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
                         if (leftS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) left).value());
                         }
                         if (rightS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) right).value());
                         }
                         stack.push(new Term.Bool(leftS.get().endsWith(rightS.get())));
                     }
@@ -420,10 +420,10 @@ public abstract class Op {
                         Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
                         Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
                         if (leftS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) left).value());
                         }
                         if (rightS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) right).value());
                         }
 
                         Pattern p = Pattern.compile(rightS.get());
@@ -446,10 +446,10 @@ public abstract class Op {
                         Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
 
                         if (leftS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) left).value());
                         }
                         if (rightS.isEmpty()) {
-                            throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
+                            throw new Error.Execution("cannot find string in symbols for index " + ((Term.Str) right).value());
                         }
 
                         String concatenation = leftS.get() + rightS.get();
@@ -542,7 +542,7 @@ public abstract class Op {
                     }
                     break;
                 default:
-                    throw new Error.Execution("binary exec error for op"+this);
+                    throw new Error.Execution("binary exec error for op" + this);
             }
         }
 
@@ -617,11 +617,11 @@ public abstract class Op {
                     stack.push(s);
                     break;
                 case Intersection:
-                    s = left + ".intersection("+right+")";
+                    s = left + ".intersection(" + right + ")";
                     stack.push(s);
                     break;
                 case Union:
-                    s = left + ".union("+right+")";
+                    s = left + ".union(" + right + ")";
                     stack.push(s);
                     break;
                 case BitwiseAnd:
@@ -765,13 +765,13 @@ public abstract class Op {
                 case BitwiseXor:
                     return Right(new Op.Binary(BinaryOp.BitwiseXor));
                 default:
-                    return Left(new Error.FormatError.DeserializationError("invalid binary operation: "+op.getKind()));
+                    return Left(new Error.FormatError.DeserializationError("invalid binary operation: " + op.getKind()));
             }
         }
 
         @Override
         public String toString() {
-            return "Binary."+ op;
+            return "Binary." + op;
         }
 
         @Override

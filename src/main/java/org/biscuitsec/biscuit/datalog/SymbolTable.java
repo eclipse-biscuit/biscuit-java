@@ -169,7 +169,7 @@ public final class SymbolTable implements Serializable {
     }
 
     public String formatScope(final Scope scope) {
-        switch(scope.kind()) {
+        switch (scope.kind()) {
             case Authority:
                 return "authority";
             case Previous:
@@ -180,7 +180,7 @@ public final class SymbolTable implements Serializable {
                     return pk.get().toString();
                 }
             default:
-                return "<"+ scope.publicKey()+"?>";
+                return "<" + scope.publicKey() + "?>";
         }
     }
 
@@ -269,7 +269,7 @@ public final class SymbolTable implements Serializable {
 
     }
 
-    public SymbolTable(SymbolTable source, List<PublicKey> publicKeys){
+    public SymbolTable(SymbolTable source, List<PublicKey> publicKeys) {
         this(source.symbols, publicKeys);
     }
     public SymbolTable(List<String> symbols, List<PublicKey> publicKeys) {

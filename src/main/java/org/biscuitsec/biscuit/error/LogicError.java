@@ -41,7 +41,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "LogicError.InvalidAuthorityFact{ error: "+ e + " }";
+            return "LogicError.InvalidAuthorityFact{ error: " + e + " }";
         }
 
         @Override
@@ -73,7 +73,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "LogicError.InvalidAmbientFact{ error: "+ e + " }";
+            return "LogicError.InvalidAmbientFact{ error: " + e + " }";
         }
 
         @Override
@@ -110,7 +110,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "LogicError.InvalidBlockFact{ id: "+id+", error: "+  e + " }";
+            return "LogicError.InvalidBlockFact{ id: " + id + ", error: " + e + " }";
         }
 
         @Override
@@ -150,7 +150,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "LogicError.InvalidBlockRule{ id: "+id+", error: "+  e + " }";
+            return "LogicError.InvalidBlockRule{ id: " + id + ", error: " + e + " }";
         }
 
         @Override
@@ -202,7 +202,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "Unauthorized(policy = "+policy+ " errors = " + errors +")";
+            return "Unauthorized(policy = " + policy + " errors = " + errors + ")";
         }
 
         @Override
@@ -255,7 +255,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "NoMatchingPolicy{}";
+            return "NoMatchingPolicy{ }";
         }
 
         @Override
@@ -297,16 +297,16 @@ public class LogicError {
 
         public static final class Allow extends MatchedPolicy {
             public final long nb;
-            public Allow(long nb){
+            public Allow(long nb) {
                 this.nb = nb;
             }
 
             @Override
-            public String toString(){
-                return "Allow("+this.nb+")";
+            public String toString() {
+                return "Allow(" + this.nb + ")";
             }
 
-            public JsonElement toJson(){
+            public JsonElement toJson() {
                 JsonObject jo = new JsonObject();
                 jo.addProperty("Allow", this.nb);
                 return jo;
@@ -315,16 +315,16 @@ public class LogicError {
 
         public static final class Deny extends MatchedPolicy {
             public final long nb;
-            public Deny(long nb){
+            public Deny(long nb) {
                 this.nb = nb;
             }
 
             @Override
-            public String toString(){
-                return "Deny("+this.nb+")";
+            public String toString() {
+                return "Deny(" + this.nb + ")";
             }
 
-            public JsonElement toJson(){
+            public JsonElement toJson() {
                 JsonObject jo = new JsonObject();
                 jo.addProperty("Deny", this.nb);
                 return jo;

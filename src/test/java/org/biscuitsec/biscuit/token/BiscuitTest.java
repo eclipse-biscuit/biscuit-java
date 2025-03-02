@@ -691,7 +691,7 @@ public class BiscuitTest {
 
         try {
             authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
-        } catch(Error.FailedLogic e) {
+        } catch (Error.FailedLogic e) {
             System.out.println(e);
             assertEquals(new Error.FailedLogic(new LogicError.Unauthorized(
                     new LogicError.MatchedPolicy.Allow(0),

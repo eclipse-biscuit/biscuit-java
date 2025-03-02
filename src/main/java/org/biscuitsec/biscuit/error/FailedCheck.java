@@ -18,7 +18,7 @@ public class FailedCheck {
      * serialize to Json Object
      * @return json object
      */
-    public JsonElement toJson(){
+    public JsonElement toJson() {
         return new JsonObject();
     }
 
@@ -48,7 +48,7 @@ public class FailedCheck {
 
         @Override
         public String toString() {
-            return "Block(FailedBlockCheck " + new Gson().toJson(toJson())+")";
+            return "Block(FailedBlockCheck " + new Gson().toJson(toJson()) + ")";
         }
 
         @Override
@@ -87,7 +87,7 @@ public class FailedCheck {
 
         @Override
         public String toString() {
-            return "FailedCaveat.FailedAuthorizer { check_id: "+ checkId + ", rule: "+rule+" }";
+            return "FailedCaveat.FailedAuthorizer { check_id: " + checkId + ", rule: " + rule + " }";
         }
 
         @Override
@@ -134,14 +134,14 @@ public class FailedCheck {
 
             @Override
             public String toString() {
-                return "InvalidVariables { message: "+ invalidVariables +" }";
+                return "InvalidVariables { message: " + invalidVariables + " }";
             }
 
             @Override
             public JsonElement toJson() {
                 JsonObject authorizer = new JsonObject();
                 JsonArray ja = new JsonArray();
-                for (String s : invalidVariables){
+                for (String s : invalidVariables) {
                     ja.add(s);
                 }
                 authorizer.add("InvalidVariables", ja);
@@ -170,7 +170,7 @@ public class FailedCheck {
 
             @Override
             public String toString() {
-                return "LanguageError.UnknownVariable { message: "+message+ " }";
+                return "LanguageError.UnknownVariable { message: " + message + " }";
             }
 
             @Override
