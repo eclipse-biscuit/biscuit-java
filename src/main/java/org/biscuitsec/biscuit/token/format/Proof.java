@@ -28,9 +28,7 @@ interface Proof {
 
   /** NextSecret with a keypair. */
   final class NextSecret implements Proof {
-    /**
-     * the secret keypair for the block.
-     */
+    /** the secret keypair for the block. */
     private final KeyPair secretKey;
 
     /**

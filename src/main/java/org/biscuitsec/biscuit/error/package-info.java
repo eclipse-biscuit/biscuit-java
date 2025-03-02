@@ -1,4 +1,2 @@
-/**
- * Error description classes
- */
+/** Error description classes */
 package org.biscuitsec.biscuit.error;

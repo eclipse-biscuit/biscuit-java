@@ -1,77 +1,86 @@
 package org.biscuitsec.biscuit.crypto;
 
-import org.biscuitsec.biscuit.error.Error;
-import io.vavr.control.Either;
+import static io.vavr.API.Left;
+import static io.vavr.API.Right;
 
+import io.vavr.control.Either;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.ArrayList;
-
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
+import org.biscuitsec.biscuit.error.Error;
 
 class Token {
-    private final ArrayList<byte[]> blocks;
-    private final ArrayList<PublicKey> keys;
-    private final ArrayList<byte[]> signatures;
-    private final KeyPair next;
+  private final ArrayList<byte[]> blocks;
+  private final ArrayList<PublicKey> keys;
+  private final ArrayList<byte[]> signatures;
+  private final KeyPair next;
 
-    Token(final Signer rootSigner, byte[] message, KeyPair next) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+  Token(final Signer rootSigner, byte[] message, KeyPair next)
+      throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
-        byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
+    byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
 
-        byte[] signature = rootSigner.sign(payload);
+    byte[] signature = rootSigner.sign(payload);
 
-        this.blocks = new ArrayList<>();
-        this.blocks.add(message);
-        this.keys = new ArrayList<>();
-        this.keys.add(next.getPublicKey());
-        this.signatures = new ArrayList<>();
-        this.signatures.add(signature);
-        this.next = next;
+    this.blocks = new ArrayList<>();
+    this.blocks.add(message);
+    this.keys = new ArrayList<>();
+    this.keys.add(next.getPublicKey());
+    this.signatures = new ArrayList<>();
+    this.signatures.add(signature);
+    this.next = next;
+  }
+
+  Token(
+      final ArrayList<byte[]> blocks,
+      final ArrayList<PublicKey> keys,
+      final ArrayList<byte[]> signatures,
+      final KeyPair next) {
+    this.signatures = signatures;
+    this.blocks = blocks;
+    this.keys = keys;
+    this.next = next;
+  }
+
+  Token append(KeyPair keyPair, byte[] message)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    byte[] payload = BlockSignatureBuffer.getBufferSignature(keyPair.getPublicKey(), message);
+    byte[] signature = this.next.sign(payload);
+
+    Token token = new Token(this.blocks, this.keys, this.signatures, keyPair);
+    token.blocks.add(message);
+    token.signatures.add(signature);
+    token.keys.add(keyPair.getPublicKey());
+
+    return token;
+  }
+
+  // FIXME: rust version returns a Result<(), error::Signature>
+  public Either<Error, Void> verify(PublicKey root)
+      throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    PublicKey currentKey = root;
+    for (int i = 0; i < this.blocks.size(); i++) {
+      byte[] block = this.blocks.get(i);
+      PublicKey nextKey = this.keys.get(i);
+      byte[] signature = this.signatures.get(i);
+
+      byte[] payload = BlockSignatureBuffer.getBufferSignature(nextKey, block);
+      if (KeyPair.verify(currentKey, payload, signature)) {
+        currentKey = nextKey;
+      } else {
+        return Left(
+            new Error.FormatError.Signature.InvalidSignature(
+                "signature error: Verification equation was not satisfied"));
+      }
     }
 
-    Token(final ArrayList<byte[]> blocks, final ArrayList<PublicKey> keys, final ArrayList<byte[]> signatures,
-                 final KeyPair next) {
-        this.signatures = signatures;
-        this.blocks = blocks;
-        this.keys = keys;
-        this.next = next;
+    if (this.next.getPublicKey().equals(currentKey)) {
+      return Right(null);
+    } else {
+      return Left(
+          new Error.FormatError.Signature.InvalidSignature(
+              "signature error: Verification equation was not satisfied"));
     }
-
-    Token append(KeyPair keyPair, byte[] message) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-        byte[] payload = BlockSignatureBuffer.getBufferSignature(keyPair.getPublicKey(), message);
-        byte[] signature = this.next.sign(payload);
-
-        Token token = new Token(this.blocks, this.keys, this.signatures, keyPair);
-        token.blocks.add(message);
-        token.signatures.add(signature);
-        token.keys.add(keyPair.getPublicKey());
-
-        return token;
-    }
-
-    // FIXME: rust version returns a Result<(), error::Signature>
-    public Either<Error, Void> verify(PublicKey root) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        PublicKey currentKey = root;
-        for (int i = 0; i < this.blocks.size(); i++) {
-            byte[] block = this.blocks.get(i);
-            PublicKey nextKey  = this.keys.get(i);
-            byte[] signature = this.signatures.get(i);
-
-            byte[] payload = BlockSignatureBuffer.getBufferSignature(nextKey, block);
-            if (KeyPair.verify(currentKey, payload, signature)) {
-                currentKey = nextKey;
-            } else {
-                return Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied"));
-            }
-        }
-
-        if (this.next.getPublicKey().equals(currentKey)) {
-            return Right(null);
-        } else {
-            return Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied"));
-        }
-    }
+  }
 }

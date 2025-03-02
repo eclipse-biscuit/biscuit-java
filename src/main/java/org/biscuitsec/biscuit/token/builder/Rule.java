@@ -1,12 +1,7 @@
 package org.biscuitsec.biscuit.token.builder;
 
-import org.biscuitsec.biscuit.datalog.SymbolTable;
-import org.biscuitsec.biscuit.error.Error;
-import org.biscuitsec.biscuit.error.FailedCheck;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,242 +9,276 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.biscuitsec.biscuit.datalog.SymbolTable;
+import org.biscuitsec.biscuit.error.Error;
+import org.biscuitsec.biscuit.error.FailedCheck;
 
 public final class Rule implements Cloneable {
-    Predicate head;
-    List<Predicate> body;
-    List<Expression> expressions;
-    Option<Map<String, Option<Term>>> variables;
-    List<Scope> scopes;
+  Predicate head;
+  List<Predicate> body;
+  List<Expression> expressions;
+  Option<Map<String, Option<Term>>> variables;
+  List<Scope> scopes;
 
-    public Rule(Predicate head, List<Predicate> body, List<Expression> expressions, List<Scope> scopes) {
-        Map<String, Option<Term>> variables = new HashMap<>();
-        this.head = head;
-        this.body = body;
-        this.expressions = expressions;
-        this.scopes = scopes;
-        for (Term t : head.terms) {
-            if (t instanceof Term.Variable) {
-                variables.put(((Term.Variable) t).value, Option.none());
-            }
-        }
-        for (Predicate p : body) {
-            for (Term t : p.terms) {
-                if (t instanceof Term.Variable) {
-                    variables.put(((Term.Variable) t).value, Option.none());
-                }
-            }
-        }
-        for (Expression e : expressions) {
-            if (e instanceof Expression.Value) {
-                Expression.Value ev = (Expression.Value) e;
-                if (ev.value instanceof Term.Variable) {
-                    variables.put(((Term.Variable) ev.value).value, Option.none());
-                }
-            }
-        }
-        this.variables = Option.some(variables);
+  public Rule(
+      Predicate head, List<Predicate> body, List<Expression> expressions, List<Scope> scopes) {
+    Map<String, Option<Term>> variables = new HashMap<>();
+    this.head = head;
+    this.body = body;
+    this.expressions = expressions;
+    this.scopes = scopes;
+    for (Term t : head.terms) {
+      if (t instanceof Term.Variable) {
+        variables.put(((Term.Variable) t).value, Option.none());
+      }
     }
-
-    @Override
-    public Rule clone() {
-        Predicate head = this.head.clone();
-        List<Predicate> body = new ArrayList<>();
-        body.addAll(this.body);
-        List<Expression> expressions = new ArrayList<>();
-        expressions.addAll(this.expressions);
-        List<Scope> scopes = new ArrayList<>();
-        scopes.addAll(this.scopes);
-        return new Rule(head, body, expressions, scopes);
-    }
-
-    public void set(String name, Term term) throws Error.Language {
-        if (this.variables.isDefined()) {
-            Option<Option<Term>> t = Option.of(this.variables.get().get(name));
-            if (t.isDefined()) {
-                this.variables.get().put(name, Option.some(term));
-            } else {
-                throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable("name"));
-            }
-        } else {
-            throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable("name"));
+    for (Predicate p : body) {
+      for (Term t : p.terms) {
+        if (t instanceof Term.Variable) {
+          variables.put(((Term.Variable) t).value, Option.none());
         }
+      }
     }
+    for (Expression e : expressions) {
+      if (e instanceof Expression.Value) {
+        Expression.Value ev = (Expression.Value) e;
+        if (ev.value instanceof Term.Variable) {
+          variables.put(((Term.Variable) ev.value).value, Option.none());
+        }
+      }
+    }
+    this.variables = Option.some(variables);
+  }
 
-    public void applyVariables() {
-        this.variables.forEach(
-                _variables -> {
-                    this.head.terms = this.head.terms.stream().flatMap(t -> {
+  @Override
+  public Rule clone() {
+    Predicate head = this.head.clone();
+    List<Predicate> body = new ArrayList<>();
+    body.addAll(this.body);
+    List<Expression> expressions = new ArrayList<>();
+    expressions.addAll(this.expressions);
+    List<Scope> scopes = new ArrayList<>();
+    scopes.addAll(this.scopes);
+    return new Rule(head, body, expressions, scopes);
+  }
+
+  public void set(String name, Term term) throws Error.Language {
+    if (this.variables.isDefined()) {
+      Option<Option<Term>> t = Option.of(this.variables.get().get(name));
+      if (t.isDefined()) {
+        this.variables.get().put(name, Option.some(term));
+      } else {
+        throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable("name"));
+      }
+    } else {
+      throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable("name"));
+    }
+  }
+
+  public void applyVariables() {
+    this.variables.forEach(
+        _variables -> {
+          this.head.terms =
+              this.head.terms.stream()
+                  .flatMap(
+                      t -> {
                         if (t instanceof Term.Variable) {
-                            Option<Term> term = _variables.getOrDefault(((Term.Variable) t).value, Option.none());
-                            return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
+                          Option<Term> term =
+                              _variables.getOrDefault(((Term.Variable) t).value, Option.none());
+                          return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
                         } else {
-                            return Stream.of(t);
+                          return Stream.of(t);
                         }
-                    }).collect(Collectors.toList());
-                    for (Predicate p : this.body) {
-                        p.terms = p.terms.stream().flatMap(t -> {
-                            if (t instanceof Term.Variable) {
-                                Option<Term> term = _variables.getOrDefault(((Term.Variable) t).value, Option.none());
-                                return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
-                            } else {
-                                return Stream.of(t);
+                      })
+                  .collect(Collectors.toList());
+          for (Predicate p : this.body) {
+            p.terms =
+                p.terms.stream()
+                    .flatMap(
+                        t -> {
+                          if (t instanceof Term.Variable) {
+                            Option<Term> term =
+                                _variables.getOrDefault(((Term.Variable) t).value, Option.none());
+                            return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
+                          } else {
+                            return Stream.of(t);
+                          }
+                        })
+                    .collect(Collectors.toList());
+          }
+          this.expressions =
+              this.expressions.stream()
+                  .flatMap(
+                      e -> {
+                        if (e instanceof Expression.Value) {
+                          Expression.Value ev = (Expression.Value) e;
+                          if (ev.value instanceof Term.Variable) {
+                            Option<Term> t =
+                                _variables.getOrDefault(
+                                    ((Term.Variable) ev.value).value, Option.none());
+                            if (t.isDefined()) {
+                              return Stream.of(new Expression.Value(t.get()));
                             }
-                        }).collect(Collectors.toList());
-                    }
-                    this.expressions = this.expressions.stream().flatMap(
-                            e -> {
-                                if (e instanceof Expression.Value) {
-                                    Expression.Value ev = (Expression.Value) e;
-                                    if (ev.value instanceof Term.Variable) {
-                                        Option<Term> t = _variables.getOrDefault(((Term.Variable) ev.value).value, Option.none());
-                                        if (t.isDefined()) {
-                                            return Stream.of(new Expression.Value(t.get()));
-                                        }
-                                    }
-                                }
-                                return Stream.of(e);
-                            }).collect(Collectors.toList());
-                });
+                          }
+                        }
+                        return Stream.of(e);
+                      })
+                  .collect(Collectors.toList());
+        });
+  }
+
+  public Either<String, Rule> validateVariables() {
+    Set<String> freeVariables =
+        this.head.terms.stream()
+            .flatMap(
+                t -> {
+                  if (t instanceof Term.Variable) {
+                    return Stream.of(((Term.Variable) t).value);
+                  } else {
+                    return Stream.empty();
+                  }
+                })
+            .collect(Collectors.toSet());
+
+    for (Expression e : this.expressions) {
+      e.gatherVariables(freeVariables);
+    }
+    if (freeVariables.isEmpty()) {
+      return Either.right(this);
     }
 
-    public Either<String, Rule> validateVariables() {
-        Set<String> freeVariables = this.head.terms.stream().flatMap(t -> {
-            if (t instanceof Term.Variable) {
-                return Stream.of(((Term.Variable) t).value);
-            } else {
-                return Stream.empty();
-            }
-        }).collect(Collectors.toSet());
-
-        for (Expression e: this.expressions) {
-            e.gatherVariables(freeVariables);
-        }
-        if (freeVariables.isEmpty()) {
+    for (Predicate p : this.body) {
+      for (Term term : p.terms) {
+        if (term instanceof Term.Variable) {
+          freeVariables.remove(((Term.Variable) term).value);
+          if (freeVariables.isEmpty()) {
             return Either.right(this);
+          }
         }
-
-        for (Predicate p : this.body) {
-            for (Term term : p.terms) {
-                if (term instanceof Term.Variable) {
-                    freeVariables.remove(((Term.Variable) term).value);
-                    if (freeVariables.isEmpty()) {
-                        return Either.right(this);
-                    }
-                }
-            }
-        }
-
-        return Either.left("rule head or expressions contains variables that are not used in predicates of the rule's body: " + freeVariables.toString());
+      }
     }
 
-    public org.biscuitsec.biscuit.datalog.Rule convert(SymbolTable symbols) {
-        Rule r = this.clone();
-        r.applyVariables();
-        org.biscuitsec.biscuit.datalog.Predicate head = r.head.convert(symbols);
-        ArrayList<org.biscuitsec.biscuit.datalog.Predicate> body = new ArrayList<>();
-        ArrayList<org.biscuitsec.biscuit.datalog.expressions.Expression> expressions = new ArrayList<>();
-        ArrayList<org.biscuitsec.biscuit.datalog.Scope> scopes = new ArrayList<>();
+    return Either.left(
+        "rule head or expressions contains variables that are not used in predicates of the rule's body: "
+            + freeVariables.toString());
+  }
 
+  public org.biscuitsec.biscuit.datalog.Rule convert(SymbolTable symbols) {
+    Rule r = this.clone();
+    r.applyVariables();
+    org.biscuitsec.biscuit.datalog.Predicate head = r.head.convert(symbols);
+    ArrayList<org.biscuitsec.biscuit.datalog.Predicate> body = new ArrayList<>();
+    ArrayList<org.biscuitsec.biscuit.datalog.expressions.Expression> expressions =
+        new ArrayList<>();
+    ArrayList<org.biscuitsec.biscuit.datalog.Scope> scopes = new ArrayList<>();
 
-        for (Predicate p : r.body) {
-            body.add(p.convert(symbols));
-        }
-
-        for (Expression e : r.expressions) {
-            expressions.add(e.convert(symbols));
-        }
-
-        for (Scope s : r.scopes) {
-            scopes.add(s.convert(symbols));
-        }
-
-        return new org.biscuitsec.biscuit.datalog.Rule(head, body, expressions, scopes);
+    for (Predicate p : r.body) {
+      body.add(p.convert(symbols));
     }
 
-    public static Rule convertFrom(org.biscuitsec.biscuit.datalog.Rule r, SymbolTable symbols) {
-        Predicate head = Predicate.convertFrom(r.head(), symbols);
-
-        ArrayList<Predicate> body = new ArrayList<>();
-        ArrayList<Expression> expressions = new ArrayList<>();
-        ArrayList<Scope> scopes = new ArrayList<>();
-
-
-        for (org.biscuitsec.biscuit.datalog.Predicate p : r.body()) {
-            body.add(Predicate.convertFrom(p, symbols));
-        }
-
-        for (org.biscuitsec.biscuit.datalog.expressions.Expression e : r.expressions()) {
-            expressions.add(Expression.convertFrom(e, symbols));
-        }
-
-        for (org.biscuitsec.biscuit.datalog.Scope s : r.scopes()) {
-            scopes.add(Scope.convertFrom(s, symbols));
-        }
-
-        return new Rule(head, body, expressions, scopes);
+    for (Expression e : r.expressions) {
+      expressions.add(e.convert(symbols));
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false;  }
-
-        Rule rule = (Rule) o;
-
-        if (head != null ? !head.equals(rule.head) : rule.head != null) {
-            return false;
-        }
-        if (body != null ? !body.equals(rule.body) : rule.body != null) {
-            return false;
-        }
-        if (scopes != null ? !scopes.equals(rule.scopes) : rule.scopes != null) {
-            return false;
-        }
-        return expressions != null ? expressions.equals(rule.expressions) : rule.expressions == null;
+    for (Scope s : r.scopes) {
+      scopes.add(s.convert(symbols));
     }
 
-    @Override
-    public int hashCode() {
-        int result = head != null ? head.hashCode() : 0;
-        result = 31 * result + (body != null ? body.hashCode() : 0);
-        result = 31 * result + (expressions != null ? expressions.hashCode() : 0);
-        result = 31 * result + (scopes != null ? scopes.hashCode() : 0);
-        return result;
+    return new org.biscuitsec.biscuit.datalog.Rule(head, body, expressions, scopes);
+  }
+
+  public static Rule convertFrom(org.biscuitsec.biscuit.datalog.Rule r, SymbolTable symbols) {
+    Predicate head = Predicate.convertFrom(r.head(), symbols);
+
+    ArrayList<Predicate> body = new ArrayList<>();
+    ArrayList<Expression> expressions = new ArrayList<>();
+    ArrayList<Scope> scopes = new ArrayList<>();
+
+    for (org.biscuitsec.biscuit.datalog.Predicate p : r.body()) {
+      body.add(Predicate.convertFrom(p, symbols));
     }
 
-    public String bodyToString() {
-        Rule r = this.clone();
-        r.applyVariables();
-        String res = "";
-
-        if (!r.body.isEmpty()) {
-            final List<String> b = r.body.stream().map((pred) -> pred.toString()).collect(Collectors.toList());
-             res += String.join(", ", b);
-        }
-
-        if (!r.expressions.isEmpty()) {
-            if (!r.body.isEmpty()) {
-                res += ", ";
-            }
-            final List<String> e = r.expressions.stream().map((expression) -> expression.toString()).collect(Collectors.toList());
-            res += String.join(", ", e);
-        }
-
-        if (!r.scopes.isEmpty()) {
-            if (!r.body.isEmpty() || !r.expressions.isEmpty()) {
-                res += " ";
-            }
-            final List<String> e = r.scopes.stream().map((scope) -> scope.toString()).collect(Collectors.toList());
-            res += "trusting " + String.join(", ", e);
-        }
-
-        return res;
+    for (org.biscuitsec.biscuit.datalog.expressions.Expression e : r.expressions()) {
+      expressions.add(Expression.convertFrom(e, symbols));
     }
-    @Override
-    public String toString() {
-        Rule r = this.clone();
-        r.applyVariables();
-        return r.head.toString() + " <- " + bodyToString();
+
+    for (org.biscuitsec.biscuit.datalog.Scope s : r.scopes()) {
+      scopes.add(Scope.convertFrom(s, symbols));
     }
+
+    return new Rule(head, body, expressions, scopes);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Rule rule = (Rule) o;
+
+    if (head != null ? !head.equals(rule.head) : rule.head != null) {
+      return false;
+    }
+    if (body != null ? !body.equals(rule.body) : rule.body != null) {
+      return false;
+    }
+    if (scopes != null ? !scopes.equals(rule.scopes) : rule.scopes != null) {
+      return false;
+    }
+    return expressions != null ? expressions.equals(rule.expressions) : rule.expressions == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = head != null ? head.hashCode() : 0;
+    result = 31 * result + (body != null ? body.hashCode() : 0);
+    result = 31 * result + (expressions != null ? expressions.hashCode() : 0);
+    result = 31 * result + (scopes != null ? scopes.hashCode() : 0);
+    return result;
+  }
+
+  public String bodyToString() {
+    Rule r = this.clone();
+    r.applyVariables();
+    String res = "";
+
+    if (!r.body.isEmpty()) {
+      final List<String> b =
+          r.body.stream().map((pred) -> pred.toString()).collect(Collectors.toList());
+      res += String.join(", ", b);
+    }
+
+    if (!r.expressions.isEmpty()) {
+      if (!r.body.isEmpty()) {
+        res += ", ";
+      }
+      final List<String> e =
+          r.expressions.stream()
+              .map((expression) -> expression.toString())
+              .collect(Collectors.toList());
+      res += String.join(", ", e);
+    }
+
+    if (!r.scopes.isEmpty()) {
+      if (!r.body.isEmpty() || !r.expressions.isEmpty()) {
+        res += " ";
+      }
+      final List<String> e =
+          r.scopes.stream().map((scope) -> scope.toString()).collect(Collectors.toList());
+      res += "trusting " + String.join(", ", e);
+    }
+
+    return res;
+  }
+
+  @Override
+  public String toString() {
+    Rule r = this.clone();
+    r.applyVariables();
+    return r.head.toString() + " <- " + bodyToString();
+  }
 }
