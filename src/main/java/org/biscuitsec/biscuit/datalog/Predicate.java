@@ -86,7 +86,7 @@ public final class Predicate implements Serializable {
       return builder.build();
    }
 
-   static public Either<Error.FormatError, Predicate> deserializeV2(Schema.PredicateV2 predicate) {
+   public static Either<Error.FormatError, Predicate> deserializeV2(Schema.PredicateV2 predicate) {
       ArrayList<Term> terms = new ArrayList<>();
       for (Schema.TermV2 id: predicate.getTermsList()) {
          Either<Error.FormatError, Term> res = Term.deserializeEnumV2(id);

@@ -23,9 +23,9 @@ public class FailedCheck {
     }
 
     public static final class FailedBlock extends FailedCheck {
-        final public long blockId;
-        final public long checkId;
-        final public String rule;
+        public final long blockId;
+        public final long checkId;
+        public final String rule;
 
         public FailedBlock(long blockId, long checkId, String rule) {
             this.blockId = blockId;
@@ -64,8 +64,8 @@ public class FailedCheck {
     }
 
     public static final class FailedAuthorizer extends FailedCheck {
-        final public long checkId   ;
-        final public String rule;
+        public final long checkId   ;
+        public final String rule;
 
         public FailedAuthorizer(long checkId, String rule) {
             this.checkId = checkId;

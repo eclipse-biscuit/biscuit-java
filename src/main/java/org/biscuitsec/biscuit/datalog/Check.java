@@ -52,7 +52,7 @@ public final class Check {
         return b.build();
     }
 
-    static public Either<Error.FormatError, Check> deserializeV2(Schema.CheckV2 check) {
+    public static Either<Error.FormatError, Check> deserializeV2(Schema.CheckV2 check) {
         ArrayList<Rule> queries = new ArrayList<>();
 
         Kind kind;

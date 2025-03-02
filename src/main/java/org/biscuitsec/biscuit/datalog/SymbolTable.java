@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class SymbolTable implements Serializable {
-    public final static short DEFAULT_SYMBOLS_OFFSET = 1024;
+    public static final short DEFAULT_SYMBOLS_OFFSET = 1024;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_INSTANT;
 
@@ -30,7 +30,7 @@ public final class SymbolTable implements Serializable {
      * * one for the defaults symbols indexed from 0 et 1023 in <code>defaultSymbols</code> list
      * * one for the usages symbols indexed from 1024 in <code>symbols</code> list
      */
-    public final static List<String> DEFAULT_SYMBOLS = List.of(
+    public static final List<String> DEFAULT_SYMBOLS = List.of(
             "read",
             "write",
             "resource",

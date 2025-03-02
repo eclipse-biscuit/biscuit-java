@@ -51,7 +51,7 @@ public class UnverifiedBiscuit {
      * @param data
      * @return Biscuit
      */
-    static public UnverifiedBiscuit fromBase64Url(String data) throws Error {
+    public static UnverifiedBiscuit fromBase64Url(String data) throws Error {
         return UnverifiedBiscuit.fromBytes(Base64.getUrlDecoder().decode(data));
     }
 
@@ -63,7 +63,7 @@ public class UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public UnverifiedBiscuit fromBytes(byte[] data) throws Error {
+    public static UnverifiedBiscuit fromBytes(byte[] data) throws Error {
         return UnverifiedBiscuit.fromBytesWithSymbols(data, defaultSymbolTable());
     }
 
@@ -73,7 +73,7 @@ public class UnverifiedBiscuit {
      * @param data
      * @return UnverifiedBiscuit
      */
-    static public UnverifiedBiscuit fromBytesWithSymbols(byte[] data, SymbolTable symbols) throws Error {
+    public static UnverifiedBiscuit fromBytesWithSymbols(byte[] data, SymbolTable symbols) throws Error {
         SerializedBiscuit ser = SerializedBiscuit.deserializeUnsafe(data);
         return UnverifiedBiscuit.fromSerializedBiscuit(ser, symbols);
     }
@@ -83,7 +83,7 @@ public class UnverifiedBiscuit {
      *
      * @return UnverifiedBiscuit
      */
-    static private UnverifiedBiscuit fromSerializedBiscuit(SerializedBiscuit ser, SymbolTable symbols) throws Error {
+    private static UnverifiedBiscuit fromSerializedBiscuit(SerializedBiscuit ser, SymbolTable symbols) throws Error {
         Tuple2<Block, ArrayList<Block>> t = ser.extractBlocks(symbols);
         Block authority = t._1;
         ArrayList<Block> blocks = t._2;
@@ -303,7 +303,7 @@ public class UnverifiedBiscuit {
     /**
      * Default symbols list
      */
-    static public SymbolTable defaultSymbolTable() {
+    public static SymbolTable defaultSymbolTable() {
         return new SymbolTable();
     }
 

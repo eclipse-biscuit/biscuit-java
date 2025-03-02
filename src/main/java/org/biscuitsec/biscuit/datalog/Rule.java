@@ -208,7 +208,7 @@ public final class Rule implements Serializable {
       return b.build();
    }
 
-   static public Either<Error.FormatError, Rule> deserializeV2(Schema.RuleV2 rule) {
+   public static Either<Error.FormatError, Rule> deserializeV2(Schema.RuleV2 rule) {
       ArrayList<Predicate> body = new ArrayList<>();
       for (Schema.PredicateV2 predicate: rule.getBodyList()) {
          Either<Error.FormatError, Predicate> res = Predicate.deserializeV2(predicate);

@@ -80,7 +80,7 @@ public final class World implements Serializable {
       }
    }
 
-   public final FactSet facts() {
+   public FactSet facts() {
       return this.facts;
    }
 
@@ -88,7 +88,7 @@ public final class World implements Serializable {
       return this.rules;
    }
 
-   public final FactSet queryRule(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
+   public FactSet queryRule(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
       final FactSet newFacts = new FactSet();
 
       Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
@@ -108,11 +108,11 @@ public final class World implements Serializable {
       return newFacts;
    }
 
-   public final boolean queryMatch(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
+   public boolean queryMatch(final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
       return rule.findMatch(this.facts, origin, scope, symbols);
    }
 
-   public final boolean queryMatchAll(final Rule rule, TrustedOrigins scope, SymbolTable symbols) throws Error {
+   public boolean queryMatchAll(final Rule rule, TrustedOrigins scope, SymbolTable symbols) throws Error {
       return rule.checkMatchAll(this.facts, scope, symbols);
    }
 

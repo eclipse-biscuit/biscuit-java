@@ -93,7 +93,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param authority authority block
      * @return Biscuit
      */
-    static private Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> rootKeyId, final Block authority) throws Error.FormatError {
+    private static Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> rootKeyId, final Block authority) throws Error.FormatError {
         ArrayList<Block> blocks = new ArrayList<>();
 
         KeyPair next = KeyPair.generate(root.getPublicKey().getAlgorithm(), rng);
@@ -132,7 +132,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return Biscuit
      */
-    static public Biscuit fromBase64Url(String data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    public static Biscuit fromBase64Url(String data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), root);
     }
 
@@ -149,7 +149,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return Biscuit
      */
-    static public Biscuit fromBase64Url(String data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    public static Biscuit fromBase64Url(String data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), delegate);
     }
 
@@ -166,7 +166,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit fromBytes(byte[] data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    public static Biscuit fromBytes(byte[] data, PublicKey root) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         return fromBytesWithSymbols(data, root, defaultSymbolTable());
     }
 
@@ -183,7 +183,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit fromBytes(byte[] data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    public static Biscuit fromBytes(byte[] data, KeyDelegate delegate) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         return fromBytesWithSymbols(data, delegate, defaultSymbolTable());
     }
 
@@ -198,7 +198,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit fromBytesWithSymbols(byte[] data, PublicKey root, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    public static Biscuit fromBytesWithSymbols(byte[] data, PublicKey root, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         //System.out.println("will deserialize and verify token");
         SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, root);
         //System.out.println("deserialized token, will populate Biscuit structure");
@@ -217,7 +217,7 @@ public final class Biscuit extends UnverifiedBiscuit {
      * @param data
      * @return
      */
-    static public Biscuit fromBytesWithSymbols(byte[] data, KeyDelegate delegate, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    public static Biscuit fromBytesWithSymbols(byte[] data, KeyDelegate delegate, SymbolTable symbols) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         //System.out.println("will deserialize and verify token");
         SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, delegate);
         //System.out.println("deserialized token, will populate Biscuit structure");

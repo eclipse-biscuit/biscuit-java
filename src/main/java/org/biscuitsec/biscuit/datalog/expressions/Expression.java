@@ -63,7 +63,7 @@ public final class Expression {
         return b.build();
     }
 
-    static public Either<Error.FormatError, Expression> deserializeV2(Schema.ExpressionV2 e) {
+    public static Either<Error.FormatError, Expression> deserializeV2(Schema.ExpressionV2 e) {
         ArrayList<Op> ops = new ArrayList<>();
 
         for(Schema.Op op: e.getOpsList()) {

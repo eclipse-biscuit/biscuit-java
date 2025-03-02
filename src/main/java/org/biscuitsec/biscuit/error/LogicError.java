@@ -20,7 +20,7 @@ public class LogicError {
     }
 
     public static final class InvalidAuthorityFact extends LogicError {
-        final public String e;
+        public final String e;
 
         public InvalidAuthorityFact(String e) {
             this.e = e;
@@ -52,7 +52,7 @@ public class LogicError {
     }
 
     public static final class InvalidAmbientFact extends LogicError {
-        final public String e;
+        public final String e;
 
         public InvalidAmbientFact(String e) {
             this.e = e;
@@ -87,8 +87,8 @@ public class LogicError {
     }
 
     public static final class InvalidBlockFact extends LogicError {
-        final public long id;
-        final public String e;
+        public final long id;
+        public final String e;
 
         public InvalidBlockFact(long id, String e) {
             this.id = id;
@@ -127,8 +127,8 @@ public class LogicError {
     }
 
     public static final class InvalidBlockRule extends LogicError {
-        final public long id;
-        final public String e;
+        public final long id;
+        public final String e;
 
         public InvalidBlockRule(long id, String e) {
             this.id = id;
@@ -167,8 +167,8 @@ public class LogicError {
     }
 
     public static final class Unauthorized extends LogicError {
-        final public List<FailedCheck> errors;
-        final public MatchedPolicy policy;
+        public final List<FailedCheck> errors;
+        public final MatchedPolicy policy;
 
         public Unauthorized(MatchedPolicy policy, List<FailedCheck> errors) {
             this.errors = errors;
@@ -221,7 +221,7 @@ public class LogicError {
     }
 
     public static final class NoMatchingPolicy extends LogicError {
-        final public List<FailedCheck> errors;
+        public final List<FailedCheck> errors;
         public NoMatchingPolicy(List<FailedCheck> errors) {
             this.errors = errors;
         }
@@ -292,11 +292,11 @@ public class LogicError {
         }
     }
 
-    public static abstract class MatchedPolicy {
+    public abstract static class MatchedPolicy {
         public abstract JsonElement toJson();
 
         public static final class Allow extends MatchedPolicy {
-            final public long nb;
+            public final long nb;
             public Allow(long nb){
                 this.nb = nb;
             }

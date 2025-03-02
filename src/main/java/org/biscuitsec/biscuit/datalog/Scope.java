@@ -60,7 +60,7 @@ public final class Scope {
         return b.build();
     }
 
-    static public Either<Error.FormatError, Scope> deserialize(Schema.Scope scope) {
+    public static Either<Error.FormatError, Scope> deserialize(Schema.Scope scope) {
         if (scope.hasPublicKey()) {
             long publicKey = scope.getPublicKey();
             return Right(Scope.publicKey(publicKey));

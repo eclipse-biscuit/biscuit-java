@@ -122,7 +122,7 @@ public final class TokenSignature {
     }
 
 
-    static public  Either<Error, TokenSignature> deserialize(Schema.Signature sig) {
+    public static  Either<Error, TokenSignature> deserialize(Schema.Signature sig) {
         try {
             ArrayList<RistrettoElement> parameters = new ArrayList<>();
             for (ByteString parameter : sig.getParametersList()) {
@@ -173,7 +173,7 @@ public final class TokenSignature {
         return null;
     }*/
 
-    static public String hex(byte[] byteArray) {
+    public static String hex(byte[] byteArray) {
         StringBuilder result = new StringBuilder();
         for (byte bb : byteArray) {
             result.append(String.format("%02X", bb));

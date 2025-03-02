@@ -55,7 +55,7 @@ public class Error extends Exception {
                 }
             }
             public static final class InvalidSignature extends Signature {
-                final private String e;
+                private final String e;
                 public InvalidSignature(String e) {
                     this.e = e;
                 }
@@ -123,7 +123,7 @@ public class Error extends Exception {
             }
         }
         public static final class DeserializationError extends FormatError {
-            final private String e;
+            private final String e;
 
             public DeserializationError(String e) {
                 this.e = e;
@@ -157,7 +157,7 @@ public class Error extends Exception {
         }
 
         public static final class SerializationError extends FormatError {
-            final private String e;
+            private final String e;
 
             public SerializationError(String e) {
                 this.e = e;
@@ -189,7 +189,7 @@ public class Error extends Exception {
             }
         }
         public static final class BlockDeserializationError extends FormatError {
-            final private String e;
+            private final String e;
 
             public BlockDeserializationError(String e) {
                 this.e = e;
@@ -221,7 +221,7 @@ public class Error extends Exception {
             }
         }
         public static final class BlockSerializationError extends FormatError {
-            final private String e;
+            private final String e;
 
             public BlockSerializationError(String e) {
                 this.e = e;
@@ -338,7 +338,7 @@ public class Error extends Exception {
         }
     }
     public static final class InvalidAuthorityIndex extends Error {
-        final public long index;
+        public final long index;
 
         public InvalidAuthorityIndex(long index) {
             this.index = index;
@@ -372,8 +372,8 @@ public class Error extends Exception {
         }
     }
     public static final class InvalidBlockIndex extends Error {
-        final public long expected;
-        final public long found;
+        public final long expected;
+        public final long found;
 
         public InvalidBlockIndex(long expected, long found) {
             this.expected = expected;
@@ -443,7 +443,7 @@ public class Error extends Exception {
         }
     }
     public static final class FailedLogic extends Error {
-        final public LogicError error;
+        public final LogicError error;
 
         public FailedLogic(LogicError error) {
             this.error = error;
@@ -482,7 +482,7 @@ public class Error extends Exception {
     }
 
     public static final class Language extends Error {
-        final public FailedCheck.LanguageError langError;
+        public final FailedCheck.LanguageError langError;
         public Language(FailedCheck.LanguageError langError){
             this.langError = langError;
         }
@@ -598,7 +598,7 @@ public class Error extends Exception {
     }
 
     public static final class Parser extends Error {
-        final public org.biscuitsec.biscuit.token.builder.parser.Error error;
+        public final org.biscuitsec.biscuit.token.builder.parser.Error error;
 
         public Parser(org.biscuitsec.biscuit.token.builder.parser.Error error) {
             this.error = error;

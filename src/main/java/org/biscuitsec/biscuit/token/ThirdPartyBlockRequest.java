@@ -50,12 +50,12 @@ public final class ThirdPartyBlockRequest {
         return b.build();
     }
 
-    static public ThirdPartyBlockRequest deserialize(Schema.ThirdPartyBlockRequest b) throws Error.FormatError.DeserializationError {
+    public static ThirdPartyBlockRequest deserialize(Schema.ThirdPartyBlockRequest b) throws Error.FormatError.DeserializationError {
         PublicKey previousKey = PublicKey.deserialize(b.getPreviousKey());
         return new ThirdPartyBlockRequest(previousKey);
     }
 
-    static public ThirdPartyBlockRequest fromBytes(byte[] slice) throws InvalidProtocolBufferException, Error.FormatError.DeserializationError {
+    public static ThirdPartyBlockRequest fromBytes(byte[] slice) throws InvalidProtocolBufferException, Error.FormatError.DeserializationError {
         return ThirdPartyBlockRequest.deserialize(Schema.ThirdPartyBlockRequest.parseFrom(slice));
     }
 

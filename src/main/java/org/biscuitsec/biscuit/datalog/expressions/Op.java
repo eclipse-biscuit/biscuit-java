@@ -27,7 +27,7 @@ public abstract class Op {
 
     public abstract Schema.Op serialize();
 
-    static public Either<Error.FormatError, Op> deserializeV2(Schema.Op op) {
+    public static Either<Error.FormatError, Op> deserializeV2(Schema.Op op) {
         if (op.hasValue()) {
             return Term.deserializeEnumV2(op.getValue()).map(v -> new Op.Value(v));
         } else if (op.hasUnary()) {
@@ -201,7 +201,7 @@ public abstract class Op {
             return b.build();
         }
 
-        static public Either<Error.FormatError, Op> deserializeV2(Schema.OpUnary op) {
+        public static Either<Error.FormatError, Op> deserializeV2(Schema.OpUnary op) {
             switch (op.getKind()) {
                 case Negate:
                     return Right(new Op.Unary(UnaryOp.Negate));
@@ -712,7 +712,7 @@ public abstract class Op {
             return b.build();
         }
 
-        static public Either<Error.FormatError, Op> deserializeV1(Schema.OpBinary op) {
+        public static Either<Error.FormatError, Op> deserializeV1(Schema.OpBinary op) {
             switch (op.getKind()) {
                 case LessThan:
                     return Right(new Op.Binary(BinaryOp.LessThan));

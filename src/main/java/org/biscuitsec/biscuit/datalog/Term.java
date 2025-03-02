@@ -17,7 +17,7 @@ public abstract class Term implements Serializable {
    public abstract boolean match(Term other);
    public abstract Schema.TermV2 serialize();
 
-   static public Either<Error.FormatError, Term> deserializeEnumV2(Schema.TermV2 term) {
+   public static Either<Error.FormatError, Term> deserializeEnumV2(Schema.TermV2 term) {
       if(term.hasDate()) {
          return Date.deserializeV2(term);
       } else if(term.hasInteger()) {
@@ -83,7 +83,7 @@ public abstract class Term implements Serializable {
                  .setDate(this.value).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasDate()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected date"));
          } else {
@@ -142,7 +142,7 @@ public abstract class Term implements Serializable {
                  .setInteger(this.value).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasInteger()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected integer"));
          } else {
@@ -201,7 +201,7 @@ public abstract class Term implements Serializable {
                  .setBytes(ByteString.copyFrom(this.value)).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasBytes()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected byte array"));
          } else {
@@ -255,7 +255,7 @@ public abstract class Term implements Serializable {
                  .setString(this.value).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasString()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected string"));
          } else {
@@ -308,7 +308,7 @@ public abstract class Term implements Serializable {
                  .setVariable((int) this.value).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasVariable()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected variable"));
          } else {
@@ -367,7 +367,7 @@ public abstract class Term implements Serializable {
                  .setBool(this.value).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasBool()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected boolean"));
          } else {
@@ -433,7 +433,7 @@ public abstract class Term implements Serializable {
                  .setSet(s).build();
       }
 
-      static public Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
+      public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
          if(!term.hasSet()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected set"));
          } else {
