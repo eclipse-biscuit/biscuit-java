@@ -18,14 +18,14 @@ import java.util.List;
 import static org.biscuitsec.biscuit.token.UnverifiedBiscuit.defaultSymbolTable;
 
 public final class Biscuit {
-    SecureRandom rng;
-    org.biscuitsec.biscuit.crypto.Signer root;
-    String context;
-    List<Fact> facts;
-    List<Rule> rules;
-    List<Check> checks;
-    List<Scope> scopes;
-    Option<Integer> rootKeyId;
+    private SecureRandom rng;
+    private org.biscuitsec.biscuit.crypto.Signer root;
+    private String context;
+    private List<Fact> facts;
+    private List<Rule> rules;
+    private List<Check> checks;
+    private List<Scope> scopes;
+    private Option<Integer> rootKeyId;
 
     public Biscuit(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root) {
         this.rng = rng;
@@ -53,11 +53,11 @@ public final class Biscuit {
         this.rng = rng;
         this.root = root;
         this.rootKeyId = rootKeyId;
-        this.context = block.context;
-        this.facts = block.facts;
-        this.rules = block.rules;
-        this.checks = block.checks;
-        this.scopes = block.scopes;
+        this.context = block.context();
+        this.facts = block.facts();
+        this.rules = block.rules();
+        this.checks = block.checks();
+        this.scopes = block.scopes();
     }
 
     public Biscuit addAuthorityFact(org.biscuitsec.biscuit.token.builder.Fact f) throws Error.Language {

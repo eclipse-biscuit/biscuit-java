@@ -19,7 +19,7 @@ import java.security.SignatureException;
 import java.util.Objects;
 
 public final class ThirdPartyBlockRequest {
-    PublicKey previousKey;
+    private final PublicKey previousKey;
 
     ThirdPartyBlockRequest(PublicKey previousKey) {
         this.previousKey = previousKey;

@@ -20,7 +20,6 @@ import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -215,7 +214,7 @@ public class UnverifiedBiscuit {
     }
 
     public Option<Integer> getRootKeyId() {
-        return this.serializedBiscuit.rootKeyId;
+        return this.serializedBiscuit.getRootKeyId();
     }
 
     /**
@@ -223,10 +222,10 @@ public class UnverifiedBiscuit {
      */
     public ThirdPartyBlockRequest thirdPartyRequest() {
         PublicKey previousKey;
-        if(this.serializedBiscuit.blocks.isEmpty()) {
-            previousKey = this.serializedBiscuit.authority.key;
+        if(this.serializedBiscuit.getBlocks().isEmpty()) {
+            previousKey = this.serializedBiscuit.getAuthority().getKey();
         } else {
-            previousKey = this.serializedBiscuit.blocks.get(this.serializedBiscuit.blocks.size() - 1).key;
+            previousKey = this.serializedBiscuit.getBlocks().get(this.serializedBiscuit.getBlocks().size() - 1).getKey();
         }
 
         return new ThirdPartyBlockRequest(previousKey);
@@ -239,25 +238,25 @@ public class UnverifiedBiscuit {
     public UnverifiedBiscuit appendThirdPartyBlock(PublicKey externalKey, ThirdPartyBlockContents blockResponse)
             throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         PublicKey previousKey;
-        if(this.serializedBiscuit.blocks.isEmpty()) {
-            previousKey = this.serializedBiscuit.authority.key;
+        if(this.serializedBiscuit.getBlocks().isEmpty()) {
+            previousKey = this.serializedBiscuit.getAuthority().getKey();
         } else {
-            previousKey = this.serializedBiscuit.blocks.get(this.serializedBiscuit.blocks.size() - 1).key;
+            previousKey = this.serializedBiscuit.getBlocks().get(this.serializedBiscuit.getBlocks().size() - 1).getKey();
         }
         KeyPair nextKeyPair = KeyPair.generate(previousKey.getAlgorithm());
-        byte[] payload = BlockSignatureBuffer.getBufferSignature(previousKey, blockResponse.payload);
-        if (!KeyPair.verify(externalKey, payload, blockResponse.signature)) {
+        byte[] payload = BlockSignatureBuffer.getBufferSignature(previousKey, blockResponse.getPayload());
+        if (!KeyPair.verify(externalKey, payload, blockResponse.getSignature())) {
             throw new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied");
         }
 
-        Either<Error.FormatError, Block> res = Block.fromBytes(blockResponse.payload, Option.some(externalKey));
+        Either<Error.FormatError, Block> res = Block.fromBytes(blockResponse.getPayload(), Option.some(externalKey));
         if(res.isLeft()) {
             throw res.getLeft();
         }
 
         Block block = res.get();
 
-        ExternalSignature externalSignature = new ExternalSignature(externalKey, blockResponse.signature);
+        ExternalSignature externalSignature = new ExternalSignature(externalKey, blockResponse.getSignature());
 
         UnverifiedBiscuit copiedBiscuit = this.copy();
 
@@ -328,7 +327,7 @@ public class UnverifiedBiscuit {
     public Biscuit verify(KeyDelegate delegate) throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         SerializedBiscuit serializedBiscuit = this.serializedBiscuit;
 
-        Option<PublicKey> root = delegate.getRootKey(serializedBiscuit.rootKeyId);
+        Option<PublicKey> root = delegate.getRootKey(serializedBiscuit.getRootKeyId());
         if(root.isEmpty()) {
             throw new InvalidKeyException("unknown root key id");
         }

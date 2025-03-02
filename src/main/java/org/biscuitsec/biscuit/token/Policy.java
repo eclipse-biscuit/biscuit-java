@@ -7,13 +7,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Policy {
+    public List<Rule> queries() {
+        return queries;
+    }
+
+    public Kind kind() {
+        return kind;
+    }
+
     public enum Kind {
         Allow,
         Deny,
     }
 
-    public final List<Rule> queries;
-    public Kind kind;
+    private final List<Rule> queries;
+    private Kind kind;
 
     public Policy(List<Rule> queries, Kind kind) {
         this.queries = queries;

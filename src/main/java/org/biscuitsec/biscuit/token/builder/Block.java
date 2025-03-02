@@ -12,6 +12,7 @@ import org.biscuitsec.biscuit.token.builder.parser.Parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -30,11 +31,11 @@ import static org.biscuitsec.biscuit.token.builder.Utils.var;
 
 
 public final class Block {
-    String context;
-    List<Fact> facts;
-    List<Rule> rules;
-    List<Check> checks;
-    List<Scope> scopes;
+    private String context;
+    private List<Fact> facts;
+    private List<Rule> rules;
+    private List<Check> checks;
+    private List<Scope> scopes;
 
     public Block() {
         this.context = "";
@@ -235,5 +236,25 @@ public final class Block {
                         new Expression.Value(date(d))))
         ));
         return this.addCheck(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
+    }
+
+    public String context() {
+        return context;
+    }
+
+    public List<Fact> facts() {
+        return Collections.unmodifiableList(facts);
+    }
+
+    public List<Rule> rules() {
+        return Collections.unmodifiableList(rules);
+    }
+
+    public List<Check> checks() {
+        return Collections.unmodifiableList(checks);
+    }
+
+    public List<Scope> scopes() {
+        return scopes;
     }
 }

@@ -41,13 +41,13 @@ import static io.vavr.API.Right;
  * Token verification class
  */
 public final class Authorizer {
-    Biscuit token;
-    List<org.biscuitsec.biscuit.token.builder.Check> checks;
-    List<Policy> policies;
-    List<Scope> scopes;
-    HashMap<Long, List<Long>> publicKeyToBlockId;
-    World world;
-    SymbolTable symbols;
+    private Biscuit token;
+    private final List<org.biscuitsec.biscuit.token.builder.Check> checks;
+    private final List<Policy> policies;
+    private final List<Scope> scopes;
+    private final HashMap<Long, List<Long>> publicKeyToBlockId;
+    private final World world;
+    private final SymbolTable symbols;
 
     private Authorizer(Biscuit token, World w) throws Error.FailedLogic {
         this.token = token;
@@ -501,8 +501,8 @@ public final class Authorizer {
         for (int i = 0; i < this.policies.size(); i++) {
             Policy policy = this.policies.get(i);
 
-            for (int j = 0; j < policy.queries.size(); j++) {
-                org.biscuitsec.biscuit.datalog.Rule query = policy.queries.get(j).convert(symbols);
+            for (int j = 0; j < policy.queries().size(); j++) {
+                org.biscuitsec.biscuit.datalog.Rule query = policy.queries().get(j).convert(symbols);
                 TrustedOrigins policyTrustedOrigins = TrustedOrigins.fromScopes(
                         query.scopes(),
                         authorizerTrustedOrigins,
@@ -516,7 +516,7 @@ public final class Authorizer {
                 }
 
                 if (res) {
-                    if (this.policies.get(i).kind == Policy.Kind.Allow) {
+                    if (this.policies.get(i).kind() == Policy.Kind.Allow) {
                         policyResult = Option.some(Right(i));
                     } else {
                         policyResult = Option.some(Left(i));
@@ -690,5 +690,9 @@ public final class Authorizer {
 
     public List<Policy> policies() {
         return this.policies;
+    }
+
+    public SymbolTable symbols() {
+        return symbols;
     }
 }

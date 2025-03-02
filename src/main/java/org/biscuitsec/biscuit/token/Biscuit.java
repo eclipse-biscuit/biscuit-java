@@ -18,7 +18,6 @@ import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 
 /**

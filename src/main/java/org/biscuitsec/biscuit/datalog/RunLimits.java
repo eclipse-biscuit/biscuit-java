@@ -2,7 +2,7 @@ package org.biscuitsec.biscuit.datalog;
 
 import java.time.Duration;
 
-public class RunLimits {
+public final class RunLimits {
     private int maxFacts = 1000;
     private int maxIterations = 100;
     private Duration maxTime = Duration.ofMillis(5);
