@@ -58,7 +58,7 @@ public class WorldTest {
                       Arrays.asList(new Term.Variable(syms.insert("parent")), new Term.Variable(syms.insert("child"))))),
               new ArrayList<>());
 
-      for (Iterator<Fact> it = w.queryRule(query1, (long) 0, new TrustedOrigins(0), syms).stream().iterator(); it.hasNext(); ) {
+      for (Iterator<Fact> it = w.queryRule(query1, (long) 0, new TrustedOrigins(0), syms).stream().iterator(); it.hasNext();) {
          Fact fact = it.next();
          System.out.println("\t" + syms.formatFact(fact));
       }
@@ -151,7 +151,7 @@ public class WorldTest {
                                     new Term.Variable(syms.insert("right")),
                                     new Term.Variable(syms.insert("id"))))), new ArrayList<>()),
               (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -174,7 +174,7 @@ public class WorldTest {
                       new Op.Binary(Op.BinaryOp.LessThan)
                       ))))
       ), (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -218,7 +218,7 @@ public class WorldTest {
       w.addFact(new Origin(0), new Fact(new Predicate(route, Arrays.asList(new Term.Integer(4), app_1, syms.add("mx.example.com")))));
 
       FactSet res = testSuffix(w, syms, suff, route, ".fr");
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -227,7 +227,7 @@ public class WorldTest {
       assertEquals(expected, res);
 
       res = testSuffix(w, syms, suff, route, "example.com");
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -286,7 +286,7 @@ public class WorldTest {
 
       System.out.println("testing r1: " + syms.formatRule(r1));
       FactSet res = w.queryRule(r1, (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -315,7 +315,7 @@ public class WorldTest {
 
       System.out.println("testing r2: " + syms.formatRule(r2));
       res = w.queryRule(r2, (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -355,7 +355,7 @@ public class WorldTest {
       );
       System.out.println("testing r1: " + syms.formatRule(r1));
       FactSet res = w.queryRule(r1, (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -381,7 +381,7 @@ public class WorldTest {
 
       System.out.println("testing r2: " + syms.formatRule(r2));
       res = w.queryRule(r2, (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -401,7 +401,7 @@ public class WorldTest {
       );
       System.out.println("testing r3: " + syms.formatRule(r3));
       res = w.queryRule(r3, (long) 0, new TrustedOrigins(0), syms);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -439,7 +439,7 @@ public class WorldTest {
       System.out.println("testing caveat 1(should return nothing): " + syms.formatRule(r1));
       FactSet res = w.queryRule(r1, (long) 0, new TrustedOrigins(0), syms);
       System.out.println(res);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
@@ -460,7 +460,7 @@ public class WorldTest {
       System.out.println("testing caveat 2: " + syms.formatRule(r2));
       res = w.queryRule(r2, (long) 0, new TrustedOrigins(0), syms);
       System.out.println(res);
-       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Fact> it = res.stream().iterator(); it.hasNext();) {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }

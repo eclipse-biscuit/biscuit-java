@@ -378,7 +378,7 @@ public final class Authorizer {
                 ruleTrustedorigins, symbols);
         Set<org.biscuitsec.biscuit.token.builder.Fact> s = new HashSet<>();
 
-        for (Iterator<org.biscuitsec.biscuit.datalog.Fact> it = facts.stream().iterator(); it.hasNext(); ) {
+        for (Iterator<org.biscuitsec.biscuit.datalog.Fact> it = facts.stream().iterator(); it.hasNext();) {
             org.biscuitsec.biscuit.datalog.Fact f = it.next();
             s.add(org.biscuitsec.biscuit.token.builder.Fact.convertFrom(f, symbols));
         }

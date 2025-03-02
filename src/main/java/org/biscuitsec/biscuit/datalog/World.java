@@ -46,7 +46,7 @@ public final class World implements Serializable {
                Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(entry.getKey());
 
                Stream<Either<Error, Tuple2<Origin, Fact>>> stream =  t._2.apply(factsSupplier, t._1, symbols);
-                for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator(); it.hasNext(); ) {
+                for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator(); it.hasNext();) {
                     Either<Error, Tuple2<Origin, Fact>> res = it.next();
                     if(Instant.now().compareTo(limit) >= 0) {
                        throw new Error.Timeout();
@@ -94,7 +94,7 @@ public final class World implements Serializable {
       Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
 
       Stream<Either<Error, Tuple2<Origin, Fact>>> stream = rule.apply(factsSupplier, origin, symbols);
-      for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator(); it.hasNext(); ) {
+      for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator(); it.hasNext();) {
          Either<Error, Tuple2<Origin, Fact>> res = it.next();
 
          if (res.isRight()) {
@@ -150,7 +150,7 @@ public final class World implements Serializable {
       }
 
       s.append("\n\t\t]\n\t\trules: [");
-       for (Iterator<Rule> it = this.rules.stream().iterator(); it.hasNext(); ) {
+       for (Iterator<Rule> it = this.rules.stream().iterator(); it.hasNext();) {
            Rule r = it.next();
            s.append("\n\t\t\t");
            s.append(symbolTable.formatRule(r));

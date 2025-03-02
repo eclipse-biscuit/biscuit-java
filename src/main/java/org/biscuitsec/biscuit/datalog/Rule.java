@@ -151,7 +151,7 @@ public final class Rule implements Serializable {
       Combinator combinator = new Combinator(variables, this.body, factsSupplier, symbols);
       boolean found = false;
 
-       for (Combinator it = combinator; it.hasNext(); ) {
+       for (Combinator it = combinator; it.hasNext();) {
            Tuple2<Origin, Map<Long, Term>> t = it.next();
            Map<Long, Term> generatedVariables = t._2;
            found = true;
