@@ -202,7 +202,7 @@ public class LogicError {
 
         @Override
         public String toString() {
-            return "Unauthorized( policy = "+policy+ " errors = " + errors +")";
+            return "Unauthorized(policy = "+policy+ " errors = " + errors +")";
         }
 
         @Override

@@ -58,7 +58,7 @@ public abstract class Op {
                 if (valueVar != null) {
                     stack.push(valueVar);
                 } else {
-                    throw new Error.Execution( "cannot find a variable for index "+value);
+                    throw new Error.Execution("cannot find a variable for index "+value);
                 }
             } else {
                 stack.push(value);
@@ -333,7 +333,7 @@ public abstract class Op {
                     if (right instanceof Term.Set && left instanceof Term.Set) {
                         Set<Term> leftSet = ((Term.Set) left).value();
                         Set<Term> rightSet = ((Term.Set) right).value();
-                        stack.push(new Term.Bool( leftSet.size() == rightSet.size() && leftSet.containsAll(rightSet)));
+                        stack.push(new Term.Bool(leftSet.size() == rightSet.size() && leftSet.containsAll(rightSet)));
                     }
                     break;
                 case NotEqual:
@@ -355,7 +355,7 @@ public abstract class Op {
                     if (right instanceof Term.Set && left instanceof Term.Set) {
                         Set<Term> leftSet = ((Term.Set) left).value();
                         Set<Term> rightSet = ((Term.Set) right).value();
-                        stack.push(new Term.Bool( leftSet.size() != rightSet.size() || !leftSet.containsAll(rightSet)));
+                        stack.push(new Term.Bool(leftSet.size() != rightSet.size() || !leftSet.containsAll(rightSet)));
                     }
                     break;
                 case Contains:

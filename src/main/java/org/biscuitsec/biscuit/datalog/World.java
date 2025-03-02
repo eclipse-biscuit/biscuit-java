@@ -66,7 +66,7 @@ public final class World implements Serializable {
          this.facts.merge(newFacts);
 
          if (this.facts.size() == len) {
-            return ;
+            return;
          }
 
          if (this.facts.size() >= limits.getMaxFacts()) {

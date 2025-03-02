@@ -553,7 +553,7 @@ public class Error extends Exception {
             kind = Kind.Execution;
         }
 
-        public Execution( String msg) {
+        public Execution(String msg) {
             e = null;
             message = msg;
             kind = Kind.Execution;

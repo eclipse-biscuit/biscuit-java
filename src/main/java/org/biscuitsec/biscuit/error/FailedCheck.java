@@ -64,7 +64,7 @@ public class FailedCheck {
     }
 
     public static final class FailedAuthorizer extends FailedCheck {
-        public final long checkId   ;
+        public final long checkId;
         public final String rule;
 
         public FailedAuthorizer(long checkId, String rule) {

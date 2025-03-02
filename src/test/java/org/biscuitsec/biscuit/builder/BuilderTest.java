@@ -69,17 +69,17 @@ public class BuilderTest {
 
     @Test
     public void testStringValueOfAStringTerm() {
-        assertEquals( "\"hello\"", new Term.Str("hello").toString() );
+        assertEquals("\"hello\"", new Term.Str("hello").toString() );
     }
 
     @Test
     public void testStringValueOfAnIntegerTerm() {
-        assertEquals( "123", new Term.Integer(123).toString() );
+        assertEquals("123", new Term.Integer(123).toString() );
     }
 
     @Test
     public void testStringValueOfAVariableTerm() {
-        assertEquals( "$hello", new Term.Variable("hello").toString() );
+        assertEquals("$hello", new Term.Variable("hello").toString() );
     }
 
     @Test

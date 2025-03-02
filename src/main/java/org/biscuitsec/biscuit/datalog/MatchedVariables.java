@@ -71,13 +71,13 @@ public final class MatchedVariables implements Serializable {
          Map<Long, Term> variables = vars.get();
 
 
-         for(Expression e: expressions) {
+         for (Expression e: expressions) {
             Term term = e.evaluate(variables, new TemporarySymbolTable(symbols));
 
-            if(! (term instanceof Term.Bool)) {
+            if (!(term instanceof Term.Bool)) {
                throw new Error.InvalidType();
             }
-            if(!term.equals(new Term.Bool(true))) {
+            if (!term.equals(new Term.Bool(true))) {
                return Option.none();
             }
          }
