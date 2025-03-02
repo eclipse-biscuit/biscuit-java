@@ -359,12 +359,12 @@ public abstract class Op {
                     }
                     break;
                 case Contains:
-                    if (left instanceof Term.Set &&
-                            (right instanceof Term.Integer ||
-                                    right instanceof Term.Str ||
-                                    right instanceof Term.Bytes ||
-                                    right instanceof Term.Date ||
-                                    right instanceof Term.Bool)) {
+                    if (left instanceof Term.Set
+                            && (right instanceof Term.Integer
+                                || right instanceof Term.Str
+                                || right instanceof Term.Bytes
+                                || right instanceof Term.Date
+                                || right instanceof Term.Bool)) {
 
                         stack.push(new Term.Bool(((Term.Set) left).value().contains(right)));
                     }

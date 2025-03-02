@@ -82,10 +82,10 @@ public final class Scope {
 
     @Override
     public String toString() {
-        return "Scope{" +
-                "kind=" + kind +
-                ", publicKey=" + publicKey +
-                '}';
+        return "Scope{"
+                + "kind=" + kind
+                + ", publicKey=" + publicKey
+                + '}';
     }
 
     @Override

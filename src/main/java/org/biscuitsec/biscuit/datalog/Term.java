@@ -418,8 +418,7 @@ public abstract class Term implements Serializable {
 
       @Override
       public String toString() {
-         return "" +
-                 value;
+         return "" + value;
       }
 
       public Schema.TermV2 serialize() {

@@ -81,9 +81,7 @@ public final class TrustedOrigins {
 
     @Override
     public String toString() {
-        return "TrustedOrigins{" +
-                "inner=" + origin +
-                '}';
+        return "TrustedOrigins{inner=" + origin + '}';
     }
 
     public Origin getOrigin() {

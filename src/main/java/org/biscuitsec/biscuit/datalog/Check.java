@@ -102,9 +102,6 @@ public final class Check {
 
     @Override
     public String toString() {
-        return "Check{" +
-                "kind=" + kind +
-                ", queries=" + queries +
-                '}';
+        return "Check{kind=" + kind + ", queries=" + queries + '}';
     }
 }

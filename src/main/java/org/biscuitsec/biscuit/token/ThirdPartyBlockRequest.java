@@ -83,9 +83,7 @@ public final class ThirdPartyBlockRequest {
 
     @Override
     public String toString() {
-        return "ThirdPartyBlockRequest{" +
-                "previousKey=" + previousKey +
-                '}';
+        return "ThirdPartyBlockRequest{previousKey=" + previousKey + '}';
     }
 }
 

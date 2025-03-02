@@ -283,11 +283,11 @@ public class Error extends Exception {
 
             @Override
             public String toString() {
-                return "Version{" +
-                        "minimum=" + minimum +
-                        ", maximum=" + maximum +
-                        ", actual=" + actual +
-                        '}';
+                return "Version{"
+                        + "minimum=" + minimum
+                        + ", maximum=" + maximum
+                        + ", actual=" + actual
+                        + '}';
             }
             @Override
             public JsonElement toJson() {
@@ -325,9 +325,9 @@ public class Error extends Exception {
 
             @Override
             public String toString() {
-                return "InvalidSignatureSize{" +
-                        "size=" + size +
-                        '}';
+                return "InvalidSignatureSize{"
+                        + "size=" + size
+                        + '}';
             }
             @Override
             public JsonElement toJson() {
@@ -580,8 +580,8 @@ public class Error extends Exception {
 
         @Override
         public String toString() {
-            return "Execution error when evaluating expression '" + e +
-                    "': " + message;
+            return "Execution error when evaluating expression '" + e
+                    + "': " + message;
         }
     }
 
@@ -621,9 +621,7 @@ public class Error extends Exception {
 
         @Override
         public String toString() {
-            return "Parser{" +
-                    "error=" + error +
-                    '}';
+            return "Parser{error=" + error + '}';
         }
 
         @Override

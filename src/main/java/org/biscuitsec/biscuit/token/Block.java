@@ -413,16 +413,16 @@ public final class Block {
 
     @Override
     public String toString() {
-        return "Block{" +
-                "symbols=" + symbols +
-                ", context='" + context + '\'' +
-                ", facts=" + facts +
-                ", rules=" + rules +
-                ", checks=" + checks +
-                ", scopes=" + scopes +
-                ", publicKeys=" + publicKeys +
-                ", externalKey=" + externalKey +
-                '}';
+        return "Block{"
+                + "symbols=" + symbols
+                + ", context='" + context + '\''
+                + ", facts=" + facts
+                + ", rules=" + rules
+                + ", checks=" + checks
+                + ", scopes=" + scopes
+                + ", publicKeys=" + publicKeys
+                + ", externalKey=" + externalKey
+                + '}';
     }
 
     public String context() {

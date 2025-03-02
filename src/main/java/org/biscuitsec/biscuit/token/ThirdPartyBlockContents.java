@@ -74,11 +74,11 @@ public final class ThirdPartyBlockContents {
 
     @Override
     public String toString() {
-        return "ThirdPartyBlockContents{" +
-                "payload=" + Arrays.toString(payload) +
-                ", signature=" + Arrays.toString(signature) +
-                ", publicKey=" + publicKey +
-                '}';
+        return "ThirdPartyBlockContents{"
+                + "payload=" + Arrays.toString(payload)
+                + ", signature=" + Arrays.toString(signature)
+                + ", publicKey=" + publicKey
+                + '}';
     }
 
     public byte[] getPayload() {

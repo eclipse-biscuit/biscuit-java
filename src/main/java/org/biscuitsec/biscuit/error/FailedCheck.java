@@ -87,8 +87,7 @@ public class FailedCheck {
 
         @Override
         public String toString() {
-            return "FailedCaveat.FailedAuthorizer { check_id: "+ checkId +
-                    ", rule: "+rule+" }";
+            return "FailedCaveat.FailedAuthorizer { check_id: "+ checkId + ", rule: "+rule+" }";
         }
 
         @Override

@@ -15,10 +15,10 @@ public final class Error extends Exception {
 
     @Override
     public String toString() {
-        return "Error{" +
-                "input='" + input + '\'' +
-                ", message='" + message + '\'' +
-                '}';
+        return "Error{"
+                + "input='" + input + '\''
+                + ", message='" + message + '\''
+                + '}';
     }
 
     public JsonElement toJson(){

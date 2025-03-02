@@ -275,11 +275,11 @@ public final class Rule implements Serializable {
 
    @Override
    public String toString() {
-      return "Rule{" +
-              "head=" + head +
-              ", body=" + body +
-              ", expressions=" + expressions +
-              ", scopes=" + scopes +
-              '}';
+      return "Rule{"
+              + "head=" + head
+              + ", body=" + body
+              + ", expressions=" + expressions
+              + ", scopes=" + scopes
+              + '}';
    }
 }

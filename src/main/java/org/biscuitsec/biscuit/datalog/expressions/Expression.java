@@ -97,8 +97,6 @@ public final class Expression {
 
     @Override
     public String toString() {
-        return "Expression{" +
-                "ops=" + ops +
-                '}';
+        return "Expression{ops=" + ops + '}';
     }
 }

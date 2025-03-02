@@ -308,10 +308,10 @@ public final class SymbolTable implements Serializable {
 
     @Override
     public String toString() {
-        return "SymbolTable{" +
-                "symbols=" + symbols +
-                ", publicKeys=" + publicKeys +
-                '}';
+        return "SymbolTable{"
+                + "symbols=" + symbols
+                + ", publicKeys=" + publicKeys
+                + '}';
     }
 
     public List<String> symbols() {

@@ -70,9 +70,7 @@ public final class Origin {
 
     @Override
     public String toString() {
-        return "Origin{" +
-                "inner=" + blockIds +
-                '}';
+        return "Origin{inner=" + blockIds + '}';
     }
 
     public Set<Long> blockIds() {

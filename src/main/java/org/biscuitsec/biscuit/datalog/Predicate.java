@@ -61,8 +61,8 @@ public final class Predicate implements Serializable {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Predicate predicate = (Predicate) o;
-      return name == predicate.name &&
-            Objects.equals(terms, predicate.terms);
+      return name == predicate.name
+              && Objects.equals(terms, predicate.terms);
    }
 
    @Override

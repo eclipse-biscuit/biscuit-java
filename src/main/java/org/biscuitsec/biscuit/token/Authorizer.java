@@ -639,14 +639,14 @@ public final class Authorizer {
             }
         }
 
-        return "World {\n\tfacts: [" +
-                facts.toString() +
+        return "World {\n\tfacts: ["
+                + facts.toString()
                 //String.join(",\n\t\t", facts) +
-                "\n\t],\n\trules: [\n\t\t" +
-                String.join(",\n\t\t", rules) +
-                "\n\t],\n\tchecks: [\n\t\t" +
-                String.join(",\n\t\t", checks) +
-                "\n\t]\n}";
+                + "\n\t],\n\trules: [\n\t\t"
+                + String.join(",\n\t\t", rules)
+                + "\n\t],\n\tchecks: [\n\t\t"
+                + String.join(",\n\t\t", checks)
+                + "\n\t]\n}";
     }
 
     public FactSet facts() {
