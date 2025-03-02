@@ -43,6 +43,7 @@ public final class Check {
             case All:
                 b.setKind(All);
                 break;
+            default:
         }
 
         for(int i = 0; i < this.queries.size(); i++) {

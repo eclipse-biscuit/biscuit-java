@@ -432,6 +432,8 @@ public final class Authorizer {
                     case All:
                         res = world.queryMatchAll(query, ruleTrustedOrigins, symbols);
                         break;
+                    default:
+                        throw new RuntimeException("unmapped kind");
                 }
 
                 if (Instant.now().compareTo(timeLimit) >= 0) {
@@ -479,6 +481,8 @@ public final class Authorizer {
                         case All:
                             res = world.queryMatchAll(query, ruleTrustedOrigins, symbols);
                             break;
+                        default:
+                            throw new RuntimeException("unmapped kind");
                     }
 
                     if (Instant.now().compareTo(timeLimit) >= 0) {
@@ -562,6 +566,8 @@ public final class Authorizer {
                             case All:
                                 res = world.queryMatchAll(query, ruleTrustedOrigins, symbols);
                                 break;
+                            default:
+                                throw new RuntimeException("unmapped kind");
                         }
 
                         if (Instant.now().compareTo(timeLimit) >= 0) {

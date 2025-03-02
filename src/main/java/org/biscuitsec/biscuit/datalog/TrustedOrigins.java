@@ -68,6 +68,7 @@ public final class TrustedOrigins {
                     if (blockIds != null) {
                         origins.origin.addAll(blockIds);
                     }
+                default:
             }
         }
 

@@ -179,8 +179,9 @@ public final class SymbolTable implements Serializable {
                 if(pk.isDefined()) {
                     return pk.get().toString();
                 }
+            default:
+                return "<"+ scope.publicKey()+"?>";
         }
-        return "<"+ scope.publicKey()+"?>";
     }
 
     public String formatPredicate(final Predicate p) {

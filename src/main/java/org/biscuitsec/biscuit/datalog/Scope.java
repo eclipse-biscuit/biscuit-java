@@ -55,6 +55,8 @@ public final class Scope {
                 break;
             case PublicKey:
                 b.setPublicKey(this.publicKey);
+                break;
+            default:
         }
 
         return b.build();
@@ -71,6 +73,8 @@ public final class Scope {
                     return Right(Scope.authority());
                 case Previous:
                     return Right(Scope.previous());
+                default:
+                    return Left(new Error.FormatError.DeserializationError("invalid Scope"));
             }
         }
         return Left(new Error.FormatError.DeserializationError("invalid Scope"));

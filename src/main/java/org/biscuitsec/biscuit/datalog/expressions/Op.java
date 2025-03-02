@@ -154,6 +154,9 @@ public abstract class Op {
                     } else {
                         throw new Error.Execution("invalid type for length op");
                     }
+                    break;
+                default:
+                    throw new Error.Execution("invalid type for length op");
             }
         }
 
@@ -174,6 +177,7 @@ public abstract class Op {
                     s = prec+".length()";
                     stack.push(s);
                     break;
+                default:
             }
             return s;
         }
@@ -194,6 +198,7 @@ public abstract class Op {
                 case Length:
                     b1.setKind(Schema.OpUnary.Kind.Length);
                     break;
+                default:
             }
 
             b.setUnary(b1.build());
@@ -209,6 +214,7 @@ public abstract class Op {
                     return Right(new Op.Unary(UnaryOp.Parens));
                 case Length:
                     return Right(new Op.Unary(UnaryOp.Length));
+                default:
             }
 
             return Left(new Error.FormatError.DeserializationError("invalid unary operation"));
@@ -630,6 +636,7 @@ public abstract class Op {
                     s = left + " ^ " + right;
                     stack.push(s);
                     break;
+                default:
             }
 
             return s;
@@ -705,6 +712,7 @@ public abstract class Op {
                 case BitwiseXor:
                     b1.setKind(Schema.OpBinary.Kind.BitwiseXor);
                     break;
+                default:
             }
 
             b.setBinary(b1.build());
@@ -756,9 +764,9 @@ public abstract class Op {
                     return Right(new Op.Binary(BinaryOp.BitwiseOr));
                 case BitwiseXor:
                     return Right(new Op.Binary(BinaryOp.BitwiseXor));
+                default:
+                    return Left(new Error.FormatError.DeserializationError("invalid binary operation: "+op.getKind()));
             }
-
-            return Left(new Error.FormatError.DeserializationError("invalid binary operation: "+op.getKind()));
         }
 
         @Override

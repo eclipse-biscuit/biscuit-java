@@ -209,6 +209,8 @@ public abstract class Expression {
                 case Length:
                     ops.add(new org.biscuitsec.biscuit.datalog.expressions.Op.Unary(org.biscuitsec.biscuit.datalog.expressions.Op.UnaryOp.Length));
                     break;
+                default:
+                    throw new RuntimeException("unmapped ops");
             }
         }
 
@@ -243,8 +245,9 @@ public abstract class Expression {
                     return "("+arg1+")";
                 case Length:
                     return arg1.toString()+".length()";
+                default:
+                    return "";
             }
-            return "";
         }
     }
 
@@ -327,6 +330,8 @@ public abstract class Expression {
                 case BitwiseXor:
                     ops.add(new org.biscuitsec.biscuit.datalog.expressions.Op.Binary(org.biscuitsec.biscuit.datalog.expressions.Op.BinaryOp.BitwiseXor));
                     break;
+                default:
+                    throw new RuntimeException("unmapped ops");
             }
         }
 
@@ -400,8 +405,9 @@ public abstract class Expression {
                     return arg1.toString() + " | " + arg2.toString();
                 case BitwiseXor:
                     return arg1.toString() + " ^ " + arg2.toString();
+                default:
+                    return "";
             }
-            return "";
         }
     }
 }

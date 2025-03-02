@@ -92,6 +92,8 @@ public final class SchemaVersion {
                         case BitwiseXor:
                         case NotEqual:
                             return true;
+                        default:
+
                     }
                 }
             }

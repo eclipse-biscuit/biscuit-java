@@ -45,8 +45,9 @@ public final class Policy {
                 return "allow if "+String.join(" or ", qs);
             case Deny:
                 return "deny if "+String.join(" or ", qs);
+            default:
+                return null;
         }
-        return null;
     }
 
 }

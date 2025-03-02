@@ -63,9 +63,9 @@ public final class Scope {
             //throw new Exception("Remaining parameter: "+this.parameter);
             case PublicKey:
                 return org.biscuitsec.biscuit.datalog.Scope.publicKey(symbols.insert(this.publicKey));
+            default:
+                return null;
         }
-        //FIXME
-        return null;
     }
 
     public static Scope convertFrom(org.biscuitsec.biscuit.datalog.Scope scope, SymbolTable symbols) {
@@ -77,11 +77,13 @@ public final class Scope {
             case PublicKey:
                 //FIXME error management should bubble up here
                 return new Scope(Kind.PublicKey, symbols.getPublicKey((int) scope.publicKey()).get());
+            default:
+                return null;
         }
 
         //FIXME error management should bubble up here
         //throw new Exception("panic");
-        return null;
+        //return null;
 
     }
 
@@ -116,6 +118,7 @@ public final class Scope {
                 return "{" + this.parameter + "}";
             case PublicKey:
                 return this.publicKey.toString();
+            default:
         }
         return null;
     }
