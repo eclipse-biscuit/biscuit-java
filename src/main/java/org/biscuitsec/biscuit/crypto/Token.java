@@ -12,10 +12,10 @@ import static io.vavr.API.Left;
 import static io.vavr.API.Right;
 
 class Token {
-    public final ArrayList<byte[]> blocks;
-    public final ArrayList<PublicKey> keys;
-    public final ArrayList<byte[]> signatures;
-    public final KeyPair next;
+    private final ArrayList<byte[]> blocks;
+    private final ArrayList<PublicKey> keys;
+    private final ArrayList<byte[]> signatures;
+    private final KeyPair next;
 
     Token(final Signer rootSigner, byte[] message, KeyPair next) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 

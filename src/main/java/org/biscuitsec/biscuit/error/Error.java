@@ -55,7 +55,7 @@ public class Error extends Exception {
                 }
             }
             public static final class InvalidSignature extends Signature {
-                final public String e;
+                final private String e;
                 public InvalidSignature(String e) {
                     this.e = e;
                 }
@@ -123,7 +123,7 @@ public class Error extends Exception {
             }
         }
         public static final class DeserializationError extends FormatError {
-            final public String e;
+            final private String e;
 
             public DeserializationError(String e) {
                 this.e = e;
@@ -157,7 +157,7 @@ public class Error extends Exception {
         }
 
         public static final class SerializationError extends FormatError {
-            final public String e;
+            final private String e;
 
             public SerializationError(String e) {
                 this.e = e;
@@ -189,7 +189,7 @@ public class Error extends Exception {
             }
         }
         public static final class BlockDeserializationError extends FormatError {
-            final public String e;
+            final private String e;
 
             public BlockDeserializationError(String e) {
                 this.e = e;
@@ -221,7 +221,7 @@ public class Error extends Exception {
             }
         }
         public static final class BlockSerializationError extends FormatError {
-            final public String e;
+            final private String e;
 
             public BlockSerializationError(String e) {
                 this.e = e;
@@ -254,9 +254,9 @@ public class Error extends Exception {
         }
 
         public static final class Version extends FormatError {
-            final public int minimum;
-            final public int maximum;
-            final public int actual;
+            private final int minimum;
+            private final int maximum;
+            private final int actual;
 
             public Version(int minimum, int maximum, int actual) {
                 this.minimum = minimum;
@@ -302,7 +302,7 @@ public class Error extends Exception {
         }
 
         public static final class InvalidSignatureSize extends FormatError {
-            final public int size;
+            private final int size;
 
             public InvalidSignatureSize(int size) {
                 this.size = size;

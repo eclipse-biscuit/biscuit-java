@@ -154,7 +154,7 @@ public final class SerializedBiscuit {
 
         Option<org.biscuitsec.biscuit.crypto.KeyPair> secretKey = Option.none();
         if (data.getProof().hasNextSecret()) {
-            secretKey = Option.some(KeyPair.generate(authority.key.algorithm, data.getProof().getNextSecret().toByteArray()));
+            secretKey = Option.some(KeyPair.generate(authority.key.getAlgorithm(), data.getProof().getNextSecret().toByteArray()));
         }
 
         Option<byte[]> signature = Option.none();
@@ -354,17 +354,17 @@ public final class SerializedBiscuit {
         org.biscuitsec.biscuit.crypto.PublicKey nextKey = signedBlock.key;
         byte[] signature = signedBlock.signature;
 
-        var signatureLengthError = PublicKey.validateSignatureLength(publicKey.algorithm, signature.length);
+        var signatureLengthError = PublicKey.validateSignatureLength(publicKey.getAlgorithm(), signature.length);
         if (signatureLengthError.isPresent()) {
             return Left(signatureLengthError.get());
         }
 
         ByteBuffer algoBuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-        algoBuf.putInt(Integer.valueOf(nextKey.algorithm.getNumber()));
+        algoBuf.putInt(Integer.valueOf(nextKey.getAlgorithm().getNumber()));
         algoBuf.flip();
 
-        Signature sgr = KeyPair.generateSignature(publicKey.algorithm);
-        sgr.initVerify(publicKey.key);
+        Signature sgr = KeyPair.generateSignature(publicKey.getAlgorithm());
+        sgr.initVerify(publicKey.getKey());
         sgr.update(block);
         if(signedBlock.externalSignature.isDefined()) {
             sgr.update(signedBlock.externalSignature.get().signature);
@@ -400,7 +400,7 @@ public final class SerializedBiscuit {
         }
         blockExternalKeys.add(Option.none());
 
-        for (String s : authority.symbols().symbols) {
+        for (String s : authority.symbols().symbols()) {
             symbols.add(s);
         }
 
@@ -422,7 +422,7 @@ public final class SerializedBiscuit {
                 blockExternalKeys.add(Option.some(bdata.externalSignature.get().key));
             } else {
                 blockExternalKeys.add(Option.none());
-                for (String s : block.symbols().symbols) {
+                for (String s : block.symbols().symbols()) {
                     symbols.add(s);
                 }
                 for(org.biscuitsec.biscuit.crypto.PublicKey pk: block.publicKeys()) {

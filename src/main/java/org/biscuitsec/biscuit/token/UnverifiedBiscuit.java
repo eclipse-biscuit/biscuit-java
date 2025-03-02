@@ -28,11 +28,11 @@ import java.util.stream.Collectors;
  * UnverifiedBiscuit auth token. UnverifiedBiscuit means it's deserialized without checking signatures.
  */
 public class UnverifiedBiscuit {
-    final Block authority;
-    final List<Block> blocks;
-    final SymbolTable symbols;
-    final SerializedBiscuit serializedBiscuit;
-    final List<byte[]> revocationIds;
+    protected final Block authority;
+    protected final List<Block> blocks;
+    protected final SymbolTable symbols;
+    protected final SerializedBiscuit serializedBiscuit;
+    protected final List<byte[]> revocationIds;
 
     UnverifiedBiscuit(Block authority, List<Block> blocks, SymbolTable symbols, SerializedBiscuit serializedBiscuit,
                        List<byte[]> revocationIds) {
@@ -151,7 +151,7 @@ public class UnverifiedBiscuit {
     public UnverifiedBiscuit attenuate(final SecureRandom rng, final KeyPair keypair, Block block) throws Error {
         UnverifiedBiscuit copiedBiscuit = this.copy();
 
-        if (!Collections.disjoint(copiedBiscuit.symbols.symbols, block.symbols.symbols)) {
+        if (!copiedBiscuit.symbols.disjoint(block.symbols())) {
             throw new Error.SymbolTableOverlap();
         }
 
@@ -162,7 +162,7 @@ public class UnverifiedBiscuit {
         SerializedBiscuit container = containerRes.get();
 
         SymbolTable symbols = new SymbolTable(copiedBiscuit.symbols);
-        for (String s : block.symbols.symbols) {
+        for (String s : block.symbols().symbols()) {
             symbols.add(s);
         }
 
@@ -186,10 +186,10 @@ public class UnverifiedBiscuit {
 
     public List<List<Check>> checks() {
         ArrayList<List<Check>> l = new ArrayList<>();
-        l.add(new ArrayList<>(this.authority.checks));
+        l.add(new ArrayList<>(this.authority.checks()));
 
         for (Block b : this.blocks) {
-            l.add(new ArrayList<>(b.checks));
+            l.add(new ArrayList<>(b.checks()));
         }
 
         return l;
@@ -197,17 +197,17 @@ public class UnverifiedBiscuit {
 
     public List<Option<String>> context() {
         ArrayList<Option<String>> res = new ArrayList<>();
-        if (this.authority.context.isEmpty()) {
+        if (this.authority.context().isEmpty()) {
             res.add(Option.none());
         } else {
-            res.add(Option.some(this.authority.context));
+            res.add(Option.some(this.authority.context()));
         }
 
         for (Block b : this.blocks) {
-            if (b.context.isEmpty()) {
+            if (b.context().isEmpty()) {
                 res.add(Option.none());
             } else {
-                res.add(Option.some(b.context));
+                res.add(Option.some(b.context()));
             }
         }
 
@@ -244,7 +244,7 @@ public class UnverifiedBiscuit {
         } else {
             previousKey = this.serializedBiscuit.blocks.get(this.serializedBiscuit.blocks.size() - 1).key;
         }
-        KeyPair nextKeyPair = KeyPair.generate(previousKey.algorithm);
+        KeyPair nextKeyPair = KeyPair.generate(previousKey.getAlgorithm());
         byte[] payload = BlockSignatureBuffer.getBufferSignature(previousKey, blockResponse.payload);
         if (!KeyPair.verify(externalKey, payload, blockResponse.signature)) {
             throw new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied");

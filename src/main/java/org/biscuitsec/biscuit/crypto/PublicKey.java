@@ -13,8 +13,8 @@ import java.util.Set;
 
 public final class PublicKey {
 
-    public final java.security.PublicKey key;
-    public final Algorithm algorithm;
+    private final java.security.PublicKey key;
+    private final Algorithm algorithm;
 
     private static final Set<Algorithm> SUPPORTED_ALGORITHMS = Set.of(Algorithm.Ed25519, Algorithm.SECP256R1);
 
@@ -35,10 +35,10 @@ public final class PublicKey {
     }
 
     public byte[] toBytes() {
-        if (algorithm == Algorithm.Ed25519) {
-            return ((EdDSAPublicKey) key).getAbyte();
-        } else if (algorithm == Algorithm.SECP256R1) {
-            return ((BCECPublicKey) key).getQ().getEncoded(true); // true = compressed
+        if (getAlgorithm() == Algorithm.Ed25519) {
+            return ((EdDSAPublicKey) getKey()).getAbyte();
+        } else if (getAlgorithm() == Algorithm.SECP256R1) {
+            return ((BCECPublicKey) getKey()).getQ().getEncoded(true); // true = compressed
         } else {
             throw new IllegalArgumentException("Invalid algorithm");
         }
@@ -63,7 +63,7 @@ public final class PublicKey {
     public Schema.PublicKey serialize() {
         Schema.PublicKey.Builder publicKey = Schema.PublicKey.newBuilder();
         publicKey.setKey(ByteString.copyFrom(this.toBytes()));
-        publicKey.setAlgorithm(this.algorithm);
+        publicKey.setAlgorithm(this.getAlgorithm());
         return publicKey.build();
     }
 
@@ -97,22 +97,30 @@ public final class PublicKey {
 
         PublicKey publicKey = (PublicKey) o;
 
-        return key.equals(publicKey.key);
+        return getKey().equals(publicKey.getKey());
     }
 
     @Override
     public int hashCode() {
-        return key.hashCode();
+        return getKey().hashCode();
     }
 
     @Override
     public String toString() {
-        if (algorithm == Algorithm.Ed25519) {
+        if (getAlgorithm() == Algorithm.Ed25519) {
             return "ed25519/" + toHex().toLowerCase();
-        } else if (algorithm == Algorithm.SECP256R1) {
+        } else if (getAlgorithm() == Algorithm.SECP256R1) {
             return "secp256r1/" + toHex().toLowerCase();
         } else {
             return null;
         }
+    }
+
+    public java.security.PublicKey getKey() {
+        return key;
+    }
+
+    public Algorithm getAlgorithm() {
+        return algorithm;
     }
 }

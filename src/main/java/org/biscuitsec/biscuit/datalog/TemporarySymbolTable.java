@@ -8,9 +8,9 @@ import java.util.List;
 import static org.biscuitsec.biscuit.datalog.SymbolTable.DEFAULT_SYMBOLS_OFFSET;
 
 public final class TemporarySymbolTable {
-    SymbolTable base;
-    int offset;
-    List<String> symbols;
+    private SymbolTable base;
+    private int offset;
+    private List<String> symbols;
 
     public TemporarySymbolTable(SymbolTable base) {
         this.offset = DEFAULT_SYMBOLS_OFFSET + base.currentOffset();

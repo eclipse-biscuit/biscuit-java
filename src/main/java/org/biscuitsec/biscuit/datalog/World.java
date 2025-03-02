@@ -36,12 +36,12 @@ public final class World implements Serializable {
 
    public void run(RunLimits limits, final SymbolTable symbols) throws Error {
       int iterations = 0;
-      Instant limit = Instant.now().plus(limits.maxTime);
+      Instant limit = Instant.now().plus(limits.getMaxTime());
 
       while(true) {
          final FactSet newFacts = new FactSet();
 
-         for(Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry: this.rules.rules.entrySet()) {
+         for(Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry: this.rules.getRules().entrySet()) {
             for(Tuple2<Long, Rule> t: entry.getValue()) {
                Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(entry.getKey());
 
@@ -69,12 +69,12 @@ public final class World implements Serializable {
             return ;
          }
 
-         if (this.facts.size() >= limits.maxFacts) {
+         if (this.facts.size() >= limits.getMaxFacts()) {
             throw new Error.TooManyFacts();
          }
 
          iterations += 1;
-         if(iterations >= limits.maxIterations) {
+         if(iterations >= limits.getMaxIterations()) {
             throw new Error.TooManyIterations();
          }
       }

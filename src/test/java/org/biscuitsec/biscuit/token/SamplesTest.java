@@ -127,7 +127,7 @@ class SamplesTest {
                     byte[] ser_block_authority = token.authority.toBytes().get();
                     System.out.println(Arrays.toString(ser_block_authority));
                     System.out.println(Arrays.toString(token.serializedBiscuit.authority.block));
-                    org.biscuitsec.biscuit.token.Block deser_block_authority = fromBytes(ser_block_authority, token.authority.externalKey).get();
+                    org.biscuitsec.biscuit.token.Block deser_block_authority = fromBytes(ser_block_authority, token.authority.getExternalKey()).get();
                     assertEquals(token.authority.print(token.symbols), deser_block_authority.print(token.symbols));
                     assert(Arrays.equals(ser_block_authority, token.serializedBiscuit.authority.block));
 
@@ -135,7 +135,7 @@ class SamplesTest {
                         org.biscuitsec.biscuit.token.Block block = token.blocks.get(i);
                         SignedBlock signed_block = token.serializedBiscuit.blocks.get(i);
                         byte[] ser_block = block.toBytes().get();
-                        org.biscuitsec.biscuit.token.Block deser_block = fromBytes(ser_block,block.externalKey).get();
+                        org.biscuitsec.biscuit.token.Block deser_block = fromBytes(ser_block,block.getExternalKey()).get();
                         assertEquals(block.print(token.symbols), deser_block.print(token.symbols));
                         assert(Arrays.equals(ser_block, signed_block.block));
                     }
@@ -358,7 +358,7 @@ class SamplesTest {
 
         public World(Authorizer authorizer) {
             this.facts = authorizer.facts().facts().entrySet().stream().map(entry -> {
-                        ArrayList<Long> origin = new ArrayList<>(entry.getKey().inner);
+                        ArrayList<Long> origin = new ArrayList<>(entry.getKey().blockIds());
                         Collections.sort(origin);
                         ArrayList<String> facts = new ArrayList<>(entry.getValue().stream()
                                 .map(f -> authorizer.symbols.formatFact(f)).collect(Collectors.toList()));
@@ -368,7 +368,7 @@ class SamplesTest {
                     }).collect(Collectors.toList());
 
             HashMap<Long, List<String>> rules = new HashMap<>();
-            for(List<Tuple2<Long, Rule>> l: authorizer.rules().rules.values()) {
+            for(List<Tuple2<Long, Rule>> l: authorizer.rules().getRules().values()) {
                 for(Tuple2<Long, Rule> t: l) {
                     if (!rules.containsKey(t._1)) {
                         rules.put(t._1, new ArrayList<>());

@@ -96,10 +96,10 @@ public final class Biscuit extends UnverifiedBiscuit {
     static private Biscuit make(final SecureRandom rng, final org.biscuitsec.biscuit.crypto.Signer root, final Option<Integer> rootKeyId, final Block authority) throws Error.FormatError {
         ArrayList<Block> blocks = new ArrayList<>();
 
-        KeyPair next = KeyPair.generate(root.getPublicKey().algorithm, rng);
+        KeyPair next = KeyPair.generate(root.getPublicKey().getAlgorithm(), rng);
 
-        for(PublicKey pk:  authority.publicKeys) {
-            authority.symbols.insert(pk);
+        for(PublicKey pk:  authority.getPublicKeys()) {
+            authority.symbols().insert(pk);
         }
 
         Either<Error.FormatError, SerializedBiscuit> container = SerializedBiscuit.make(root, rootKeyId, authority, next);
@@ -110,7 +110,7 @@ public final class Biscuit extends UnverifiedBiscuit {
             List<byte[]> revocationIds = s.revocationIdentifiers();
 
             Option<SerializedBiscuit> c = Option.some(s);
-            return new Biscuit(authority, blocks, authority.symbols, s, revocationIds);
+            return new Biscuit(authority, blocks, authority.symbols(), s, revocationIds);
         }
     }
 
@@ -300,7 +300,7 @@ public final class Biscuit extends UnverifiedBiscuit {
     public Biscuit attenuate(final SecureRandom rng, final KeyPair keypair, Block block) throws Error {
         Biscuit copiedBiscuit = this.copy();
 
-        if (!Collections.disjoint(copiedBiscuit.symbols.symbols, block.symbols.symbols)) {
+        if (!copiedBiscuit.symbols.disjoint(block.symbols())) {
             throw new Error.SymbolTableOverlap();
         }
 
@@ -311,11 +311,11 @@ public final class Biscuit extends UnverifiedBiscuit {
         SerializedBiscuit container = containerRes.get();
 
         SymbolTable symbols = new SymbolTable(copiedBiscuit.symbols);
-        for (String s : block.symbols.symbols) {
+        for (String s : block.symbols().symbols()) {
             symbols.add(s);
         }
 
-        for(PublicKey pk: block.publicKeys) {
+        for(PublicKey pk: block.getPublicKeys()) {
             symbols.insert(pk);
         }
 
@@ -355,8 +355,8 @@ public final class Biscuit extends UnverifiedBiscuit {
         s.append("\n\tblocks: [\n");
         for (Block b : this.blocks) {
             s.append("\t\t");
-            if(b.externalKey.isDefined()) {
-                s.append(b.print(b.symbols));
+            if(b.getExternalKey().isDefined()) {
+                s.append(b.print(b.symbols()));
             } else {
                 s.append(b.print(this.symbols));
             }

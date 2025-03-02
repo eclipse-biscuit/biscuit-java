@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public final class RuleSet {
-    public final HashMap<TrustedOrigins, List<Tuple2<Long, Rule>>> rules;
+    private final HashMap<TrustedOrigins, List<Tuple2<Long, Rule>>> rules;
 
     public RuleSet() {
         rules = new HashMap<>();
@@ -44,5 +44,9 @@ public final class RuleSet {
 
     public void clear() {
         rules.clear();
+    }
+
+    public HashMap<TrustedOrigins, List<Tuple2<Long, Rule>>> getRules() {
+        return rules;
     }
 }

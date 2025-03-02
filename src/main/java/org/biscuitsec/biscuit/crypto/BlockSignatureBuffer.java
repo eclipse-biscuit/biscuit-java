@@ -17,7 +17,7 @@ public final class BlockSignatureBuffer {
         var buffer = ByteBuffer.allocate(4 + data.length + nextPubKey.toBytes().length + externalSignature.map((a) -> a.signature.length).orElse(0)).order(ByteOrder.LITTLE_ENDIAN);
         buffer.put(data);
         externalSignature.ifPresent(signature -> buffer.put(signature.signature));
-        buffer.putInt(nextPubKey.algorithm.getNumber());
+        buffer.putInt(nextPubKey.getAlgorithm().getNumber());
         buffer.put(nextPubKey.toBytes());
         buffer.flip();
         return buffer.array();
@@ -26,7 +26,7 @@ public final class BlockSignatureBuffer {
     public static byte[] getBufferSealedSignature(PublicKey nextPubKey, byte[] data, byte[] blockSignature) {
         var buffer = ByteBuffer.allocate(4 + data.length + nextPubKey.toBytes().length + blockSignature.length).order(ByteOrder.LITTLE_ENDIAN);
         buffer.put(data);
-        buffer.putInt(nextPubKey.algorithm.getNumber());
+        buffer.putInt(nextPubKey.getAlgorithm().getNumber());
         buffer.put(nextPubKey.toBytes());
         buffer.put(blockSignature);
         buffer.flip();

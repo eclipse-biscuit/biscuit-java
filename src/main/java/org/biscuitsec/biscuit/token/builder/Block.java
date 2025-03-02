@@ -147,8 +147,8 @@ public final class Block {
 
         SymbolTable blockSymbols = new SymbolTable();
 
-        for (int i = symbolStart; i < symbols.symbols.size(); i++) {
-            blockSymbols.add(symbols.symbols.get(i));
+        for (int i = symbolStart; i < symbols.symbols().size(); i++) {
+            blockSymbols.add(symbols.symbols().get(i));
         }
 
         List<PublicKey> publicKeys = new ArrayList<>();

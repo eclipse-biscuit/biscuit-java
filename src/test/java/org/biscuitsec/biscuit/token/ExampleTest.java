@@ -35,7 +35,7 @@ public class ExampleTest {
     public Biscuit attenuate(KeyPair root, byte[] serializedToken) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         Biscuit token = Biscuit.fromBytes(serializedToken, root.getPublicKey());
         Block block = token.createBlock().addCheck("check if operation(\"read\")");
-        return token.attenuate(block, root.getPublicKey().algorithm);
+        return token.attenuate(block, root.getPublicKey().getAlgorithm());
     }
 
     /*public Set<Fact> query(Authorizer authorizer) throws Error.Timeout, Error.TooManyFacts, Error.TooManyIterations, Error.Parser {

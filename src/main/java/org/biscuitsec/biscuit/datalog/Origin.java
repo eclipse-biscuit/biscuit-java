@@ -1,48 +1,56 @@
 package org.biscuitsec.biscuit.datalog;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public final class Origin {
-    public HashSet<Long> inner;
+    private final HashSet<Long> blockIds;
 
     public Origin() {
-        inner = new HashSet<>();
-    }
-
-    private Origin(HashSet<Long> inner) {
-        this.inner = inner;
+        this.blockIds = new HashSet<>();
     }
 
     public Origin(Long i) {
-        this.inner = new HashSet<>();
-        this.inner.add(i);
+        this.blockIds = new HashSet<>();
+        this.blockIds.add(i);
     }
 
     public Origin(int i) {
-        this.inner = new HashSet<>();
-        this.inner.add((long)i);
+        this.blockIds = new HashSet<>();
+        this.blockIds.add((long)i);
     }
 
     public static Origin authorizer() {
         return new Origin(Long.MAX_VALUE);
     }
     public void add(int i) {
-        inner.add((long) i);
+        blockIds.add((long) i);
     }
     public void add(long i) {
-        inner.add(i);
+        blockIds.add(i);
+    }
+    public boolean addAll(final Collection<Long> newBlockIds) {
+        return this.blockIds.addAll(newBlockIds);
     }
 
     public Origin union(Origin other) {
         Origin o = this.clone();
-        o.inner.addAll(other.inner);
+        o.blockIds.addAll(other.blockIds);
         return o;
     }
 
-    public Origin clone() {
-        final HashSet<Long> newInner = new HashSet<>(this.inner);
-        return new Origin(newInner);
+    public boolean containsAll(Origin other) {
+        return this.blockIds.containsAll(other.blockIds);
+    }
+
+    @Override
+    protected Origin clone() {
+        final Origin newOrigin = new Origin();
+        newOrigin.addAll(this.blockIds);
+        return newOrigin;
     }
 
     @Override
@@ -52,18 +60,22 @@ public final class Origin {
 
         Origin origin = (Origin) o;
 
-        return Objects.equals(inner, origin.inner);
+        return Objects.equals(blockIds, origin.blockIds);
     }
 
     @Override
     public int hashCode() {
-        return inner != null ? inner.hashCode() : 0;
+        return blockIds != null ? blockIds.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "Origin{" +
-                "inner=" + inner +
+                "inner=" + blockIds +
                 '}';
+    }
+
+    public Set<Long> blockIds() {
+        return Collections.unmodifiableSet(this.blockIds);
     }
 }

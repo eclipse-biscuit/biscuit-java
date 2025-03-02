@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,7 +60,7 @@ public final class SymbolTable implements Serializable {
             "nonce",
             "query"
     );
-    public final List<String> symbols;
+    private final List<String> symbols;
     private final List<PublicKey> publicKeys;
 
     public long insert(final String symbol) {
@@ -168,18 +169,18 @@ public final class SymbolTable implements Serializable {
     }
 
     public String formatScope(final Scope scope) {
-        switch(scope.kind) {
+        switch(scope.kind()) {
             case Authority:
                 return "authority";
             case Previous:
                 return "previous";
             case PublicKey:
-                Option<PublicKey> pk = this.getPublicKey((int) scope.publicKey);
+                Option<PublicKey> pk = this.getPublicKey((int) scope.publicKey());
                 if(pk.isDefined()) {
                     return pk.get().toString();
                 }
         }
-        return "<"+ scope.publicKey+"?>";
+        return "<"+ scope.publicKey()+"?>";
     }
 
     public String formatPredicate(final Predicate p) {
@@ -264,8 +265,12 @@ public final class SymbolTable implements Serializable {
     public SymbolTable(List<String> symbols) {
         this.symbols = new ArrayList<>(symbols);
         this.publicKeys = new ArrayList<>();
+
     }
 
+    public SymbolTable(SymbolTable source, List<PublicKey> publicKeys){
+        this(source.symbols, publicKeys);
+    }
     public SymbolTable(List<String> symbols, List<PublicKey> publicKeys) {
         this.symbols = new ArrayList<>();
         this.symbols.addAll(symbols);
@@ -306,5 +311,13 @@ public final class SymbolTable implements Serializable {
                 "symbols=" + symbols +
                 ", publicKeys=" + publicKeys +
                 '}';
+    }
+
+    public List<String> symbols() {
+        return Collections.unmodifiableList(symbols);
+    }
+
+    public boolean disjoint(final SymbolTable other) {
+        return Collections.disjoint(this.symbols, other.symbols);
     }
 }

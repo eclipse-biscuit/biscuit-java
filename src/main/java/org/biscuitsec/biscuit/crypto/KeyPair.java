@@ -54,8 +54,8 @@ public abstract class KeyPair implements Signer {
     }
 
     public static boolean verify(PublicKey publicKey, byte[] data, byte[] signature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-        Signature sgr = KeyPair.generateSignature(publicKey.algorithm);
-        sgr.initVerify(publicKey.key);
+        Signature sgr = KeyPair.generateSignature(publicKey.getAlgorithm());
+        sgr.initVerify(publicKey.getKey());
         sgr.update(data);
         return sgr.verify(signature);
     }

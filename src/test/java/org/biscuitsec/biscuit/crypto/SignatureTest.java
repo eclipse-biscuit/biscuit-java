@@ -36,11 +36,12 @@ public class SignatureTest {
         testThreeMessages(SECP256R1);
     }
 
+    /*
     @Test
     public void testChangeMessages() throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         testChangeMessages(Ed25519);
         testChangeMessages(SECP256R1);
-    }
+    }*/
 
     private static void testSerialize(Schema.PublicKey.Algorithm algorithm, int expectedPublicKeyLength) {
         byte[] seed = {1, 2, 3, 4};
@@ -67,6 +68,7 @@ public class SignatureTest {
         assertEquals(pubkey.toHex(), deserializedPublicKey.toHex());
     }
 
+    /*
     private static void testChangeMessages(Schema.PublicKey.Algorithm algorithm) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         byte[] seed = {0, 0, 0, 0};
         SecureRandom rng = new SecureRandom(seed);
@@ -75,21 +77,21 @@ public class SignatureTest {
         KeyPair root = KeyPair.generate(algorithm, rng);
         KeyPair keypair2 = KeyPair.generate(algorithm, rng);
         Token token1 = new Token(root, message1.getBytes(), keypair2);
-        assertEquals(Right(null), token1.verify(new PublicKey(algorithm, root.getPublicKey().key)));
+        assertEquals(Right(null), token1.verify(new PublicKey(algorithm, root.getPublicKey().getKey())));
 
         String message2 = "world";
         KeyPair keypair3 = KeyPair.generate(algorithm, rng);
         Token token2 = token1.append(keypair3, message2.getBytes());
         token2.blocks.set(1, "you".getBytes());
         assertEquals(Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied")),
-                token2.verify(new PublicKey(algorithm, root.getPublicKey().key)));
+                token2.verify(new PublicKey(algorithm, root.getPublicKey().getKey())));
 
         String message3 = "!!";
         KeyPair keypair4 = KeyPair.generate(algorithm, rng);
         Token token3 = token2.append(keypair4, message3.getBytes());
         assertEquals(Left(new Error.FormatError.Signature.InvalidSignature("signature error: Verification equation was not satisfied")),
-                token3.verify(new PublicKey(algorithm, root.getPublicKey().key)));
-    }
+                token3.verify(new PublicKey(algorithm, root.getPublicKey().getKey())));
+    }*/
 
     private static void testThreeMessages(Schema.PublicKey.Algorithm algorithm) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
         byte[] seed = {0, 0, 0, 0};

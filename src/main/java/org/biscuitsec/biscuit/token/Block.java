@@ -19,6 +19,7 @@ import io.vavr.control.Option;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,15 +30,15 @@ import static io.vavr.API.Right;
  * Represents a token's block with its checks
  */
 public final class Block {
-    final SymbolTable symbols;
-    final String context;
-    final List<Fact> facts;
-    final List<Rule> rules;
-    final List<Check> checks;
-    final List<Scope> scopes;
-    final List<PublicKey> publicKeys;
-    Option<PublicKey> externalKey;
-    long version;
+    private final SymbolTable symbols;
+    private final String context;
+    private final List<Fact> facts;
+    private final List<Rule> rules;
+    private final List<Check> checks;
+    private final List<Scope> scopes;
+    private final List<PublicKey> publicKeys;
+    private Option<PublicKey> externalKey;
+    private long version;
 
     /**
      * creates a new block
@@ -106,7 +107,7 @@ public final class Block {
         }
         s.append("Block");
         s.append(" {\n\t\tsymbols: ");
-        s.append(this.symbols.symbols);
+        s.append(this.symbols().symbols());
         s.append("\n\t\tsymbol public keys: ");
         s.append(this.symbols.getPublicKeys());
         s.append("\n\t\tblock public keys: ");
@@ -191,8 +192,8 @@ public final class Block {
     public Schema.Block serialize() {
         Schema.Block.Builder b = Schema.Block.newBuilder();
 
-        for (int i = 0; i < this.symbols.symbols.size(); i++) {
-            b.addSymbols(this.symbols.symbols.get(i));
+        for (int i = 0; i < this.symbols().symbols().size(); i++) {
+            b.addSymbols(this.symbols().symbols().get(i));
         }
 
         if (!this.context.isEmpty()) {
@@ -422,6 +423,38 @@ public final class Block {
                 ", publicKeys=" + publicKeys +
                 ", externalKey=" + externalKey +
                 '}';
+    }
+
+    public String context() {
+        return context;
+    }
+
+    public List<Fact> facts() {
+        return Collections.unmodifiableList(facts);
+    }
+
+    public List<Rule> rules() {
+        return Collections.unmodifiableList(rules);
+    }
+
+    public List<Check> checks() {
+        return Collections.unmodifiableList(checks);
+    }
+
+    public List<Scope> scopes() {
+        return Collections.unmodifiableList(scopes);
+    }
+
+    public List<PublicKey> getPublicKeys() {
+        return publicKeys;
+    }
+
+    public Option<PublicKey> getExternalKey() {
+        return externalKey;
+    }
+
+    public long getVersion() {
+        return version;
     }
 }
 

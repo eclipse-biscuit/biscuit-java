@@ -4,35 +4,35 @@ import java.util.HashMap;
 import java.util.List;
 
 public final class TrustedOrigins {
-    private final Origin inner;
+    private final Origin origin;
 
     public TrustedOrigins(int... origins) {
         Origin origin = new Origin();
         for (int i : origins) {
             origin.add(i);
         }
-        inner = origin;
+        this.origin = origin;
     }
 
     private TrustedOrigins() {
-        inner = new Origin();
+        origin = new Origin();
     }
 
     private TrustedOrigins(Origin inner) {
         if (inner == null) {
             throw new RuntimeException();
         }
-        this.inner = inner;
+        this.origin = inner;
     }
 
     public TrustedOrigins clone() {
-        return new TrustedOrigins(this.inner.clone());
+        return new TrustedOrigins(this.origin.clone());
     }
 
     public static TrustedOrigins defaultOrigins() {
         TrustedOrigins origins = new TrustedOrigins();
-        origins.inner.add(0);
-        origins.inner.add(Long.MAX_VALUE);
+        origins.origin.add(0);
+        origins.origin.add(Long.MAX_VALUE);
         return origins;
     }
 
@@ -42,31 +42,31 @@ public final class TrustedOrigins {
                                             HashMap<Long, List<Long>> publicKeyToBlockId) {
         if (ruleScopes.isEmpty()) {
             TrustedOrigins origins = defaultOrigins.clone();
-            origins.inner.add(currentBlock);
-            origins.inner.add(Long.MAX_VALUE);
+            origins.origin.add(currentBlock);
+            origins.origin.add(Long.MAX_VALUE);
             return origins;
         }
 
         TrustedOrigins origins = new TrustedOrigins();
-        origins.inner.add(currentBlock);
-        origins.inner.add(Long.MAX_VALUE);
+        origins.origin.add(currentBlock);
+        origins.origin.add(Long.MAX_VALUE);
 
         for (Scope scope : ruleScopes) {
             switch (scope.kind()) {
                 case Authority:
-                    origins.inner.add(0);
+                    origins.origin.add(0);
                     break;
                 case Previous:
                     if (currentBlock != Long.MAX_VALUE) {
                         for (long i = 0; i < currentBlock + 1; i++) {
-                            origins.inner.add(i);
+                            origins.origin.add(i);
                         }
                     }
                     break;
                 case PublicKey:
                     List<Long> blockIds = publicKeyToBlockId.get(scope.publicKey());
                     if (blockIds != null) {
-                        origins.inner.inner.addAll(blockIds);
+                        origins.origin.addAll(blockIds);
                     }
             }
         }
@@ -75,13 +75,17 @@ public final class TrustedOrigins {
     }
 
     public boolean contains(Origin factOrigin) {
-        return this.inner.inner.containsAll(factOrigin.inner);
+        return this.origin.containsAll(factOrigin);
     }
 
     @Override
     public String toString() {
         return "TrustedOrigins{" +
-                "inner=" + inner +
+                "inner=" + origin +
                 '}';
+    }
+
+    public Origin getOrigin() {
+        return origin;
     }
 }
