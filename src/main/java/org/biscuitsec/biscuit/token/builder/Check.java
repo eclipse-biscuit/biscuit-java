@@ -28,7 +28,7 @@ public final class Check {
     public org.biscuitsec.biscuit.datalog.Check convert(SymbolTable symbols) {
         ArrayList<org.biscuitsec.biscuit.datalog.Rule> queries = new ArrayList<>();
 
-        for(Rule q: this.queries) {
+        for (Rule q: this.queries) {
             queries.add(q.convert(symbols));
         }
         return new org.biscuitsec.biscuit.datalog.Check(this.kind, queries);
@@ -37,7 +37,7 @@ public final class Check {
     public static Check convertFrom(org.biscuitsec.biscuit.datalog.Check r, SymbolTable symbols) {
         ArrayList<Rule> queries = new ArrayList<>();
 
-        for(org.biscuitsec.biscuit.datalog.Rule q: r.queries()) {
+        for (org.biscuitsec.biscuit.datalog.Rule q: r.queries()) {
             queries.add(Rule.convertFrom(q, symbols));
         }
 
@@ -48,7 +48,7 @@ public final class Check {
     public String toString() {
         final List<String> qs = queries.stream().map((q) -> q.bodyToString()).collect(Collectors.toList());
 
-        if(kind == One) {
+        if (kind == One) {
             return "check if " + String.join(" or ", qs);
         } else {
             return "check all " + String.join(" or ", qs);

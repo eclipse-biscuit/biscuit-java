@@ -23,7 +23,7 @@ public final class Error extends Exception {
 
     public JsonElement toJson(){
         JsonObject jo = new JsonObject();
-        jo.addProperty("input",this.input);
+        jo.addProperty("input", this.input);
         jo.addProperty("message", this.message);
         return jo;
     }

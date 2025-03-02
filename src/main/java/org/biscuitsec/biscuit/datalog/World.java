@@ -38,21 +38,21 @@ public final class World implements Serializable {
       int iterations = 0;
       Instant limit = Instant.now().plus(limits.getMaxTime());
 
-      while(true) {
+      while (true) {
          final FactSet newFacts = new FactSet();
 
-         for(Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry: this.rules.getRules().entrySet()) {
-            for(Tuple2<Long, Rule> t: entry.getValue()) {
+         for (Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry: this.rules.getRules().entrySet()) {
+            for (Tuple2<Long, Rule> t: entry.getValue()) {
                Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(entry.getKey());
 
                Stream<Either<Error, Tuple2<Origin, Fact>>> stream =  t._2.apply(factsSupplier, t._1, symbols);
                 for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator(); it.hasNext();) {
                     Either<Error, Tuple2<Origin, Fact>> res = it.next();
-                    if(Instant.now().compareTo(limit) >= 0) {
+                    if (Instant.now().compareTo(limit) >= 0) {
                        throw new Error.Timeout();
                     }
 
-                    if(res.isRight()) {
+                    if (res.isRight()) {
                        Tuple2<Origin, Fact> t2 = res.get();
                        newFacts.add(t2._1, t2._2);
                     } else {
@@ -74,7 +74,7 @@ public final class World implements Serializable {
          }
 
          iterations += 1;
-         if(iterations >= limits.getMaxIterations()) {
+         if (iterations >= limits.getMaxIterations()) {
             throw new Error.TooManyIterations();
          }
       }
@@ -141,9 +141,9 @@ public final class World implements Serializable {
       StringBuilder s = new StringBuilder();
 
       s.append("World {\n\t\tfacts: [");
-      for(Map.Entry<Origin, HashSet<Fact>> entry: this.facts.facts().entrySet()) {
+      for (Map.Entry<Origin, HashSet<Fact>> entry: this.facts.facts().entrySet()) {
          s.append("\n\t\t\t"+entry.getKey()+":");
-         for(Fact f: entry.getValue()) {
+         for (Fact f: entry.getValue()) {
             s.append("\n\t\t\t\t");
             s.append(symbolTable.formatFact(f));
          }

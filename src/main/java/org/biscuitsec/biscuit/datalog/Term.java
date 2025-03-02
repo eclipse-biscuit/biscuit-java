@@ -18,19 +18,19 @@ public abstract class Term implements Serializable {
    public abstract Schema.TermV2 serialize();
 
    public static Either<Error.FormatError, Term> deserializeEnumV2(Schema.TermV2 term) {
-      if(term.hasDate()) {
+      if (term.hasDate()) {
          return Date.deserializeV2(term);
-      } else if(term.hasInteger()) {
+      } else if (term.hasInteger()) {
          return Integer.deserializeV2(term);
-      } else if(term.hasString()) {
+      } else if (term.hasString()) {
          return Str.deserializeV2(term);
-      } else if(term.hasBytes()) {
+      } else if (term.hasBytes()) {
          return Bytes.deserializeV2(term);
-      } else if(term.hasVariable()) {
+      } else if (term.hasVariable()) {
          return Variable.deserializeV2(term);
-      } else if(term.hasBool()) {
+      } else if (term.hasBool()) {
          return Bool.deserializeV2(term);
-      } else if(term.hasSet()) {
+      } else if (term.hasSet()) {
          return Set.deserializeV2(term);
       } else {
          return Left(new Error.FormatError.DeserializationError("invalid Term kind: term.getKind()"));
@@ -84,7 +84,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasDate()) {
+         if (!term.hasDate()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected date"));
          } else {
             return Right(new Date(term.getDate()));
@@ -143,7 +143,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasInteger()) {
+         if (!term.hasInteger()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected integer"));
          } else {
             return Right(new Integer(term.getInteger()));
@@ -202,7 +202,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasBytes()) {
+         if (!term.hasBytes()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected byte array"));
          } else {
             return Right(new Bytes(term.getBytes().toByteArray()));
@@ -256,7 +256,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasString()) {
+         if (!term.hasString()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected string"));
          } else {
             return Right(new Str(term.getString()));
@@ -309,7 +309,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasVariable()) {
+         if (!term.hasVariable()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected variable"));
          } else {
             return Right(new Variable(term.getVariable()));
@@ -368,7 +368,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasBool()) {
+         if (!term.hasBool()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected boolean"));
          } else {
             return Right(new Bool(term.getBool()));
@@ -433,7 +433,7 @@ public abstract class Term implements Serializable {
       }
 
       public static Either<Error.FormatError, Term> deserializeV2(Schema.TermV2 term) {
-         if(!term.hasSet()) {
+         if (!term.hasSet()) {
             return Left(new Error.FormatError.DeserializationError("invalid Term kind, expected set"));
          } else {
             java.util.HashSet<Term> values = new HashSet<>();
@@ -441,13 +441,13 @@ public abstract class Term implements Serializable {
 
             for (Schema.TermV2 l: s.getSetList()) {
                Either<Error.FormatError, Term> res = Term.deserializeEnumV2(l);
-               if(res.isLeft()) {
+               if (res.isLeft()) {
                   Error.FormatError e = res.getLeft();
                   return Left(e);
                } else {
                   Term value = res.get();
 
-                  if(value instanceof Variable) {
+                  if (value instanceof Variable) {
                      return Left(new Error.FormatError.DeserializationError("sets cannot contain variables"));
                   }
 
@@ -455,7 +455,7 @@ public abstract class Term implements Serializable {
                }
             }
 
-            if(values.isEmpty()) {
+            if (values.isEmpty()) {
                return Left(new Error.FormatError.DeserializationError("invalid Set value"));
             } else {
                return Right(new Set(values));
@@ -466,7 +466,7 @@ public abstract class Term implements Serializable {
       public org.biscuitsec.biscuit.token.builder.Term toTerm(SymbolTable symbols) {
          HashSet<org.biscuitsec.biscuit.token.builder.Term> s = new HashSet<>();
 
-         for(Term i: this.value) {
+         for (Term i: this.value) {
             s.add(i.toTerm(symbols));
          }
 

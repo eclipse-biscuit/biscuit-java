@@ -46,7 +46,7 @@ public final class Check {
             default:
         }
 
-        for(int i = 0; i < this.queries.size(); i++) {
+        for (int i = 0; i < this.queries.size(); i++) {
             b.addQueries(this.queries.get(i).serialize());
         }
 
@@ -71,7 +71,7 @@ public final class Check {
 
         for (Schema.RuleV2 query: check.getQueriesList()) {
             Either<Error.FormatError, Rule> res = Rule.deserializeV2(query);
-            if(res.isLeft()) {
+            if (res.isLeft()) {
                 Error.FormatError e = res.getLeft();
                 return Left(e);
             } else {

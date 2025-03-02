@@ -55,7 +55,7 @@ class Token {
     // FIXME: rust version returns a Result<(), error::Signature>
     public Either<Error, Void> verify(PublicKey root) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         PublicKey currentKey = root;
-        for(int i = 0; i < this.blocks.size(); i++) {
+        for (int i = 0; i < this.blocks.size(); i++) {
             byte[] block = this.blocks.get(i);
             PublicKey nextKey  = this.keys.get(i);
             byte[] signature = this.signatures.get(i);

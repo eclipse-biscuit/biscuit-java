@@ -156,7 +156,7 @@ public final class SymbolTable implements Serializable {
             res += String.join(", ", expressions);
         }
 
-        if(!r.scopes().isEmpty()) {
+        if (!r.scopes().isEmpty()) {
             res += " trusting ";
             final List<String> scopes = r.scopes().stream().map((s) -> this.formatScope(s)).collect(Collectors.toList());
             res += String.join(", ", scopes);
@@ -176,7 +176,7 @@ public final class SymbolTable implements Serializable {
                 return "previous";
             case PublicKey:
                 Option<PublicKey> pk = this.getPublicKey((int) scope.publicKey());
-                if(pk.isDefined()) {
+                if (pk.isDefined()) {
                     return pk.get().toString();
                 }
             default:
@@ -194,7 +194,7 @@ public final class SymbolTable implements Serializable {
     public String formatTerm(final Term i) {
         if (i instanceof Term.Variable) {
             return "$" + this.formatSymbol((int) ((Term.Variable) i).value());
-        } else if(i instanceof Term.Bool) {
+        } else if (i instanceof Term.Bool) {
             return i.toString();
         } else if (i instanceof Term.Date) {
             return fromEpochIsoDate(((Term.Date) i).value());

@@ -138,19 +138,19 @@ public final class Biscuit {
         int publicKeyStart = symbols.currentPublicKeyOffset();
 
         List<org.biscuitsec.biscuit.datalog.Fact> facts = new ArrayList<>();
-        for(Fact f: this.facts) {
+        for (Fact f: this.facts) {
             facts.add(f.convert(symbols));
         }
         List<org.biscuitsec.biscuit.datalog.Rule> rules = new ArrayList<>();
-        for(Rule r: this.rules) {
+        for (Rule r: this.rules) {
             rules.add(r.convert(symbols));
         }
         List<org.biscuitsec.biscuit.datalog.Check> checks = new ArrayList<>();
-        for(Check c: this.checks) {
+        for (Check c: this.checks) {
             checks.add(c.convert(symbols));
         }
         List<org.biscuitsec.biscuit.datalog.Scope> scopes = new ArrayList<>();
-        for(Scope s: this.scopes) {
+        for (Scope s: this.scopes) {
             scopes.add(s.convert(symbols));
         }
         SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);

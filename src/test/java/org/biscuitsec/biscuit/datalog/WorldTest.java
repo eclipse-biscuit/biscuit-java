@@ -37,7 +37,7 @@ public class WorldTest {
       ), new ArrayList<>());
 
       System.out.println("testing r1: " + syms.formatRule(r1));
-      FactSet query_rule_result = w.queryRule(r1, (long)0, new TrustedOrigins(0), syms);
+      FactSet query_rule_result = w.queryRule(r1, (long) 0, new TrustedOrigins(0), syms);
       System.out.println("grandparents query_rules: [" + String.join(", ", query_rule_result.stream().map((f) -> syms.formatFact(f)).collect(Collectors.toList())) + "]");
       System.out.println("current facts: [" + String.join(", ", w.facts().stream().map((f) -> syms.formatFact(f)).collect(Collectors.toList())) + "]");
 
@@ -48,7 +48,7 @@ public class WorldTest {
       ), new ArrayList<>());
 
       System.out.println("adding r2: " + syms.formatRule(r2));
-      w.addRule((long)0, new TrustedOrigins(0), r2);
+      w.addRule((long) 0, new TrustedOrigins(0), r2);
       w.run(syms);
 
       System.out.println("parents:");
@@ -155,7 +155,7 @@ public class WorldTest {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
-      FactSet expected = new FactSet(new Origin(0),new HashSet<>(Arrays.asList(new Fact(new Predicate(join, Arrays.asList(abc, aaa))),
+      FactSet expected = new FactSet(new Origin(0), new HashSet<>(Arrays.asList(new Fact(new Predicate(join, Arrays.asList(abc, aaa))),
               new Fact(new Predicate(join, Arrays.asList(abc, bbb))),
               new Fact(new Predicate(join, Arrays.asList(def, ccc))))));
       assertEquals(expected, res);
@@ -231,7 +231,7 @@ public class WorldTest {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
-      expected = new FactSet(new Origin(0),new HashSet<>(Arrays.asList(new Fact(new Predicate(suff,
+      expected = new FactSet(new Origin(0), new HashSet<>(Arrays.asList(new Fact(new Predicate(suff,
               Arrays.asList(
                       app_0,
                       syms.add("example.com")))),
@@ -290,7 +290,7 @@ public class WorldTest {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
-      FactSet expected = new FactSet(new Origin(0),new HashSet<>(Arrays.asList(new Fact(new Predicate(before, Arrays.asList(new Term.Date(t1.getEpochSecond()), abc))))));
+      FactSet expected = new FactSet(new Origin(0), new HashSet<>(Arrays.asList(new Fact(new Predicate(before, Arrays.asList(new Term.Date(t1.getEpochSecond()), abc))))));
       assertEquals(expected, res);
 
       final Rule r2 = new Rule(new Predicate(
@@ -319,7 +319,7 @@ public class WorldTest {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
-      expected = new FactSet(new Origin(0),new HashSet<>(Arrays.asList(new Fact(new Predicate(after, Arrays.asList(new Term.Date(t3.getEpochSecond()), def))))));
+      expected = new FactSet(new Origin(0), new HashSet<>(Arrays.asList(new Fact(new Predicate(after, Arrays.asList(new Term.Date(t3.getEpochSecond()), def))))));
       assertEquals(expected, res);
    }
 
@@ -385,7 +385,7 @@ public class WorldTest {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
-      expected = new FactSet(new Origin(0),new HashSet<>(Arrays.asList(new Fact(new Predicate(symbol_set, Arrays.asList(def, new Term.Integer(2), syms.add("hello")))))));
+      expected = new FactSet(new Origin(0), new HashSet<>(Arrays.asList(new Fact(new Predicate(symbol_set, Arrays.asList(def, new Term.Integer(2), syms.add("hello")))))));
       assertEquals(expected, res);
 
       final Rule r3 = new Rule(
@@ -405,7 +405,7 @@ public class WorldTest {
            Fact f = it.next();
            System.out.println("\t" + syms.formatFact(f));
        }
-      expected = new FactSet(new Origin(0),new HashSet<>(Arrays.asList(new Fact(new Predicate(string_set, Arrays.asList(abc, new Term.Integer(0), syms.add("test")))))));
+      expected = new FactSet(new Origin(0), new HashSet<>(Arrays.asList(new Fact(new Predicate(string_set, Arrays.asList(abc, new Term.Integer(0), syms.add("test")))))));
       assertEquals(expected, res);
    }
 

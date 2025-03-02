@@ -118,7 +118,7 @@ public final class Rule implements Serializable {
    public boolean findMatch(final FactSet facts, Long origin, TrustedOrigins scope, SymbolTable symbols) throws Error {
       MatchedVariables variables = variablesSet();
 
-      if(this.body.isEmpty()) {
+      if (this.body.isEmpty()) {
          return variables.checkExpressions(this.expressions, symbols).isDefined();
       }
 
@@ -127,12 +127,12 @@ public final class Rule implements Serializable {
 
       Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator();
 
-      if(!it.hasNext()) {
+      if (!it.hasNext()) {
          return false;
       }
 
       Either<Error, Tuple2<Origin, Fact>> next = it.next();
-      if(next.isRight()) {
+      if (next.isRight()) {
          return true;
       } else {
          throw next.getLeft();
@@ -143,7 +143,7 @@ public final class Rule implements Serializable {
    public boolean checkMatchAll(final FactSet facts, TrustedOrigins scope, SymbolTable symbols) throws Error {
       MatchedVariables variables = variablesSet();
 
-      if(this.body.isEmpty()) {
+      if (this.body.isEmpty()) {
          return variables.checkExpressions(this.expressions, symbols).isDefined();
       }
 
@@ -212,7 +212,7 @@ public final class Rule implements Serializable {
       ArrayList<Predicate> body = new ArrayList<>();
       for (Schema.PredicateV2 predicate: rule.getBodyList()) {
          Either<Error.FormatError, Predicate> res = Predicate.deserializeV2(predicate);
-         if(res.isLeft()) {
+         if (res.isLeft()) {
             Error.FormatError e = res.getLeft();
             return Left(e);
          } else {
@@ -223,7 +223,7 @@ public final class Rule implements Serializable {
       ArrayList<Expression> expressions = new ArrayList<>();
       for (Schema.ExpressionV2 expression: rule.getExpressionsList()) {
          Either<Error.FormatError, Expression> res = Expression.deserializeV2(expression);
-         if(res.isLeft()) {
+         if (res.isLeft()) {
             Error.FormatError e = res.getLeft();
             return Left(e);
          } else {
@@ -234,7 +234,7 @@ public final class Rule implements Serializable {
       ArrayList<Scope> scopes = new ArrayList<>();
       for (Schema.Scope scope: rule.getScopeList()) {
          Either<Error.FormatError, Scope> res = Scope.deserialize(scope);
-         if(res.isLeft()) {
+         if (res.isLeft()) {
             Error.FormatError e = res.getLeft();
             return Left(e);
          } else {
@@ -243,7 +243,7 @@ public final class Rule implements Serializable {
       }
 
       Either<Error.FormatError, Predicate> res = Predicate.deserializeV2(rule.getHead());
-      if(res.isLeft()) {
+      if (res.isLeft()) {
          Error.FormatError e = res.getLeft();
          return Left(e);
       } else {

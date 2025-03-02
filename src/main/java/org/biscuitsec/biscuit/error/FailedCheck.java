@@ -141,7 +141,7 @@ public class FailedCheck {
             public JsonElement toJson() {
                 JsonObject authorizer = new JsonObject();
                 JsonArray ja = new JsonArray();
-                for(String s : invalidVariables){
+                for (String s : invalidVariables){
                     ja.add(s);
                 }
                 authorizer.add("InvalidVariables", ja);

@@ -222,7 +222,7 @@ public class UnverifiedBiscuit {
      */
     public ThirdPartyBlockRequest thirdPartyRequest() {
         PublicKey previousKey;
-        if(this.serializedBiscuit.getBlocks().isEmpty()) {
+        if (this.serializedBiscuit.getBlocks().isEmpty()) {
             previousKey = this.serializedBiscuit.getAuthority().getKey();
         } else {
             previousKey = this.serializedBiscuit.getBlocks().get(this.serializedBiscuit.getBlocks().size() - 1).getKey();
@@ -238,7 +238,7 @@ public class UnverifiedBiscuit {
     public UnverifiedBiscuit appendThirdPartyBlock(PublicKey externalKey, ThirdPartyBlockContents blockResponse)
             throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
         PublicKey previousKey;
-        if(this.serializedBiscuit.getBlocks().isEmpty()) {
+        if (this.serializedBiscuit.getBlocks().isEmpty()) {
             previousKey = this.serializedBiscuit.getAuthority().getKey();
         } else {
             previousKey = this.serializedBiscuit.getBlocks().get(this.serializedBiscuit.getBlocks().size() - 1).getKey();
@@ -250,7 +250,7 @@ public class UnverifiedBiscuit {
         }
 
         Either<Error.FormatError, Block> res = Block.fromBytes(blockResponse.getPayload(), Option.some(externalKey));
-        if(res.isLeft()) {
+        if (res.isLeft()) {
             throw res.getLeft();
         }
 
@@ -328,7 +328,7 @@ public class UnverifiedBiscuit {
         SerializedBiscuit serializedBiscuit = this.serializedBiscuit;
 
         Option<PublicKey> root = delegate.getRootKey(serializedBiscuit.getRootKeyId());
-        if(root.isEmpty()) {
+        if (root.isEmpty()) {
             throw new InvalidKeyException("unknown root key id");
         }
 

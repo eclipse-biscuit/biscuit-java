@@ -31,7 +31,7 @@ import static org.biscuitsec.biscuit.token.Block.fromBytes;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SamplesTest {
-    final RunLimits runLimits = new RunLimits(500,100, Duration.ofMillis(500));
+    final RunLimits runLimits = new RunLimits(500, 100, Duration.ofMillis(500));
     @TestFactory
     Stream<DynamicTest> jsonTest() {
         InputStream inputStream =
@@ -49,7 +49,7 @@ class SamplesTest {
         Biscuit b = compareBlock(root, sampleToken, 0, sampleBlocks.get(0), token.authority, token.symbols);
         sampleToken = Option.some(b);
 
-        for(int i=0; i < token.blocks.size(); i++) {
+        for (int i=0; i < token.blocks.size(); i++) {
             b = compareBlock(root, sampleToken, i+1, sampleBlocks.get(i+1), token.blocks.get(i), token.symbols);
             sampleToken = Option.some(b);
         }
@@ -63,12 +63,12 @@ class SamplesTest {
         Either<Map<Integer, List<org.biscuitsec.biscuit.token.builder.parser.Error>>, org.biscuitsec.biscuit.token.builder.Block> outputSample = Parser.datalog(sampleBlockIndex, sampleDatalog);
 
         // the invalid block rule with unbound variable cannot be parsed
-        if(outputSample.isLeft()) {
+        if (outputSample.isLeft()) {
             return sampleToken.get();
         }
 
         Biscuit newSampleToken;
-        if(!sampleToken.isDefined()) {
+        if (!sampleToken.isDefined()) {
             org.biscuitsec.biscuit.token.builder.Biscuit builder = new org.biscuitsec.biscuit.token.builder.Biscuit(new SecureRandom(), root, Option.none(), outputSample.get());
             newSampleToken = builder.build();
         } else {
@@ -77,10 +77,10 @@ class SamplesTest {
         }
 
         org.biscuitsec.biscuit.token.Block generatedSampleBlock;
-        if(!sampleToken.isDefined()) {
+        if (!sampleToken.isDefined()) {
             generatedSampleBlock = newSampleToken.authority;
         } else {
-            generatedSampleBlock = newSampleToken.blocks.get((int)sampleBlockIndex-1);
+            generatedSampleBlock = newSampleToken.blocks.get((int) sampleBlockIndex-1);
         }
 
         System.out.println("generated block: ");
@@ -107,7 +107,7 @@ class SamplesTest {
             InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("samples/" + testCase.filename);
             byte[] data = new byte[inputStream.available()];
 
-            for(Map.Entry<String, JsonElement> validationEntry: testCase.validations.getAsJsonObject().entrySet()) {
+            for (Map.Entry<String, JsonElement> validationEntry: testCase.validations.getAsJsonObject().entrySet()) {
                 String validationName = validationEntry.getKey();
                 JsonObject validation = validationEntry.getValue().getAsJsonObject();
 
@@ -131,11 +131,11 @@ class SamplesTest {
                     assertEquals(token.authority.print(token.symbols), deser_block_authority.print(token.symbols));
                     assert(Arrays.equals(ser_block_authority, token.serializedBiscuit.getAuthority().getBlock()));
 
-                    for(int i = 0; i < token.blocks.size() - 1; i++) {
+                    for (int i = 0; i < token.blocks.size() - 1; i++) {
                         org.biscuitsec.biscuit.token.Block block = token.blocks.get(i);
                         SignedBlock signed_block = token.serializedBiscuit.getBlocks().get(i);
                         byte[] ser_block = block.toBytes().get();
-                        org.biscuitsec.biscuit.token.Block deser_block = fromBytes(ser_block,block.getExternalKey()).get();
+                        org.biscuitsec.biscuit.token.Block deser_block = fromBytes(ser_block, block.getExternalKey()).get();
                         assertEquals(block.print(token.symbols), deser_block.print(token.symbols));
                         assert(Arrays.equals(ser_block, signed_block.getBlock()));
                     }
@@ -143,7 +143,7 @@ class SamplesTest {
                     List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
                     JsonArray validationRevocationIds = validation.getAsJsonArray("revocation_ids");
                     assertEquals(revocationIds.size(), validationRevocationIds.size());
-                    for(int i = 0; i < revocationIds.size(); i++) {
+                    for (int i = 0; i < revocationIds.size(); i++) {
                         assertEquals(validationRevocationIds.get(i).getAsString(), revocationIds.get(i).toHex());
                     }
 
@@ -169,7 +169,7 @@ class SamplesTest {
                     try {
                         Long authorizeResult = authorizer.authorize(runLimits);
 
-                        if(validation.has("world") && !validation.get("world").isJsonNull()) {
+                        if (validation.has("world") && !validation.get("world").isJsonNull()) {
                             World world = new Gson().fromJson(validation.get("world").getAsJsonObject(), World.class);
                             world.fixOrigin();
 
@@ -185,7 +185,7 @@ class SamplesTest {
                         return authorizeResult;
                     } catch (Exception e) {
 
-                        if(validation.has("world") && !validation.get("world").isJsonNull()) {
+                        if (validation.has("world") && !validation.get("world").isJsonNull()) {
                             World world = new Gson().fromJson(validation.get("world").getAsJsonObject(), World.class);
                             world.fixOrigin();
 
@@ -200,7 +200,7 @@ class SamplesTest {
                     }
                 }).toEither();
 
-                if(expected_result.has("Ok")) {
+                if (expected_result.has("Ok")) {
                     if (res.isLeft()) {
                         System.out.println("validation '"+validationName+"' expected result Ok("+expected_result.getAsJsonPrimitive("Ok").getAsLong()+"), got error");
                         throw res.getLeft();
@@ -209,7 +209,7 @@ class SamplesTest {
                     }
                 } else {
                     if (res.isLeft()) {
-                        if(res.getLeft() instanceof Error) {
+                        if (res.getLeft() instanceof Error) {
                             Error e = (Error) res.getLeft();
                             System.out.println("validation '"+validationName+"' got error: " + e);
                             JsonElement err_json = e.toJson();
@@ -368,15 +368,15 @@ class SamplesTest {
                     }).collect(Collectors.toList());
 
             HashMap<Long, List<String>> rules = new HashMap<>();
-            for(List<Tuple2<Long, Rule>> l: authorizer.rules().getRules().values()) {
-                for(Tuple2<Long, Rule> t: l) {
+            for (List<Tuple2<Long, Rule>> l: authorizer.rules().getRules().values()) {
+                for (Tuple2<Long, Rule> t: l) {
                     if (!rules.containsKey(t._1)) {
                         rules.put(t._1, new ArrayList<>());
                     }
                     rules.get(t._1).add(authorizer.symbols().formatRule(t._2));
                 }
             }
-            for(Map.Entry<Long, List<String>> entry: rules.entrySet()) {
+            for (Map.Entry<Long, List<String>> entry: rules.entrySet()) {
                 Collections.sort(entry.getValue());
             }
             List<RuleSet> rulesets = rules.entrySet().stream()
@@ -390,7 +390,7 @@ class SamplesTest {
                     .map((Tuple2<Long, List<Check>> t) -> {
                         List<String> checks1 = t._2.stream().map(c -> c.toString()).collect(Collectors.toList());
                         Collections.sort(checks1);
-                        if(t._1 == null) {
+                        if (t._1 == null) {
                             return new CheckSet(checks1);
                         } else {
                             return new CheckSet(t._1, checks1);
@@ -402,14 +402,14 @@ class SamplesTest {
         }
 
         public void fixOrigin() {
-            for(FactSet f: this.facts) {
+            for (FactSet f: this.facts) {
                 f.fixOrigin();
             }
-            for(RuleSet r: this.rules) {
+            for (RuleSet r: this.rules) {
                 r.fixOrigin();
             }
             Collections.sort(this.rules);
-            for(CheckSet c: this.checks) {
+            for (CheckSet c: this.checks) {
                 c.fixOrigin();
             }
             Collections.sort(this.checks);
@@ -417,7 +417,7 @@ class SamplesTest {
 
         public HashMap<List<Long>, List<String>> factMap() {
             HashMap<List<Long>, List<String>>  worldFacts = new HashMap<>();
-            for(FactSet f: this.facts) {
+            for (FactSet f: this.facts) {
                 worldFacts.put(f.origin, f.facts);
             }
 
@@ -446,7 +446,7 @@ class SamplesTest {
 
         // JSON cannot represent Long.MAX_VALUE so it is stored as null, fix the origin list
         public void fixOrigin() {
-            for(int i = 0; i < this.origin.size(); i++) {
+            for (int i = 0; i < this.origin.size(); i++) {
                 if (this.origin.get(i) == null) {
                     this.origin.set(i, Long.MAX_VALUE);
                 }
@@ -500,7 +500,7 @@ class SamplesTest {
         public int compareTo(RuleSet ruleSet) {
             // we only compare origin to sort the list of rulesets
             // there's only one of each origin so we don't need to compare the list of rules
-            if(this.origin == null) {
+            if (this.origin == null) {
                 return -1;
             } else if (ruleSet.origin == null) {
                 return 1;
@@ -560,7 +560,7 @@ class SamplesTest {
         public int compareTo(CheckSet checkSet) {
             // we only compare origin to sort the list of checksets
             // there's only one of each origin so we don't need to compare the list of rules
-            if(this.origin == null) {
+            if (this.origin == null) {
                 return -1;
             } else if (checkSet.origin == null) {
                 return 1;

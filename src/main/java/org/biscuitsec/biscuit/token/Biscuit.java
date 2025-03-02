@@ -97,7 +97,7 @@ public final class Biscuit extends UnverifiedBiscuit {
 
         KeyPair next = KeyPair.generate(root.getPublicKey().getAlgorithm(), rng);
 
-        for(PublicKey pk:  authority.getPublicKeys()) {
+        for (PublicKey pk:  authority.getPublicKeys()) {
             authority.symbols().insert(pk);
         }
 
@@ -314,7 +314,7 @@ public final class Biscuit extends UnverifiedBiscuit {
             symbols.add(s);
         }
 
-        for(PublicKey pk: block.getPublicKeys()) {
+        for (PublicKey pk: block.getPublicKeys()) {
             symbols.insert(pk);
         }
 
@@ -354,7 +354,7 @@ public final class Biscuit extends UnverifiedBiscuit {
         s.append("\n\tblocks: [\n");
         for (Block b : this.blocks) {
             s.append("\t\t");
-            if(b.getExternalKey().isDefined()) {
+            if (b.getExternalKey().isDefined()) {
                 s.append(b.print(b.symbols()));
             } else {
                 s.append(b.print(this.symbols));

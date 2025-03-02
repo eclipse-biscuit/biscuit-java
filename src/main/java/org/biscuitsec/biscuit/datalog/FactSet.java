@@ -24,7 +24,7 @@ public final class FactSet {
     }
 
     public void add(Origin origin, Fact fact) {
-        if(!facts.containsKey(origin)) {
+        if (!facts.containsKey(origin)) {
             facts.put(origin, new HashSet<>());
         }
         facts.get(origin).add(fact);
@@ -32,7 +32,7 @@ public final class FactSet {
 
     public int size() {
         int size = 0;
-        for(HashSet<Fact> h: facts.values()) {
+        for (HashSet<Fact> h: facts.values()) {
             size += h.size();
         }
 
@@ -42,7 +42,7 @@ public final class FactSet {
     public FactSet clone() {
         FactSet newFacts = new FactSet();
 
-        for(Map.Entry<Origin, HashSet<Fact>> entry: this.facts.entrySet()) {
+        for (Map.Entry<Origin, HashSet<Fact>> entry: this.facts.entrySet()) {
             HashSet<Fact> h = new HashSet<>(entry.getValue());
             newFacts.facts.put(entry.getKey(), h);
         }
@@ -51,8 +51,8 @@ public final class FactSet {
     }
 
     public void merge(FactSet other) {
-        for(Map.Entry<Origin, HashSet<Fact>> entry: other.facts.entrySet()) {
-            if(!facts.containsKey(entry.getKey())) {
+        for (Map.Entry<Origin, HashSet<Fact>> entry: other.facts.entrySet()) {
+            if (!facts.containsKey(entry.getKey())) {
                 facts.put(entry.getKey(), entry.getValue());
             } else {
                 facts.get(entry.getKey()).addAll(entry.getValue());
@@ -97,9 +97,9 @@ public final class FactSet {
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder("FactSet {");
-        for(Map.Entry<Origin, HashSet<Fact>> entry: this.facts.entrySet()) {
+        for (Map.Entry<Origin, HashSet<Fact>> entry: this.facts.entrySet()) {
             res.append("\n\t").append(entry.getKey()).append("[");
-            for(Fact fact: entry.getValue()) {
+            for (Fact fact: entry.getValue()) {
                 res.append("\n\t\t").append(fact);
             }
             res.append("\n]");

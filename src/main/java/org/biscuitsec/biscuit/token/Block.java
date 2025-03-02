@@ -97,9 +97,9 @@ public final class Block {
         StringBuilder s = new StringBuilder();
 
         SymbolTable localSymbols;
-        if(this.externalKey.isDefined()) {
+        if (this.externalKey.isDefined()) {
             localSymbols = new SymbolTable(this.symbols);
-            for(PublicKey pk: symbolTable.getPublicKeys()) {
+            for (PublicKey pk: symbolTable.getPublicKeys()) {
                 localSymbols.insert(pk);
             }
         } else {
@@ -114,7 +114,7 @@ public final class Block {
         s.append(this.publicKeys);
         s.append("\n\t\tcontext: ");
         s.append(this.context);
-        if(this.externalKey.isDefined()) {
+        if (this.externalKey.isDefined()) {
             s.append("\n\t\texternal key: ");
             s.append(this.externalKey.get().toString());
         }
@@ -147,9 +147,9 @@ public final class Block {
         StringBuilder s = new StringBuilder();
 
         SymbolTable localSymbols;
-        if(this.externalKey.isDefined()) {
+        if (this.externalKey.isDefined()) {
             localSymbols = new SymbolTable(this.symbols);
-            for(PublicKey pk: symbolTable.getPublicKeys()) {
+            for (PublicKey pk: symbolTable.getPublicKeys()) {
                 localSymbols.insert(pk);
             }
         } else {
@@ -164,7 +164,7 @@ public final class Block {
         s.append(this.publicKeys);
         s.append("\n\t\tcontext: ");
         s.append(this.context);
-        if(this.externalKey.isDefined()) {
+        if (this.externalKey.isDefined()) {
             s.append("\n\t\texternal key: ");
             s.append(this.externalKey.get().toString());
         }*/
@@ -216,7 +216,7 @@ public final class Block {
             b.addScope(scope.serialize());
         }
 
-        for(PublicKey pk: this.publicKeys) {
+        for (PublicKey pk: this.publicKeys) {
             b.addPublicKeys(pk.serialize());
         }
 
@@ -231,25 +231,25 @@ public final class Block {
 
         for (Rule r: this.rules) {
             containsScopes |= !r.scopes().isEmpty();
-            for(Expression e: r.expressions()) {
+            for (Expression e: r.expressions()) {
                 containsV4 |= containsV4Op(e);
             }
         }
-        for(Check c: this.checks) {
+        for (Check c: this.checks) {
             containsCheckAll |= c.kind() == Check.Kind.All;
 
             for (Rule q: c.queries()) {
                 containsScopes |= !q.scopes().isEmpty();
-                for(Expression e: q.expressions()) {
+                for (Expression e: q.expressions()) {
                     containsV4 |= containsV4Op(e);
                 }
             }
         }
 
-        if(this.externalKey.isDefined()) {
+        if (this.externalKey.isDefined()) {
             return SerializedBiscuit.MAX_SCHEMA_VERSION;
 
-        }else if(containsScopes || containsCheckAll || containsV4) {
+        }else if (containsScopes || containsCheckAll || containsV4) {
             return 4;
         } else {
             return SerializedBiscuit.MIN_SCHEMA_VERSION;
@@ -325,7 +325,7 @@ public final class Block {
         ArrayList<Scope> scopes = new ArrayList<>();
         for (Schema.Scope scope: b.getScopeList()) {
             Either<Error.FormatError, Scope> res = Scope.deserialize(scope);
-            if(res.isLeft()) {
+            if (res.isLeft()) {
                 Error.FormatError e = res.getLeft();
                 return Left(e);
             } else {

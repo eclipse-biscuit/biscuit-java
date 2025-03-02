@@ -115,7 +115,7 @@ public final class Rule implements Cloneable {
             } else return Stream.empty();
         }).collect(Collectors.toSet());
 
-        for(Expression e: this.expressions) {
+        for (Expression e: this.expressions) {
             e.gatherVariables(freeVariables);
         }
         if (freeVariables.isEmpty()) {
@@ -210,21 +210,21 @@ public final class Rule implements Cloneable {
         r.applyVariables();
         String res = "";
 
-        if(!r.body.isEmpty()) {
+        if (!r.body.isEmpty()) {
             final List<String> b = r.body.stream().map((pred) -> pred.toString()).collect(Collectors.toList());
              res += String.join(", ", b);
         }
 
         if (!r.expressions.isEmpty()) {
-            if(!r.body.isEmpty()) {
+            if (!r.body.isEmpty()) {
                 res += ", ";
             }
             final List<String> e = r.expressions.stream().map((expression) -> expression.toString()).collect(Collectors.toList());
             res += String.join(", ", e);
         }
 
-        if(!r.scopes.isEmpty()) {
-            if(!r.body.isEmpty() || !r.expressions.isEmpty()) {
+        if (!r.scopes.isEmpty()) {
+            if (!r.body.isEmpty() || !r.expressions.isEmpty()) {
                 res += " ";
             }
             final List<String> e = r.scopes.stream().map((scope) -> scope.toString()).collect(Collectors.toList());

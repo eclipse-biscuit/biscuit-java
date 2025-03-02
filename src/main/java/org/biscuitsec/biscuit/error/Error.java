@@ -292,8 +292,8 @@ public class Error extends Exception {
             @Override
             public JsonElement toJson() {
                 JsonObject child = new JsonObject();
-                child.addProperty("minimum",this.minimum);
-                child.addProperty("maximum",this.maximum);
+                child.addProperty("minimum", this.minimum);
+                child.addProperty("maximum", this.maximum);
                 child.addProperty("actual", this.actual);
                 JsonObject jo = new JsonObject();
                 jo.add("Version", child);
@@ -359,13 +359,13 @@ public class Error extends Exception {
 
         @Override
         public String toString() {
-            return "Err(InvalidAuthorityIndex{ index: "+ index + " }";
+            return "Err(InvalidAuthorityIndex{ index: " + index + " }";
         }
 
         @Override
         public JsonElement toJson() {
             JsonObject child = new JsonObject();
-            child.addProperty("index",this.index);
+            child.addProperty("index", this.index);
             JsonObject jo = new JsonObject();
             jo.add("InvalidAuthorityIndex", child);
             return jo;
@@ -401,7 +401,7 @@ public class Error extends Exception {
         @Override
         public JsonElement toJson() {
             JsonObject child = new JsonObject();
-            child.addProperty("expected",this.expected);
+            child.addProperty("expected", this.expected);
             child.addProperty("fount", this.found);
             JsonObject jo = new JsonObject();
             jo.add("InvalidBlockIndex", child);

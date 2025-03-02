@@ -90,7 +90,7 @@ public final class Predicate implements Serializable {
       ArrayList<Term> terms = new ArrayList<>();
       for (Schema.TermV2 id: predicate.getTermsList()) {
          Either<Error.FormatError, Term> res = Term.deserializeEnumV2(id);
-         if(res.isLeft()) {
+         if (res.isLeft()) {
             Error.FormatError e = res.getLeft();
             return Left(e);
          } else {

@@ -20,7 +20,7 @@ public final class Origin {
 
     public Origin(int i) {
         this.blockIds = new HashSet<>();
-        this.blockIds.add((long)i);
+        this.blockIds.add((long) i);
     }
 
     public static Origin authorizer() {

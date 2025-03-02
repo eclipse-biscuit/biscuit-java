@@ -137,8 +137,8 @@ public abstract class Op {
                     break;
                 case Length:
                     if (value instanceof Term.Str) {
-                        Option<String> s = symbols.getSymbol((int)((Term.Str) value).value());
-                        if(s.isEmpty()) {
+                        Option<String> s = symbols.getSymbol((int) ((Term.Str) value).value());
+                        if (s.isEmpty()) {
                             throw new Error.Execution("string not found in symbols for id"+value);
                         } else {
                             try {
@@ -374,13 +374,13 @@ public abstract class Op {
                         stack.push(new Term.Bool(leftSet.containsAll(rightSet)));
                     }
                     if (left instanceof Term.Str && right instanceof Term.Str) {
-                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
 
-                        if(leftS.isEmpty()) {
+                        if (leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(rightS.isEmpty()) {
+                        if (rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
@@ -390,12 +390,12 @@ public abstract class Op {
                     break;
                 case Prefix:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
-                        if(leftS.isEmpty()) {
+                        Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
+                        if (leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(rightS.isEmpty()) {
+                        if (rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
@@ -404,12 +404,12 @@ public abstract class Op {
                     break;
                 case Suffix:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
-                        if(leftS.isEmpty()) {
+                        Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
+                        if (leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(rightS.isEmpty()) {
+                        if (rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
                         stack.push(new Term.Bool(leftS.get().endsWith(rightS.get())));
@@ -417,12 +417,12 @@ public abstract class Op {
                     break;
                 case Regex:
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
-                        if(leftS.isEmpty()) {
+                        Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
+                        if (leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(rightS.isEmpty()) {
+                        if (rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 
@@ -442,13 +442,13 @@ public abstract class Op {
                         }
                     }
                     if (right instanceof Term.Str && left instanceof Term.Str) {
-                        Option<String> leftS = symbols.getSymbol((int)((Term.Str) left).value());
-                        Option<String> rightS = symbols.getSymbol((int)((Term.Str) right).value());
+                        Option<String> leftS = symbols.getSymbol((int) ((Term.Str) left).value());
+                        Option<String> rightS = symbols.getSymbol((int) ((Term.Str) right).value());
 
-                        if(leftS.isEmpty()) {
+                        if (leftS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) left).value());
                         }
-                        if(rightS.isEmpty()) {
+                        if (rightS.isEmpty()) {
                             throw new Error.Execution("cannot find string in symbols for index "+((Term.Str) right).value());
                         }
 

@@ -70,7 +70,7 @@ public final class TokenSignature {
 
         //System.out.println("eiXi");
         RistrettoElement eiXi = RistrettoElement.IDENTITY;
-        for(int i = 0; i < public_keys.size(); i++) {
+        for (int i = 0; i < public_keys.size(); i++) {
             Scalar e = hash_message(public_keys.get(i), messages.get(i));
             //System.out.println(hex(e.toByteArray()));
             //System.out.println(hex((public_keys.get(i).multiply(e)).compress().toByteArray()));

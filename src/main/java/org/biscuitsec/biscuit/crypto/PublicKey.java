@@ -68,7 +68,7 @@ public final class PublicKey {
     }
 
     public static PublicKey deserialize(Schema.PublicKey pk) throws Error.FormatError.DeserializationError {
-        if(!pk.hasAlgorithm() || !pk.hasKey() || !SUPPORTED_ALGORITHMS.contains(pk.getAlgorithm())) {
+        if (!pk.hasAlgorithm() || !pk.hasKey() || !SUPPORTED_ALGORITHMS.contains(pk.getAlgorithm())) {
             throw new Error.FormatError.DeserializationError("Invalid public key");
         }
         return new PublicKey(pk.getAlgorithm(), pk.getKey().toByteArray());

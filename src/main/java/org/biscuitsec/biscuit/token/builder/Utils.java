@@ -32,7 +32,7 @@ public final class Utils {
     }
 
     public static Check check(Rule rule) {
-        return new Check(One,rule);
+        return new Check(One, rule);
     }
 
     public static Term integer(long i) {

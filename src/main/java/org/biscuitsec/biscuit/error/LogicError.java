@@ -116,7 +116,7 @@ public class LogicError {
         @Override
         public JsonElement toJson() {
             JsonObject child = new JsonObject();
-            child.addProperty("id",this.id);
+            child.addProperty("id", this.id);
             child.addProperty("error", this.e);
             JsonObject root = new JsonObject();
             root.add("InvalidBlockFact", child);
@@ -184,11 +184,11 @@ public class LogicError {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Unauthorized other = (Unauthorized) o;
-            if(errors.size() != other.errors.size()) {
+            if (errors.size() != other.errors.size()) {
                 return false;
             }
-            for(int i = 0; i < errors.size(); i++) {
-                if(!errors.get(i).equals(other.errors.get(i))) {
+            for (int i = 0; i < errors.size(); i++) {
+                if (!errors.get(i).equals(other.errors.get(i))) {
                     return false;
                 }
             }
@@ -241,11 +241,11 @@ public class LogicError {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Unauthorized other = (Unauthorized) o;
-            if(errors.size() != other.errors.size()) {
+            if (errors.size() != other.errors.size()) {
                 return false;
             }
-            for(int i = 0; i < errors.size(); i++) {
-                if(!errors.get(i).equals(other.errors.get(i))) {
+            for (int i = 0; i < errors.size(); i++) {
+                if (!errors.get(i).equals(other.errors.get(i))) {
                     return false;
                 }
             }
