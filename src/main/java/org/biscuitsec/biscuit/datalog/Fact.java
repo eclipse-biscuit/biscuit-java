@@ -32,8 +32,12 @@ public final class Fact implements Serializable {
 
    @Override
    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+          return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+          return false;
+      }
       Fact fact = (Fact) o;
       return Objects.equals(predicate, fact.predicate);
    }

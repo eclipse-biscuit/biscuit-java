@@ -253,14 +253,20 @@ public final class Rule implements Serializable {
 
    @Override
    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false;  }
 
       Rule rule = (Rule) o;
 
-      if (!Objects.equals(head, rule.head)) return false;
-      if (!Objects.equals(body, rule.body)) return false;
-      if (!Objects.equals(expressions, rule.expressions)) return false;
+      if (!Objects.equals(head, rule.head)) {
+          return false;
+      }
+      if (!Objects.equals(body, rule.body)) {
+          return false;
+      }
+      if (!Objects.equals(expressions, rule.expressions)) {
+          return false;
+      }
        return Objects.equals(scopes, rule.scopes);
    }
 

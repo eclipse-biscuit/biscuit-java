@@ -89,13 +89,17 @@ public final class Scope {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         Scope scope = (Scope) o;
 
-        if (kind != scope.kind) return false;
-        if (!Objects.equals(publicKey, scope.publicKey)) return false;
+        if (kind != scope.kind) {
+            return false;
+        }
+        if (!Objects.equals(publicKey, scope.publicKey)) {
+            return false;
+        }
         return Objects.equals(parameter, scope.parameter);
     }
 

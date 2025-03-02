@@ -30,12 +30,14 @@ public final class Error extends Exception {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         Error error = (Error) o;
 
-        if (input != null ? !input.equals(error.input) : error.input != null) return false;
+        if (input != null ? !input.equals(error.input) : error.input != null) {
+            return false;
+        }
         return message != null ? message.equals(error.message) : error.message == null;
     }
 

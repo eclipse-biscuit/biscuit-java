@@ -84,8 +84,8 @@ public abstract class Op {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Value value1 = (Value) o;
 
@@ -227,8 +227,8 @@ public abstract class Op {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Unary unary = (Unary) o;
 
@@ -776,8 +776,8 @@ public abstract class Op {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Binary binary = (Binary) o;
 

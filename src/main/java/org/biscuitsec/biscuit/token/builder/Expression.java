@@ -168,8 +168,8 @@ public abstract class Expression {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Value value1 = (Value) o;
 
@@ -220,12 +220,14 @@ public abstract class Expression {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Unary unary = (Unary) o;
 
-            if (op != unary.op) return false;
+            if (op != unary.op) {
+                return false;
+            }
             return arg1.equals(unary.arg1);
         }
 
@@ -342,13 +344,17 @@ public abstract class Expression {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Binary binary = (Binary) o;
 
-            if (op != binary.op) return false;
-            if (!arg1.equals(binary.arg1)) return false;
+            if (op != binary.op) {
+                return false;
+            }
+            if (!arg1.equals(binary.arg1)) {
+                return false;
+            }
             return arg2.equals(binary.arg2);
         }
 

@@ -456,8 +456,8 @@ class SamplesTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             FactSet factSet = (FactSet) o;
 
@@ -511,8 +511,8 @@ class SamplesTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             RuleSet ruleSet = (RuleSet) o;
 
@@ -571,8 +571,8 @@ class SamplesTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             CheckSet checkSet = (CheckSet) o;
 

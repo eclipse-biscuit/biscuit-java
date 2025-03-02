@@ -43,8 +43,9 @@ public final class Rule implements Cloneable {
         for (Expression e : expressions) {
             if (e instanceof Expression.Value) {
                 Expression.Value ev = (Expression.Value) e;
-                if (ev.value instanceof Term.Variable)
+                if (ev.value instanceof Term.Variable) {
                     variables.put(((Term.Variable) ev.value).value, Option.none());
+                }
             }
         }
         this.variables = Option.some(variables);
@@ -82,14 +83,18 @@ public final class Rule implements Cloneable {
                         if (t instanceof Term.Variable) {
                             Option<Term> term = _variables.getOrDefault(((Term.Variable) t).value, Option.none());
                             return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
-                        } else return Stream.of(t);
+                        } else {
+                            return Stream.of(t);
+                        }
                     }).collect(Collectors.toList());
                     for (Predicate p : this.body) {
                         p.terms = p.terms.stream().flatMap(t -> {
                             if (t instanceof Term.Variable) {
                                 Option<Term> term = _variables.getOrDefault(((Term.Variable) t).value, Option.none());
                                 return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
-                            } else return Stream.of(t);
+                            } else {
+                                return Stream.of(t);
+                            }
                         }).collect(Collectors.toList());
                     }
                     this.expressions = this.expressions.stream().flatMap(
@@ -112,7 +117,9 @@ public final class Rule implements Cloneable {
         Set<String> freeVariables = this.head.terms.stream().flatMap(t -> {
             if (t instanceof Term.Variable) {
                 return Stream.of(((Term.Variable) t).value);
-            } else return Stream.empty();
+            } else {
+                return Stream.empty();
+            }
         }).collect(Collectors.toSet());
 
         for (Expression e: this.expressions) {
@@ -185,14 +192,20 @@ public final class Rule implements Cloneable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         Rule rule = (Rule) o;
 
-        if (head != null ? !head.equals(rule.head) : rule.head != null) return false;
-        if (body != null ? !body.equals(rule.body) : rule.body != null) return false;
-        if (scopes != null ? !scopes.equals(rule.scopes) : rule.scopes != null) return false;
+        if (head != null ? !head.equals(rule.head) : rule.head != null) {
+            return false;
+        }
+        if (body != null ? !body.equals(rule.body) : rule.body != null) {
+            return false;
+        }
+        if (scopes != null ? !scopes.equals(rule.scopes) : rule.scopes != null) {
+            return false;
+        }
         return expressions != null ? expressions.equals(rule.expressions) : rule.expressions == null;
     }
 

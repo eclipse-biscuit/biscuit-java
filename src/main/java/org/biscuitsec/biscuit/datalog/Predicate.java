@@ -58,8 +58,8 @@ public final class Predicate implements Serializable {
 
    @Override
    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false;  }
       Predicate predicate = (Predicate) o;
       return name == predicate.name
               && Objects.equals(terms, predicate.terms);

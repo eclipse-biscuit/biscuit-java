@@ -28,8 +28,8 @@ public class LogicError {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             InvalidAuthorityFact other = (InvalidAuthorityFact) o;
             return e.equals(other.e);
         }
@@ -60,8 +60,8 @@ public class LogicError {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             InvalidAmbientFact other = (InvalidAmbientFact) o;
             return e.equals(other.e);
         }
@@ -97,8 +97,8 @@ public class LogicError {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             InvalidBlockFact other = (InvalidBlockFact) o;
             return id == other.id && e.equals(other.e);
         }
@@ -137,8 +137,8 @@ public class LogicError {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             InvalidBlockRule other = (InvalidBlockRule) o;
             return id == other.id && e.equals(other.e);
         }
@@ -181,8 +181,8 @@ public class LogicError {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             Unauthorized other = (Unauthorized) o;
             if (errors.size() != other.errors.size()) {
                 return false;
@@ -238,8 +238,8 @@ public class LogicError {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             Unauthorized other = (Unauthorized) o;
             if (errors.size() != other.errors.size()) {
                 return false;

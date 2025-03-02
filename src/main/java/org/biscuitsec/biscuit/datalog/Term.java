@@ -60,8 +60,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Date date = (Date) o;
 
@@ -119,8 +119,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Integer integer = (Integer) o;
 
@@ -178,8 +178,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Bytes bytes = (Bytes) o;
 
@@ -237,8 +237,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Str s = (Str) o;
 
@@ -285,8 +285,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Variable variable = (Variable) o;
 
@@ -344,8 +344,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Bool bool = (Bool) o;
 
@@ -403,8 +403,8 @@ public abstract class Term implements Serializable {
 
       @Override
       public boolean equals(Object o) {
-         if (this == o) return true;
-         if (o == null || getClass() != o.getClass()) return false;
+         if (this == o) { return true; }
+         if (o == null || getClass() != o.getClass()) { return false;  }
 
          Set set = (Set) o;
 

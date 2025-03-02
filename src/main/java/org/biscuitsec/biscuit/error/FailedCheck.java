@@ -35,8 +35,8 @@ public class FailedCheck {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             FailedBlock b = (FailedBlock) o;
             return blockId == b.blockId && checkId == b.checkId && rule.equals(b.rule);
         }
@@ -74,8 +74,8 @@ public class FailedCheck {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             FailedAuthorizer b = (FailedAuthorizer) o;
             return checkId == b.checkId && rule.equals(b.rule);
         }
@@ -121,8 +121,8 @@ public class FailedCheck {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
                 Builder b = (Builder) o;
                 return invalidVariables == b.invalidVariables && invalidVariables.equals(b.invalidVariables);
             }
@@ -157,8 +157,8 @@ public class FailedCheck {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
                 UnknownVariable b = (UnknownVariable) o;
                 return this.message == b.message && message.equals(b.message);
             }

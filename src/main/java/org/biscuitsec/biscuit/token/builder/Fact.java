@@ -73,7 +73,9 @@ public final class Fact implements Cloneable {
                         if (t instanceof Term.Variable) {
                             Option<Term> term = _variables.getOrDefault(((Term.Variable) t).value, Option.none());
                             return term.map(_t -> Stream.of(_t)).getOrElse(Stream.empty());
-                        } else return Stream.of(t);
+                        } else {
+                            return Stream.of(t);
+                        }
                     }).collect(Collectors.toList());
                 });
         return this;
@@ -106,8 +108,8 @@ public final class Fact implements Cloneable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         Fact fact = (Fact) o;
 

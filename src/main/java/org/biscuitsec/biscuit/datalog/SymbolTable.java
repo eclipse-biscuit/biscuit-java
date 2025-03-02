@@ -288,13 +288,17 @@ public final class SymbolTable implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         SymbolTable that = (SymbolTable) o;
 
-        if (!dateTimeFormatter.equals(that.dateTimeFormatter)) return false;
-        if (!symbols.equals(that.symbols)) return false;
+        if (!dateTimeFormatter.equals(that.dateTimeFormatter)) {
+            return false;
+        }
+        if (!symbols.equals(that.symbols)) {
+            return false;
+        }
         return publicKeys.equals(that.publicKeys);
     }
 

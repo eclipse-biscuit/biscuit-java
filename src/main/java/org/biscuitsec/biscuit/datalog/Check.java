@@ -18,6 +18,8 @@ public final class Check {
         All
     }
 
+    private static final int HASH_CODE_SEED = 31;
+
     private final Kind kind;
 
     private final List<Rule> queries;
@@ -84,19 +86,25 @@ public final class Check {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Check check = (Check) o;
 
-        if (kind != check.kind) return false;
+        if (kind != check.kind) {
+            return false;
+        }
         return Objects.equals(queries, check.queries);
     }
 
     @Override
     public int hashCode() {
         int result = kind != null ? kind.hashCode() : 0;
-        result = 31 * result + (queries != null ? queries.hashCode() : 0);
+        result = HASH_CODE_SEED * result + (queries != null ? queries.hashCode() : 0);
         return result;
     }
 

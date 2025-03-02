@@ -54,13 +54,17 @@ public final class ThirdPartyBlockContents {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         ThirdPartyBlockContents that = (ThirdPartyBlockContents) o;
 
-        if (!Arrays.equals(payload, that.payload)) return false;
-        if (!Arrays.equals(signature, that.signature)) return false;
+        if (!Arrays.equals(payload, that.payload)) {
+            return false;
+        }
+        if (!Arrays.equals(signature, that.signature)) {
+            return false;
+        }
         return Objects.equals(publicKey, that.publicKey);
     }
 

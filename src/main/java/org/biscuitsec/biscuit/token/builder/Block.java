@@ -163,15 +163,23 @@ public final class Block {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false;  }
 
         Block block = (Block) o;
 
-        if (!Objects.equals(context, block.context)) return false;
-        if (!Objects.equals(facts, block.facts)) return false;
-        if (!Objects.equals(rules, block.rules)) return false;
-        if (!Objects.equals(checks, block.checks)) return false;
+        if (!Objects.equals(context, block.context)) {
+            return false;
+        }
+        if (!Objects.equals(facts, block.facts)) {
+            return false;
+        }
+        if (!Objects.equals(rules, block.rules)) {
+            return false;
+        }
+        if (!Objects.equals(checks, block.checks)) {
+            return false;
+        }
         return Objects.equals(scopes, block.scopes);
     }
 

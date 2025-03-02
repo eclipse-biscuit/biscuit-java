@@ -52,12 +52,18 @@ public final class Predicate implements Cloneable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Predicate predicate = (Predicate) o;
 
-        if (name != null ? !name.equals(predicate.name) : predicate.name != null) return false;
+        if (name != null ? !name.equals(predicate.name) : predicate.name != null) {
+            return false;
+        }
         return terms != null ? terms.equals(predicate.terms) : predicate.terms == null;
     }
 

@@ -41,7 +41,7 @@ public class Error extends Exception {
                 public InvalidFormat() { }
                 @Override
                 public boolean equals(Object o) {
-                    if (this == o) return true;
+                    if (this == o) { return true; }
                     return o != null && getClass() == o.getClass();
                 }
 
@@ -61,7 +61,7 @@ public class Error extends Exception {
                 }
                 @Override
                 public boolean equals(Object o) {
-                    if (this == o) return true;
+                    if (this == o) { return true; }
                     return o != null && getClass() == o.getClass();
                 }
                 @Override
@@ -80,7 +80,7 @@ public class Error extends Exception {
         public static final class SealedSignature extends FormatError {
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
+                if (this == o) { return true; }
                 return o != null && getClass() == o.getClass();
             }
             @Override
@@ -95,7 +95,7 @@ public class Error extends Exception {
         public static final class EmptyKeys extends FormatError {
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
+                if (this == o) { return true; }
                 return o != null && getClass() == o.getClass();
             }
             @Override
@@ -110,7 +110,7 @@ public class Error extends Exception {
         public static final class UnknownPublicKey extends FormatError {
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
+                if (this == o) { return true; }
                 return o != null && getClass() == o.getClass();
             }
             @Override
@@ -131,8 +131,8 @@ public class Error extends Exception {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
                 DeserializationError other = (DeserializationError) o;
                 return e.equals(other.e);
             }
@@ -165,8 +165,8 @@ public class Error extends Exception {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
                 SerializationError other = (SerializationError) o;
                 return e.equals(other.e);
             }
@@ -197,8 +197,8 @@ public class Error extends Exception {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
                 BlockDeserializationError other = (BlockDeserializationError) o;
                 return e.equals(other.e);
             }
@@ -229,8 +229,8 @@ public class Error extends Exception {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
                 BlockSerializationError other = (BlockSerializationError) o;
                 return e.equals(other.e);
             }
@@ -266,13 +266,17 @@ public class Error extends Exception {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
 
                 Version version = (Version) o;
 
-                if (minimum != version.minimum) return false;
-                if (maximum != version.maximum) return false;
+                if (minimum != version.minimum) {
+                    return false;
+                }
+                if (maximum != version.maximum) {
+                    return false;
+                }
                 return actual == version.actual;
             }
 
@@ -310,8 +314,8 @@ public class Error extends Exception {
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) { return true; }
+                if (o == null || getClass() != o.getClass()) { return false;  }
 
                 InvalidSignatureSize iss = (InvalidSignatureSize) o;
 
@@ -346,8 +350,8 @@ public class Error extends Exception {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             InvalidAuthorityIndex other = (InvalidAuthorityIndex) o;
             return index == other.index;
         }
@@ -382,8 +386,8 @@ public class Error extends Exception {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             InvalidBlockIndex other = (InvalidBlockIndex) o;
             return expected == other.expected && found == other.found;
         }
@@ -411,7 +415,7 @@ public class Error extends Exception {
     public static final class SymbolTableOverlap extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
 
@@ -423,7 +427,7 @@ public class Error extends Exception {
     public static final class MissingSymbols extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -434,7 +438,7 @@ public class Error extends Exception {
     public static final class Sealed extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -451,8 +455,8 @@ public class Error extends Exception {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
             FailedLogic other = (FailedLogic) o;
             return error.equals(other.error);
         }
@@ -488,7 +492,7 @@ public class Error extends Exception {
         }
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
 
@@ -503,7 +507,7 @@ public class Error extends Exception {
     public static final class TooManyFacts extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -515,7 +519,7 @@ public class Error extends Exception {
     public static final class TooManyIterations extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -527,7 +531,7 @@ public class Error extends Exception {
     public static final class Timeout extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -567,7 +571,7 @@ public class Error extends Exception {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -588,7 +592,7 @@ public class Error extends Exception {
     public static final class InvalidType extends Error {
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
+            if (this == o) { return true; }
             return o != null && getClass() == o.getClass();
         }
         @Override
@@ -606,8 +610,8 @@ public class Error extends Exception {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false;  }
 
             Parser parser = (Parser) o;
 

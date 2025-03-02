@@ -18,8 +18,9 @@ import java.security.Signature;
 import java.security.SignatureException;
 
 final class Ed25519KeyPair extends KeyPair {
+    private static final int BUFFER_SIZE = 32;
 
-    static final int SIGNATURE_LENGTH = 64;
+    public static final int SIGNATURE_LENGTH = 64;
 
     private final EdDSAPrivateKey privateKey;
     private final EdDSAPublicKey publicKey;
@@ -38,7 +39,7 @@ final class Ed25519KeyPair extends KeyPair {
     }
 
     Ed25519KeyPair(SecureRandom rng) {
-        byte[] b = new byte[32];
+        byte[] b = new byte[BUFFER_SIZE];
         rng.nextBytes(b);
 
         EdDSAPrivateKeySpec privKeySpec = new EdDSAPrivateKeySpec(b, ED_25519);
