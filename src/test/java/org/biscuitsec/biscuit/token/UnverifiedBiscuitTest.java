@@ -34,9 +34,9 @@ public class UnverifiedBiscuitTest {
     // org.biscuitsec.biscuit.token.builder.Block block0 = new
     // org.biscuitsec.biscuit.token.builder.Block(0);
     org.biscuitsec.biscuit.token.builder.Biscuit block0 = Biscuit.builder(rng, keypair0);
-    block0.addAuthorityFact(Utils.fact("right", List.of(Utils.s("file1"), Utils.s("read"))));
-    block0.addAuthorityFact(Utils.fact("right", List.of(Utils.s("file2"), Utils.s("read"))));
-    block0.addAuthorityFact(Utils.fact("right", List.of(Utils.s("file1"), Utils.s("write"))));
+    block0.addAuthorityFact(Utils.fact("right", List.of(Utils.str("file1"), Utils.str("read"))));
+    block0.addAuthorityFact(Utils.fact("right", List.of(Utils.str("file2"), Utils.str("read"))));
+    block0.addAuthorityFact(Utils.fact("right", List.of(Utils.str("file1"), Utils.str("write"))));
 
     Biscuit biscuit0 = block0.build();
 
@@ -65,8 +65,8 @@ public class UnverifiedBiscuitTest {
                 List.of(Utils.var("resource")),
                 List.of(
                     Utils.pred("resource", List.of(Utils.var("resource"))),
-                    Utils.pred("operation", List.of(Utils.s("read"))),
-                    Utils.pred("right", List.of(Utils.var("resource"), Utils.s("read")))))));
+                    Utils.pred("operation", List.of(Utils.str("read"))),
+                    Utils.pred("right", List.of(Utils.var("resource"), Utils.str("read")))))));
     UnverifiedBiscuit unverifiedBiscuit1 = deser0.attenuate(rng, keypair1, block1.build());
 
     System.out.println(unverifiedBiscuit1.print());
@@ -94,8 +94,8 @@ public class UnverifiedBiscuitTest {
         Utils.check(
             Utils.rule(
                 "caveat2",
-                List.of(Utils.s("file1")),
-                List.of(Utils.pred("resource", List.of(Utils.s("file1")))))));
+                List.of(Utils.str("file1")),
+                List.of(Utils.pred("resource", List.of(Utils.str("file1")))))));
 
     UnverifiedBiscuit unverifiedBiscuit2 = unverifiedBiscuit1.attenuate(rng, keypair2, block2);
 

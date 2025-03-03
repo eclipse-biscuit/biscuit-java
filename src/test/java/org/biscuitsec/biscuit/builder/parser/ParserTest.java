@@ -60,7 +60,7 @@ class ParserTest {
     assertEquals(
         Either.right(
             new Tuple2<>(
-                "", Utils.fact("right", Arrays.asList(Utils.string("file1"), Utils.s("read"))))),
+                "", Utils.fact("right", Arrays.asList(Utils.string("file1"), Utils.str("read"))))),
         res);
 
     Either<Error, Tuple2<String, Fact>> res2 = Parser.fact("right( $var, \"read\" )");
@@ -75,7 +75,7 @@ class ParserTest {
     assertEquals(
         Either.right(
             new Tuple2<>(
-                "", Utils.fact("n1:right", Arrays.asList(Utils.string("file1"), Utils.s("read"))))),
+                "", Utils.fact("n1:right", Arrays.asList(Utils.string("file1"), Utils.str("read"))))),
         res4);
   }
 
@@ -89,10 +89,10 @@ class ParserTest {
                 "",
                 Utils.rule(
                     "right",
-                    Arrays.asList(Utils.var("resource"), Utils.s("read")),
+                    Arrays.asList(Utils.var("resource"), Utils.str("read")),
                     Arrays.asList(
                         Utils.pred("resource", List.of(Utils.var("resource"))),
-                        Utils.pred("operation", List.of(Utils.s("read"))))))),
+                        Utils.pred("operation", List.of(Utils.str("read"))))))),
         res);
   }
 
@@ -269,7 +269,7 @@ class ParserTest {
                             new ArrayList<>(),
                             Arrays.asList(
                                 Utils.pred("resource", List.of(Utils.var("0"))),
-                                Utils.pred("operation", List.of(Utils.s("read"))))),
+                                Utils.pred("operation", List.of(Utils.str("read"))))),
                         Utils.rule(
                             "query",
                             new ArrayList<>(),
@@ -348,8 +348,8 @@ class ParserTest {
         Parser.expression("  [ \"abc\", \"def\" ].contains($operation) ");
 
     HashSet<Term> s = new HashSet<>();
-    s.add(Utils.s("abc"));
-    s.add(Utils.s("def"));
+    s.add(Utils.str("abc"));
+    s.add(Utils.str("def"));
 
     assertEquals(
         Either.right(

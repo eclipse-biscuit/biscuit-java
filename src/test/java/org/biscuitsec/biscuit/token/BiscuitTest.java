@@ -39,9 +39,9 @@ public class BiscuitTest {
 
     Block authority_builder = new Block();
 
-    authority_builder.addFact(fact("right", Arrays.asList(s("file1"), s("read"))));
-    authority_builder.addFact(fact("right", Arrays.asList(s("file2"), s("read"))));
-    authority_builder.addFact(fact("right", Arrays.asList(s("file1"), s("write"))));
+    authority_builder.addFact(fact("right", Arrays.asList(str("file1"), str("read"))));
+    authority_builder.addFact(fact("right", Arrays.asList(str("file2"), str("read"))));
+    authority_builder.addFact(fact("right", Arrays.asList(str("file1"), str("write"))));
 
     Biscuit b = Biscuit.make(rng, root, authority_builder.build());
 
@@ -73,8 +73,8 @@ public class BiscuitTest {
                 Arrays.asList(var("resource")),
                 Arrays.asList(
                     pred("resource", Arrays.asList(var("resource"))),
-                    pred("operation", Arrays.asList(s("read"))),
-                    pred("right", Arrays.asList(var("resource"), s("read")))))));
+                    pred("operation", Arrays.asList(str("read"))),
+                    pred("right", Arrays.asList(var("resource"), str("read")))))));
 
     Biscuit b2 = deser.attenuate(rng, keypair2, builder);
 
@@ -103,8 +103,8 @@ public class BiscuitTest {
         check(
             rule(
                 "caveat2",
-                Arrays.asList(s("file1")),
-                Arrays.asList(pred("resource", Arrays.asList(s("file1")))))));
+                Arrays.asList(str("file1")),
+                Arrays.asList(pred("resource", Arrays.asList(str("file1")))))));
 
     Biscuit b3 = deser2.attenuate(rng, keypair3, builder3);
 
@@ -248,7 +248,7 @@ public class BiscuitTest {
     builder.addFact(
         fact(
             "right",
-            Arrays.asList(s("topic"), s("tenant"), s("namespace"), s("topic"), s("produce"))));
+            Arrays.asList(str("topic"), str("tenant"), str("namespace"), str("topic"), str("produce"))));
 
     String attenuatedB64 =
         biscuit
@@ -395,9 +395,9 @@ public class BiscuitTest {
 
     Block authority_builder = new Block();
 
-    authority_builder.addFact(fact("namespace:right", Arrays.asList(s("file1"), s("read"))));
-    authority_builder.addFact(fact("namespace:right", Arrays.asList(s("file1"), s("write"))));
-    authority_builder.addFact(fact("namespace:right", Arrays.asList(s("file2"), s("read"))));
+    authority_builder.addFact(fact("namespace:right", Arrays.asList(str("file1"), str("read"))));
+    authority_builder.addFact(fact("namespace:right", Arrays.asList(str("file1"), str("write"))));
+    authority_builder.addFact(fact("namespace:right", Arrays.asList(str("file2"), str("read"))));
     Biscuit b = Biscuit.make(rng, root, authority_builder.build());
 
     System.out.println(b.print());
@@ -428,8 +428,8 @@ public class BiscuitTest {
                 Arrays.asList(var("resource")),
                 Arrays.asList(
                     pred("resource", Arrays.asList(var("resource"))),
-                    pred("operation", Arrays.asList(s("read"))),
-                    pred("namespace:right", Arrays.asList(var("resource"), s("read")))))));
+                    pred("operation", Arrays.asList(str("read"))),
+                    pred("namespace:right", Arrays.asList(var("resource"), str("read")))))));
 
     Biscuit b2 = deser.attenuate(rng, keypair2, builder);
 
@@ -458,8 +458,8 @@ public class BiscuitTest {
         check(
             rule(
                 "caveat2",
-                Arrays.asList(s("file1")),
-                Arrays.asList(pred("resource", Arrays.asList(s("file1")))))));
+                Arrays.asList(str("file1")),
+                Arrays.asList(pred("resource", Arrays.asList(str("file1")))))));
 
     Biscuit b3 = deser2.attenuate(rng, keypair3, builder3);
 
@@ -558,8 +558,8 @@ public class BiscuitTest {
                 Arrays.asList(var("resource")),
                 Arrays.asList(
                     pred("resource", Arrays.asList(var("resource"))),
-                    pred("operation", Arrays.asList(s("read"))),
-                    pred("namespace:right", Arrays.asList(var("resource"), s("read")))))));
+                    pred("operation", Arrays.asList(str("read"))),
+                    pred("namespace:right", Arrays.asList(var("resource"), str("read")))))));
 
     Biscuit b2 = deser.attenuate(rng, keypair2, builder);
 
@@ -588,8 +588,8 @@ public class BiscuitTest {
         check(
             rule(
                 "caveat2",
-                Arrays.asList(s("file1")),
-                Arrays.asList(pred("resource", Arrays.asList(s("file1")))))));
+                Arrays.asList(str("file1")),
+                Arrays.asList(pred("resource", Arrays.asList(str("file1")))))));
 
     Biscuit b3 = deser2.attenuate(rng, keypair3, builder3);
 
@@ -653,9 +653,9 @@ public class BiscuitTest {
 
     Block authority_builder = new Block();
 
-    authority_builder.addFact(fact("right", Arrays.asList(s("file1"), s("read"))));
-    authority_builder.addFact(fact("right", Arrays.asList(s("file2"), s("read"))));
-    authority_builder.addFact(fact("right", Arrays.asList(s("file1"), s("write"))));
+    authority_builder.addFact(fact("right", Arrays.asList(str("file1"), str("read"))));
+    authority_builder.addFact(fact("right", Arrays.asList(str("file2"), str("read"))));
+    authority_builder.addFact(fact("right", Arrays.asList(str("file1"), str("write"))));
 
     Biscuit b = Biscuit.make(rng, root, 1, authority_builder.build());
 

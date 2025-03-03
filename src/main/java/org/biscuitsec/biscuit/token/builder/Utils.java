@@ -43,7 +43,7 @@ public final class Utils {
     return new Term.Str(s);
   }
 
-  public static Term s(String str) {
+  public static Term str(String str) {
     return new Term.Str(str);
   }
 

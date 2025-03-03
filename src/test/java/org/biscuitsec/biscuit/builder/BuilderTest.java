@@ -31,12 +31,12 @@ public class BuilderTest {
     Block authority_builder = new Block();
     authority_builder.addFact(
         Utils.fact("revocation_id", Arrays.asList(Utils.date(Date.from(Instant.now())))));
-    authority_builder.addFact(Utils.fact("right", Arrays.asList(Utils.s("admin"))));
+    authority_builder.addFact(Utils.fact("right", Arrays.asList(Utils.str("admin"))));
     authority_builder.addRule(
         Utils.constrainedRule(
             "right",
             Arrays.asList(
-                Utils.s("namespace"),
+                Utils.str("namespace"),
                 Utils.var("tenant"),
                 Utils.var("namespace"),
                 Utils.var("operation")),
@@ -44,7 +44,7 @@ public class BuilderTest {
                 Utils.pred(
                     "ns_operation",
                     Arrays.asList(
-                        Utils.s("namespace"),
+                        Utils.str("namespace"),
                         Utils.var("tenant"),
                         Utils.var("namespace"),
                         Utils.var("operation")))),
@@ -56,14 +56,14 @@ public class BuilderTest {
                         new Term.Set(
                             new HashSet<>(
                                 Arrays.asList(
-                                    Utils.s("create_topic"),
-                                    Utils.s("get_topic"),
-                                    Utils.s("get_topics")))))))));
+                                    Utils.str("create_topic"),
+                                    Utils.str("get_topic"),
+                                    Utils.str("get_topics")))))))));
     authority_builder.addRule(
         Utils.constrainedRule(
             "right",
             Arrays.asList(
-                Utils.s("topic"),
+                Utils.str("topic"),
                 Utils.var("tenant"),
                 Utils.var("namespace"),
                 Utils.var("topic"),
@@ -72,7 +72,7 @@ public class BuilderTest {
                 Utils.pred(
                     "topic_operation",
                     Arrays.asList(
-                        Utils.s("topic"),
+                        Utils.str("topic"),
                         Utils.var("tenant"),
                         Utils.var("namespace"),
                         Utils.var("topic"),
@@ -82,7 +82,7 @@ public class BuilderTest {
                     Expression.Op.Contains,
                     new Expression.Value(Utils.var("operation")),
                     new Expression.Value(
-                        new Term.Set(new HashSet<>(Arrays.asList(Utils.s("lookup")))))))));
+                        new Term.Set(new HashSet<>(Arrays.asList(Utils.str("lookup")))))))));
 
     org.biscuitsec.biscuit.token.Block authority = authority_builder.build(symbols);
     Biscuit rootBiscuit = Biscuit.make(rng, root, authority);

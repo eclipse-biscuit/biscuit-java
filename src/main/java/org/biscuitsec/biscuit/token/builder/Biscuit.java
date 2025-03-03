@@ -201,6 +201,6 @@ public final class Biscuit {
 
   public Biscuit addRight(String resource, String right) throws Error.Language {
     return this.addAuthorityFact(
-        Utils.fact("right", Arrays.asList(Utils.string(resource), Utils.s(right))));
+        Utils.fact("right", Arrays.asList(Utils.string(resource), Utils.str(right))));
   }
 }

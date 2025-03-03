@@ -6,7 +6,7 @@ import static org.biscuitsec.biscuit.token.builder.Utils.constrainedRule;
 import static org.biscuitsec.biscuit.token.builder.Utils.date;
 import static org.biscuitsec.biscuit.token.builder.Utils.pred;
 import static org.biscuitsec.biscuit.token.builder.Utils.rule;
-import static org.biscuitsec.biscuit.token.builder.Utils.s;
+import static org.biscuitsec.biscuit.token.builder.Utils.str;
 import static org.biscuitsec.biscuit.token.builder.Utils.string;
 import static org.biscuitsec.biscuit.token.builder.Utils.var;
 
@@ -212,11 +212,11 @@ public final class Block {
     queries.add(
         rule(
             "check_right",
-            Arrays.asList(s(right)),
+            Arrays.asList(str(right)),
             Arrays.asList(
                 pred("resource", Arrays.asList(var("resource"))),
-                pred("operation", Arrays.asList(s(right))),
-                pred("right", Arrays.asList(var("resource"), s(right))))));
+                pred("operation", Arrays.asList(str(right))),
+                pred("right", Arrays.asList(var("resource"), str(right))))));
     return this.addCheck(new org.biscuitsec.biscuit.token.builder.Check(One, queries));
   }
 
