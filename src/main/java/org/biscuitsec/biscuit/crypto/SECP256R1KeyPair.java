@@ -17,6 +17,7 @@ import org.bouncycastle.jce.spec.ECPrivateKeySpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.util.BigIntegers;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 final class SECP256R1KeyPair extends KeyPair {
 
   static final int MINIMUM_SIGNATURE_LENGTH = 68;

@@ -77,15 +77,15 @@ public final class Rule implements Cloneable {
 
   public void applyVariables() {
     this.variables.forEach(
-        _variables -> {
+        laVariables -> {
           this.head.terms =
               this.head.terms.stream()
                   .flatMap(
                       t -> {
                         if (t instanceof Term.Variable) {
                           Option<Term> term =
-                              _variables.getOrDefault(((Term.Variable) t).value, Option.none());
-                          return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
+                              laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
+                          return term.map(t -> Stream.of(t)).getOrElse(Stream.of(t));
                         } else {
                           return Stream.of(t);
                         }
@@ -98,7 +98,7 @@ public final class Rule implements Cloneable {
                         t -> {
                           if (t instanceof Term.Variable) {
                             Option<Term> term =
-                                _variables.getOrDefault(((Term.Variable) t).value, Option.none());
+                                laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
                             return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
                           } else {
                             return Stream.of(t);
@@ -114,7 +114,7 @@ public final class Rule implements Cloneable {
                           Expression.Value ev = (Expression.Value) e;
                           if (ev.value instanceof Term.Variable) {
                             Option<Term> t =
-                                _variables.getOrDefault(
+                                laVariables.getOrDefault(
                                     ((Term.Variable) ev.value).value, Option.none());
                             if (t.isDefined()) {
                               return Stream.of(new Expression.Value(t.get()));
