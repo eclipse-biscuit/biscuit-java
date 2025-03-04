@@ -22,11 +22,11 @@ public final class Rule implements Cloneable {
 
   public Rule(
       Predicate head, List<Predicate> body, List<Expression> expressions, List<Scope> scopes) {
-    Map<String, Option<Term>> variables = new HashMap<>();
     this.head = head;
     this.body = body;
     this.expressions = expressions;
     this.scopes = scopes;
+    Map<String, Option<Term>> variables = new HashMap<>();
     for (Term t : head.terms) {
       if (t instanceof Term.Variable) {
         variables.put(((Term.Variable) t).value, Option.none());
