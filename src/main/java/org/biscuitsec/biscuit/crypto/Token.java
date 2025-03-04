@@ -19,15 +19,13 @@ class Token {
   Token(final Signer rootSigner, byte[] message, KeyPair next)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
-    byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
-
-    byte[] signature = rootSigner.sign(payload);
-
     this.blocks = new ArrayList<>();
     this.blocks.add(message);
     this.keys = new ArrayList<>();
     this.keys.add(next.getPublicKey());
     this.signatures = new ArrayList<>();
+    byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
+    byte[] signature = rootSigner.sign(payload);
     this.signatures.add(signature);
     this.next = next;
   }
