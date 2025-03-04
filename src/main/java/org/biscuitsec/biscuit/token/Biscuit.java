@@ -340,7 +340,6 @@ public final class Biscuit extends UnverifiedBiscuit {
     if (containerRes.isLeft()) {
       throw containerRes.getLeft();
     }
-    SerializedBiscuit container = containerRes.get();
 
     SymbolTable symbols = new SymbolTable(copiedBiscuit.symbols);
     for (String s : block.symbols().symbols()) {
@@ -357,6 +356,7 @@ public final class Biscuit extends UnverifiedBiscuit {
     }
     blocks.add(block);
 
+    SerializedBiscuit container = containerRes.get();
     List<byte[]> revocationIds = container.revocationIdentifiers();
 
     return new Biscuit(copiedBiscuit.authority, blocks, symbols, container, revocationIds);

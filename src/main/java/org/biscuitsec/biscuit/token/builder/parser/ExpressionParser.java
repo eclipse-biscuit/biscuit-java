@@ -51,7 +51,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -63,7 +62,7 @@ public final class ExpressionParser {
 
       s = t3._1;
       Expression e2 = t3._2;
-
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -95,7 +94,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -107,7 +105,7 @@ public final class ExpressionParser {
 
       s = t3._1;
       Expression e2 = t3._2;
-
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -125,7 +123,6 @@ public final class ExpressionParser {
     Tuple2<String, Expression> t1 = res1.get();
 
     s = t1._1;
-    Expression e = t1._2;
 
     s = space(s);
 
@@ -135,7 +132,6 @@ public final class ExpressionParser {
     }
     Tuple2<String, Expression.Op> t2 = res2.get();
     s = t2._1;
-    Expression.Op op = t2._2;
 
     s = space(s);
 
@@ -147,7 +143,8 @@ public final class ExpressionParser {
 
     s = t3._1;
     Expression e2 = t3._2;
-
+    Expression.Op op = t2._2;
+    Expression e = t1._2;
     e = new Expression.Binary(op, e, e2);
 
     return Either.right(new Tuple2<>(s, e));
@@ -178,7 +175,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -191,6 +187,7 @@ public final class ExpressionParser {
       s = t3._1;
       Expression e2 = t3._2;
 
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -222,7 +219,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -235,6 +231,7 @@ public final class ExpressionParser {
       s = t3._1;
       Expression e2 = t3._2;
 
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -266,7 +263,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -279,6 +275,7 @@ public final class ExpressionParser {
       s = t3._1;
       Expression e2 = t3._2;
 
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -310,7 +307,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -323,6 +319,7 @@ public final class ExpressionParser {
       s = t3._1;
       Expression e2 = t3._2;
 
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -354,7 +351,6 @@ public final class ExpressionParser {
       }
       Tuple2<String, Expression.Op> t2 = res2.get();
       s = t2._1;
-      Expression.Op op = t2._2;
 
       s = space(s);
 
@@ -367,6 +363,7 @@ public final class ExpressionParser {
       s = t3._1;
       Expression e2 = t3._2;
 
+      Expression.Op op = t2._2;
       e = new Expression.Binary(op, e, e2);
     }
 
@@ -421,7 +418,6 @@ public final class ExpressionParser {
       if (!res2.isLeft()) {
         Tuple2<String, Expression.Op> t2 = res2.get();
         s = space(t2._1);
-        Expression.Op op = t2._2;
 
         if (!s.startsWith("(")) {
           return Either.left(new Error(s, "missing ("));
@@ -443,6 +439,7 @@ public final class ExpressionParser {
         s = space(s.substring(1));
         Expression e2 = t3._2;
 
+        Expression.Op op = t2._2;
         e = new Expression.Binary(op, e, e2);
       } else {
         if (s.startsWith("length()")) {

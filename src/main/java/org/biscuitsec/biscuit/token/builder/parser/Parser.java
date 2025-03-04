@@ -58,7 +58,6 @@ public final class Parser {
               String code = indexedLine._1.strip();
 
               if (!code.isEmpty()) {
-                int lineNumber = indexedLine._2;
                 List<Error> lineErrors = new ArrayList<>();
 
                 boolean parsed = false;
@@ -118,6 +117,7 @@ public final class Parser {
 
                 if (!parsed) {
                   lineErrors.forEach(System.out::println);
+                  int lineNumber = indexedLine._2;
                   errors.put(lineNumber, lineErrors);
                 }
               }
@@ -153,7 +153,6 @@ public final class Parser {
 
     Tuple2<String, Predicate> t0 = res0.get();
     s = t0._1;
-    Predicate head = t0._2;
 
     s = space(s);
     if (s.length() < 2 || s.charAt(0) != '<' || s.charAt(1) != '-') {
@@ -175,6 +174,7 @@ public final class Parser {
       return Either.left(new Error(s, "the string was not entirely parsed, remaining: " + body._1));
     }
 
+    Predicate head = t0._2;
     Rule rule = new Rule(head, body._2, body._3, body._4);
     Either<String, Rule> valid = rule.validateVariables();
     if (valid.isLeft()) {

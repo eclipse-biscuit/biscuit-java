@@ -171,7 +171,7 @@ public class UnverifiedBiscuit {
     if (containerRes.isLeft()) {
       throw containerRes.getLeft();
     }
-    SerializedBiscuit container = containerRes.get();
+
 
     SymbolTable symbols = new SymbolTable(copiedBiscuit.symbols);
     for (String s : block.symbols().symbols()) {
@@ -183,6 +183,7 @@ public class UnverifiedBiscuit {
       blocks.add(b);
     }
     blocks.add(block);
+    SerializedBiscuit container = containerRes.get();
 
     List<byte[]> revocationIds = container.revocationIdentifiers();
 

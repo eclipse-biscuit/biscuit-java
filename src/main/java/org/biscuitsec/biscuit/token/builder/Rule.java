@@ -52,13 +52,13 @@ public final class Rule implements Cloneable {
 
   @Override
   public Rule clone() {
-    Predicate head = this.head.clone();
     List<Predicate> body = new ArrayList<>();
     body.addAll(this.body);
     List<Expression> expressions = new ArrayList<>();
     expressions.addAll(this.expressions);
     List<Scope> scopes = new ArrayList<>();
     scopes.addAll(this.scopes);
+    Predicate head = this.head.clone();
     return new Rule(head, body, expressions, scopes);
   }
 
@@ -159,14 +159,14 @@ public final class Rule implements Cloneable {
     }
 
     return Either.left(
-        "rule head or expressions contains variables that are not used in predicates of the rule's body: "
+        "rule head or expressions contains variables that are not "
+            + "used in predicates of the rule's body: "
             + freeVariables.toString());
   }
 
   public org.biscuitsec.biscuit.datalog.Rule convert(SymbolTable symbols) {
     Rule r = this.clone();
     r.applyVariables();
-    org.biscuitsec.biscuit.datalog.Predicate head = r.head.convert(symbols);
     ArrayList<org.biscuitsec.biscuit.datalog.Predicate> body = new ArrayList<>();
     ArrayList<org.biscuitsec.biscuit.datalog.expressions.Expression> expressions =
         new ArrayList<>();
@@ -183,13 +183,11 @@ public final class Rule implements Cloneable {
     for (Scope s : r.scopes) {
       scopes.add(s.convert(symbols));
     }
-
+    org.biscuitsec.biscuit.datalog.Predicate head = r.head.convert(symbols);
     return new org.biscuitsec.biscuit.datalog.Rule(head, body, expressions, scopes);
   }
 
   public static Rule convertFrom(org.biscuitsec.biscuit.datalog.Rule r, SymbolTable symbols) {
-    Predicate head = Predicate.convertFrom(r.head(), symbols);
-
     ArrayList<Predicate> body = new ArrayList<>();
     ArrayList<Expression> expressions = new ArrayList<>();
     ArrayList<Scope> scopes = new ArrayList<>();
@@ -206,6 +204,7 @@ public final class Rule implements Cloneable {
       scopes.add(Scope.convertFrom(s, symbols));
     }
 
+    Predicate head = Predicate.convertFrom(r.head(), symbols);
     return new Rule(head, body, expressions, scopes);
   }
 

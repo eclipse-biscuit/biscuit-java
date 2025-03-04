@@ -181,12 +181,12 @@ public final class SerializedBiscuit {
    * @return
    */
   public byte[] serialize() throws Error.FormatError.SerializationError {
-    Schema.Biscuit.Builder biscuitBuilder = Schema.Biscuit.newBuilder();
     Schema.SignedBlock.Builder authorityBuilder = Schema.SignedBlock.newBuilder();
     SignedBlock authorityBlock = this.authority;
     authorityBuilder.setBlock(ByteString.copyFrom(authorityBlock.getBlock()));
     authorityBuilder.setNextKey(authorityBlock.getKey().serialize());
     authorityBuilder.setSignature(ByteString.copyFrom(authorityBlock.getSignature()));
+    Schema.Biscuit.Builder biscuitBuilder = Schema.Biscuit.newBuilder();
     biscuitBuilder.setAuthority(authorityBuilder.build());
 
     for (SignedBlock b : this.blocks) {
@@ -368,7 +368,6 @@ public final class SerializedBiscuit {
       SignedBlock signedBlock, org.biscuitsec.biscuit.crypto.PublicKey publicKey)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
-    byte[] block = signedBlock.getBlock();
     org.biscuitsec.biscuit.crypto.PublicKey nextKey = signedBlock.getKey();
     byte[] signature = signedBlock.getSignature();
 
@@ -382,6 +381,7 @@ public final class SerializedBiscuit {
     algoBuf.putInt(Integer.valueOf(nextKey.getAlgorithm().getNumber()));
     algoBuf.flip();
 
+    byte[] block = signedBlock.getBlock();
     Signature sgr = KeyPair.generateSignature(publicKey.getAlgorithm());
     sgr.initVerify(publicKey.getKey());
     sgr.update(block);
