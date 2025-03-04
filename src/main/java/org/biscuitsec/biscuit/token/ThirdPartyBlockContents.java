@@ -3,83 +3,106 @@ package org.biscuitsec.biscuit.token;
 import biscuit.format.schema.Schema;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 import org.biscuitsec.biscuit.crypto.PublicKey;
 import org.biscuitsec.biscuit.error.Error;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+public final class ThirdPartyBlockContents {
+  private byte[] payload;
+  private byte[] signature;
+  private PublicKey publicKey;
 
-public class ThirdPartyBlockContents {
-    byte[] payload;
-    byte[] signature;
-    PublicKey publicKey;
+  ThirdPartyBlockContents(byte[] payload, byte[] signature, PublicKey publicKey) {
+    this.payload = payload;
+    this.signature = signature;
+    this.publicKey = publicKey;
+  }
 
-    ThirdPartyBlockContents(byte[] payload, byte[] signature, PublicKey publicKey) {
-        this.payload = payload;
-        this.signature = signature;
-        this.publicKey = publicKey;
+  public Schema.ThirdPartyBlockContents serialize() throws Error.FormatError.SerializationError {
+    Schema.ThirdPartyBlockContents.Builder b = Schema.ThirdPartyBlockContents.newBuilder();
+    b.setPayload(ByteString.copyFrom(this.payload));
+    b.setExternalSignature(
+        b.getExternalSignatureBuilder()
+            .setSignature(ByteString.copyFrom(this.signature))
+            .setPublicKey(this.publicKey.serialize())
+            .build());
+
+    return b.build();
+  }
+
+  public static ThirdPartyBlockContents deserialize(Schema.ThirdPartyBlockContents b)
+      throws Error.FormatError.DeserializationError {
+    byte[] payload = b.getPayload().toByteArray();
+    byte[] signature = b.getExternalSignature().getSignature().toByteArray();
+    PublicKey publicKey = PublicKey.deserialize(b.getExternalSignature().getPublicKey());
+
+    return new ThirdPartyBlockContents(payload, signature, publicKey);
+  }
+
+  public static ThirdPartyBlockContents fromBytes(byte[] slice)
+      throws InvalidProtocolBufferException, Error.FormatError.DeserializationError {
+    return ThirdPartyBlockContents.deserialize(Schema.ThirdPartyBlockContents.parseFrom(slice));
+  }
+
+  public byte[] toBytes() throws IOException, Error.FormatError.SerializationError {
+    Schema.ThirdPartyBlockContents b = this.serialize();
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    b.writeTo(stream);
+    return stream.toByteArray();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Schema.ThirdPartyBlockContents serialize() throws Error.FormatError.SerializationError {
-        Schema.ThirdPartyBlockContents.Builder b = Schema.ThirdPartyBlockContents.newBuilder();
-        b.setPayload(ByteString.copyFrom(this.payload));
-        b.setExternalSignature(b.getExternalSignatureBuilder()
-                .setSignature(ByteString.copyFrom(this.signature))
-                .setPublicKey(this.publicKey.serialize())
-                .build());
+    ThirdPartyBlockContents that = (ThirdPartyBlockContents) o;
 
-        return b.build();
+    if (!Arrays.equals(payload, that.payload)) {
+      return false;
     }
-
-    static public ThirdPartyBlockContents deserialize(Schema.ThirdPartyBlockContents b) throws Error.FormatError.DeserializationError {
-        byte[] payload = b.getPayload().toByteArray();
-        byte[] signature = b.getExternalSignature().getSignature().toByteArray();
-        PublicKey publicKey = PublicKey.deserialize(b.getExternalSignature().getPublicKey());
-
-        return new ThirdPartyBlockContents(payload, signature, publicKey);
+    if (!Arrays.equals(signature, that.signature)) {
+      return false;
     }
+    return Objects.equals(publicKey, that.publicKey);
+  }
 
-    static public ThirdPartyBlockContents fromBytes(byte[] slice) throws InvalidProtocolBufferException, Error.FormatError.DeserializationError {
-        return ThirdPartyBlockContents.deserialize(Schema.ThirdPartyBlockContents.parseFrom(slice));
-    }
+  @Override
+  public int hashCode() {
+    int result = Arrays.hashCode(payload);
+    result = 31 * result + Arrays.hashCode(signature);
+    result = 31 * result + (publicKey != null ? publicKey.hashCode() : 0);
+    return result;
+  }
 
-    public byte[] toBytes() throws IOException, Error.FormatError.SerializationError {
-        Schema.ThirdPartyBlockContents b = this.serialize();
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        b.writeTo(stream);
-        return stream.toByteArray();
-    }
+  @Override
+  public String toString() {
+    return "ThirdPartyBlockContents{"
+        + "payload="
+        + Arrays.toString(payload)
+        + ", signature="
+        + Arrays.toString(signature)
+        + ", publicKey="
+        + publicKey
+        + '}';
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  public byte[] getPayload() {
+    return payload;
+  }
 
-        ThirdPartyBlockContents that = (ThirdPartyBlockContents) o;
+  public byte[] getSignature() {
+    return signature;
+  }
 
-        if (!Arrays.equals(payload, that.payload)) return false;
-        if (!Arrays.equals(signature, that.signature)) return false;
-        return Objects.equals(publicKey, that.publicKey);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Arrays.hashCode(payload);
-        result = 31 * result + Arrays.hashCode(signature);
-        result = 31 * result + (publicKey != null ? publicKey.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "ThirdPartyBlockContents{" +
-                "payload=" + Arrays.toString(payload) +
-                ", signature=" + Arrays.toString(signature) +
-                ", publicKey=" + publicKey +
-                '}';
-    }
+  public PublicKey getPublicKey() {
+    return publicKey;
+  }
 }
