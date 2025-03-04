@@ -23,6 +23,9 @@
         <nexus-staging-maven.version>1.6.7</nexus-staging-maven.version>
         <build-helper-maven.version>3.0.0</build-helper-maven.version>
         <maven-compiler-plugin.version>3.10.0</maven-compiler-plugin.version>
+        <spotless.version>2.44.2</spotless.version>
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+        <checkstyle.version>10.21.3</checkstyle.version>
 
         <!-- dependencies -->
         <protobuf.version>3.25.5</protobuf.version>
@@ -39,6 +42,8 @@
         <awssdk-kms.version>2.30.2</awssdk-kms.version>
         <testcontainers-junit-jupiter.version>1.20.4</testcontainers-junit-jupiter.version>
         <testcontainers-localstack.version>1.20.4</testcontainers-localstack.version>
+
+        <checkstyle.config.location>checkstyle.xml</checkstyle.config.location>
     </properties>
 
     <licenses>
@@ -139,6 +144,18 @@
                         <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>3.6.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -229,10 +246,45 @@
                     </statelessTestsetInfoReporter>
                 </configuration>
             </plugin>
-
-
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat/>
+                        <removeUnusedImports>
+                            <engine>google-java-format</engine>
+                        </removeUnusedImports>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <dependencies>
         <dependency>
