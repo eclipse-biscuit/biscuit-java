@@ -231,16 +231,11 @@ public final class Authorizer {
     return this;
   }
 
-  public TrustedOrigins authorizerTrustedOrigins() {
-    return TrustedOrigins.fromScopes(
-        this.scopes, TrustedOrigins.defaultOrigins(), Long.MAX_VALUE, this.publicKeyToBlockId);
-  }
-
   public Authorizer addRule(String s) throws Error.Parser {
     Either<
             org.biscuitsec.biscuit.token.builder.parser.Error,
             Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule>>
-        res = Parser.rule(s);
+            res = Parser.rule(s);
 
     if (res.isLeft()) {
       throw new Error.Parser(res.getLeft());
@@ -249,6 +244,11 @@ public final class Authorizer {
     Tuple2<String, org.biscuitsec.biscuit.token.builder.Rule> t = res.get();
 
     return addRule(t._2);
+  }
+
+  public TrustedOrigins authorizerTrustedOrigins() {
+    return TrustedOrigins.fromScopes(
+        this.scopes, TrustedOrigins.defaultOrigins(), Long.MAX_VALUE, this.publicKeyToBlockId);
   }
 
   public Authorizer addCheck(org.biscuitsec.biscuit.token.builder.Check check) {
@@ -420,7 +420,6 @@ public final class Authorizer {
   public Long authorize(RunLimits limits) throws Error {
     Instant timeLimit = Instant.now().plus(limits.getMaxTime());
     List<FailedCheck> errors = new LinkedList<>();
-    Option<Either<Integer, Integer>> policyResult = Option.none();
 
     TrustedOrigins authorizerTrustedOrigins = this.authorizerTrustedOrigins();
 
@@ -511,6 +510,7 @@ public final class Authorizer {
       }
     }
 
+    Option<Either<Integer, Integer>> policyResult = Option.none();
     policies_test:
     for (int i = 0; i < this.policies.size(); i++) {
       Policy policy = this.policies.get(i);
