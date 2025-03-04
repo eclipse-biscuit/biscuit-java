@@ -34,6 +34,18 @@ public final class PublicKey {
     this.algorithm = algorithm;
   }
 
+  public PublicKey(Algorithm algorithm, String hex) {
+    byte[] data = Utils.hexStringToByteArray(hex);
+    if (algorithm == Algorithm.Ed25519) {
+      this.key = Ed25519KeyPair.decode(data);
+    } else if (algorithm == Algorithm.SECP256R1) {
+      this.key = SECP256R1KeyPair.decode(data);
+    } else {
+      throw new IllegalArgumentException("Invalid algorithm");
+    }
+    this.algorithm = algorithm;
+  }
+
   public byte[] toBytes() {
     if (getAlgorithm() == Algorithm.Ed25519) {
       return ((EdDSAPublicKey) getKey()).getAbyte();
@@ -48,17 +60,6 @@ public final class PublicKey {
     return Utils.byteArrayToHexString(this.toBytes());
   }
 
-  public PublicKey(Algorithm algorithm, String hex) {
-    byte[] data = Utils.hexStringToByteArray(hex);
-    if (algorithm == Algorithm.Ed25519) {
-      this.key = Ed25519KeyPair.decode(data);
-    } else if (algorithm == Algorithm.SECP256R1) {
-      this.key = SECP256R1KeyPair.decode(data);
-    } else {
-      throw new IllegalArgumentException("Invalid algorithm");
-    }
-    this.algorithm = algorithm;
-  }
 
   public Schema.PublicKey serialize() {
     Schema.PublicKey.Builder publicKey = Schema.PublicKey.newBuilder();
