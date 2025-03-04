@@ -174,11 +174,12 @@ public final class Authorizer {
         }
 
         for (org.biscuitsec.biscuit.datalog.Rule rule : block.rules()) {
-          org.biscuitsec.biscuit.token.builder.Rule symRole =
+          org.biscuitsec.biscuit.token.builder.Rule syRole =
               org.biscuitsec.biscuit.token.builder.Rule.convertFrom(rule, blockSymbols);
-          org.biscuitsec.biscuit.datalog.Rule convertedRule = symRole.convert(this.symbols);
+          org.biscuitsec.biscuit.datalog.Rule convertedRule = syRole.convert(this.symbols);
 
-          Either<String, org.biscuitsec.biscuit.token.builder.Rule> res = symRole.validateVariables();
+          Either<String, org.biscuitsec.biscuit.token.builder.Rule> res = syRole
+                  .validateVariables();
           if (res.isLeft()) {
             throw new Error.FailedLogic(
                 new LogicError.InvalidBlockRule(0, this.symbols.formatRule(convertedRule)));
