@@ -535,11 +535,11 @@ public abstract class Op {
         case Intersection:
           if (right instanceof Term.Set && left instanceof Term.Set) {
             HashSet<Term> intersec = new HashSet<Term>();
-            HashSet<Term> sRight = ((Term.Set) right).value();
-            HashSet<Term> sLeft = ((Term.Set) left).value();
-            for (Term lId : sRight) {
-              if (sLeft.contains(lId)) {
-                intersec.add(lId);
+            HashSet<Term> setRight = ((Term.Set) right).value();
+            HashSet<Term> setLeft = ((Term.Set) left).value();
+            for (Term locId : setRight) {
+              if (setLeft.contains(locId)) {
+                intersec.add(locId);
               }
             }
             stack.push(new Term.Set(intersec));
@@ -548,10 +548,10 @@ public abstract class Op {
         case Union:
           if (right instanceof Term.Set && left instanceof Term.Set) {
             HashSet<Term> union = new HashSet<Term>();
-            HashSet<Term> sRight = ((Term.Set) right).value();
-            HashSet<Term> sLeft = ((Term.Set) left).value();
-            union.addAll(sRight);
-            union.addAll(sLeft);
+            HashSet<Term> setRight = ((Term.Set) right).value();
+            HashSet<Term> setLeft = ((Term.Set) left).value();
+            union.addAll(setRight);
+            union.addAll(setLeft);
             stack.push(new Term.Set(union));
           }
           break;

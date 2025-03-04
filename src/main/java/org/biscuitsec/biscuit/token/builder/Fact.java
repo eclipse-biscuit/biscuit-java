@@ -58,10 +58,10 @@ public final class Fact implements Cloneable {
     if (this.variables.isEmpty()) {
       throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable(name));
     }
-    Map<String, Option<Term>> lVariables = this.variables.get();
-    Option<Term> r = lVariables.get(name);
+    Map<String, Option<Term>> localVariables = this.variables.get();
+    Option<Term> r = localVariables.get(name);
     if (r != null) {
-      lVariables.put(name, Option.some(term));
+      localVariables.put(name, Option.some(term));
     } else {
       throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable(name));
     }
