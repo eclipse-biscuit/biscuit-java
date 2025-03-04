@@ -270,6 +270,7 @@ public class LogicError {
       return true;
     }
 
+    @SuppressWarnings("checkstyle:RegexpSinglelineJava")
     @Override
     public String toString() {
       return "NoMatchingPolicy{ }";
