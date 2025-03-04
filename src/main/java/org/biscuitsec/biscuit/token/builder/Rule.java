@@ -85,7 +85,7 @@ public final class Rule implements Cloneable {
                         if (t instanceof Term.Variable) {
                           Option<Term> term =
                               laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
-                          return term.map(t -> Stream.of(t)).getOrElse(Stream.of(t));
+                          return term.map(t2 -> Stream.of(t2)).getOrElse(Stream.of(t));
                         } else {
                           return Stream.of(t);
                         }
@@ -99,7 +99,7 @@ public final class Rule implements Cloneable {
                           if (t instanceof Term.Variable) {
                             Option<Term> term =
                                 laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
-                            return term.map(_t -> Stream.of(_t)).getOrElse(Stream.of(t));
+                            return term.map(t2 -> Stream.of(t2)).getOrElse(Stream.of(t));
                           } else {
                             return Stream.of(t);
                           }

@@ -78,7 +78,7 @@ public final class Fact implements Cloneable {
                         if (t instanceof Term.Variable) {
                           Option<Term> term =
                               laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
-                          return term.map(_t -> Stream.of(_t)).getOrElse(Stream.empty());
+                          return term.map(t2 -> Stream.of(t2)).getOrElse(Stream.empty());
                         } else {
                           return Stream.of(t);
                         }
