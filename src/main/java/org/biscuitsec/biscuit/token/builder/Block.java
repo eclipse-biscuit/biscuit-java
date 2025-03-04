@@ -127,8 +127,8 @@ public final class Block {
     if (externalKey.isDefined()) {
       symbols = new SymbolTable();
     }
-    int symbolStart = symbols.currentOffset();
-    int publicKeyStart = symbols.currentPublicKeyOffset();
+    final int symbolStart = symbols.currentOffset();
+    final int publicKeyStart = symbols.currentPublicKeyOffset();
 
     List<org.biscuitsec.biscuit.datalog.Fact> facts = new ArrayList<>();
     for (Fact f : this.facts) {

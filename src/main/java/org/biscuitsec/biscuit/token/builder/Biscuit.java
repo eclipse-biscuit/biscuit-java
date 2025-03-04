@@ -147,8 +147,8 @@ public final class Biscuit {
   }
 
   private org.biscuitsec.biscuit.token.Biscuit build(SymbolTable symbols) throws Error {
-    int symbolStart = symbols.currentOffset();
-    int publicKeyStart = symbols.currentPublicKeyOffset();
+    final int symbolStart = symbols.currentOffset();
+    final int publicKeyStart = symbols.currentPublicKeyOffset();
 
     List<org.biscuitsec.biscuit.datalog.Fact> facts = new ArrayList<>();
     for (Fact f : this.facts) {
