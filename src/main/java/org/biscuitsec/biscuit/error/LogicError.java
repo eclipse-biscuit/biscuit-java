@@ -220,7 +220,6 @@ public class LogicError {
 
     @Override
     public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
       JsonObject unauthorized = new JsonObject();
       unauthorized.add("policy", this.policy.toJson());
       JsonArray ja = new JsonArray();
@@ -228,6 +227,7 @@ public class LogicError {
         ja.add(t.toJson());
       }
       unauthorized.add("checks", ja);
+      JsonObject jo = new JsonObject();
       jo.add("Unauthorized", unauthorized);
       return jo;
     }
