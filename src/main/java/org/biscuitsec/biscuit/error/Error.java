@@ -62,10 +62,10 @@ public class Error extends Exception {
       }
 
       public static final class InvalidSignature extends Signature {
-        private final String e;
+        private final String err;
 
         public InvalidSignature(String e) {
-          this.e = e;
+          this.err = e;
         }
 
         @Override
@@ -79,13 +79,13 @@ public class Error extends Exception {
         @Override
         public JsonElement toJson() {
           JsonObject jo = new JsonObject();
-          jo.addProperty("InvalidSignature", this.e);
+          jo.addProperty("InvalidSignature", this.err);
           return Signature.jsonWrapper(jo);
         }
 
         @Override
         public String toString() {
-          return "Err(Format(Signature(InvalidFormat(\"" + this.e + "\"))))";
+          return "Err(Format(Signature(InvalidFormat(\"" + this.err + "\"))))";
         }
       }
     }
@@ -151,10 +151,10 @@ public class Error extends Exception {
     }
 
     public static final class DeserializationError extends FormatError {
-      private final String e;
+      private final String err;
 
       public DeserializationError(String e) {
-        this.e = e;
+        this.err = e;
       }
 
       @Override
@@ -166,32 +166,32 @@ public class Error extends Exception {
           return false;
         }
         DeserializationError other = (DeserializationError) o;
-        return e.equals(other.e);
+        return err.equals(other.err);
       }
 
       @Override
       public int hashCode() {
-        return Objects.hash(e);
+        return Objects.hash(err);
       }
 
       @Override
       public String toString() {
-        return "Err(Format(DeserializationError(\"" + this.e + "\"))";
+        return "Err(Format(DeserializationError(\"" + this.err + "\"))";
       }
 
       @Override
       public JsonElement toJson() {
         JsonObject jo = new JsonObject();
-        jo.addProperty("DeserializationError", this.e);
+        jo.addProperty("DeserializationError", this.err);
         return FormatError.jsonWrapper(jo);
       }
     }
 
     public static final class SerializationError extends FormatError {
-      private final String e;
+      private final String err;
 
       public SerializationError(String e) {
-        this.e = e;
+        this.err = e;
       }
 
       @Override
@@ -203,32 +203,32 @@ public class Error extends Exception {
           return false;
         }
         SerializationError other = (SerializationError) o;
-        return e.equals(other.e);
+        return err.equals(other.err);
       }
 
       @Override
       public int hashCode() {
-        return Objects.hash(e);
+        return Objects.hash(err);
       }
 
       @Override
       public String toString() {
-        return "Err(Format(SerializationError(\"" + this.e + "\"))";
+        return "Err(Format(SerializationError(\"" + this.err + "\"))";
       }
 
       @Override
       public JsonElement toJson() {
         JsonObject jo = new JsonObject();
-        jo.addProperty("SerializationError", this.e);
+        jo.addProperty("SerializationError", this.err);
         return FormatError.jsonWrapper(jo);
       }
     }
 
     public static final class BlockDeserializationError extends FormatError {
-      private final String e;
+      private final String err;
 
       public BlockDeserializationError(String e) {
-        this.e = e;
+        this.err = e;
       }
 
       @Override
@@ -240,32 +240,32 @@ public class Error extends Exception {
           return false;
         }
         BlockDeserializationError other = (BlockDeserializationError) o;
-        return e.equals(other.e);
+        return err.equals(other.err);
       }
 
       @Override
       public int hashCode() {
-        return Objects.hash(e);
+        return Objects.hash(err);
       }
 
       @Override
       public String toString() {
-        return "Err(FormatError.BlockDeserializationError{ error: " + e + " }";
+        return "Err(FormatError.BlockDeserializationError{ error: " + err + " }";
       }
 
       @Override
       public JsonElement toJson() {
         JsonObject jo = new JsonObject();
-        jo.addProperty("BlockDeserializationError", this.e);
+        jo.addProperty("BlockDeserializationError", this.err);
         return FormatError.jsonWrapper(jo);
       }
     }
 
     public static final class BlockSerializationError extends FormatError {
-      private final String e;
+      private final String err;
 
       public BlockSerializationError(String e) {
-        this.e = e;
+        this.err = e;
       }
 
       @Override
@@ -277,23 +277,23 @@ public class Error extends Exception {
           return false;
         }
         BlockSerializationError other = (BlockSerializationError) o;
-        return e.equals(other.e);
+        return err.equals(other.err);
       }
 
       @Override
       public int hashCode() {
-        return Objects.hash(e);
+        return Objects.hash(err);
       }
 
       @Override
       public String toString() {
-        return "Err(FormatError.BlockSerializationError{ error: " + e + " }";
+        return "Err(FormatError.BlockSerializationError{ error: " + err + " }";
       }
 
       @Override
       public JsonElement toJson() {
         JsonObject jo = new JsonObject();
-        jo.addProperty("BlockSerializationError", this.e);
+        jo.addProperty("BlockSerializationError", this.err);
         return FormatError.jsonWrapper(jo);
       }
     }
@@ -640,25 +640,25 @@ public class Error extends Exception {
       Overflow
     }
 
-    Expression e;
+    Expression expr;
     String message;
 
     Kind kind;
 
     public Execution(Expression ex, String msg) {
-      e = ex;
+      expr = ex;
       message = msg;
       kind = Kind.Execution;
     }
 
     public Execution(String msg) {
-      e = null;
+      expr = null;
       message = msg;
       kind = Kind.Execution;
     }
 
     public Execution(Kind kind, String msg) {
-      e = null;
+      expr = null;
       this.kind = kind;
       message = msg;
     }
@@ -680,7 +680,7 @@ public class Error extends Exception {
 
     @Override
     public String toString() {
-      return "Execution error when evaluating expression '" + e + "': " + message;
+      return "Execution error when evaluating expression '" + expr + "': " + message;
     }
   }
 

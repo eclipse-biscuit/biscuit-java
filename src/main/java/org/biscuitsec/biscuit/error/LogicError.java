@@ -18,10 +18,10 @@ public class LogicError {
   }
 
   public static final class InvalidAuthorityFact extends LogicError {
-    public final String e;
+    public final String err;
 
     public InvalidAuthorityFact(String e) {
-      this.e = e;
+      this.err = e;
     }
 
     @Override
@@ -33,17 +33,17 @@ public class LogicError {
         return false;
       }
       InvalidAuthorityFact other = (InvalidAuthorityFact) o;
-      return e.equals(other.e);
+      return err.equals(other.err);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(e);
+      return Objects.hash(err);
     }
 
     @Override
     public String toString() {
-      return "LogicError.InvalidAuthorityFact{ error: " + e + " }";
+      return "LogicError.InvalidAuthorityFact{ error: " + err + " }";
     }
 
     @Override
@@ -53,10 +53,10 @@ public class LogicError {
   }
 
   public static final class InvalidAmbientFact extends LogicError {
-    public final String e;
+    public final String err;
 
     public InvalidAmbientFact(String e) {
-      this.e = e;
+      this.err = e;
     }
 
     @Override
@@ -68,23 +68,23 @@ public class LogicError {
         return false;
       }
       InvalidAmbientFact other = (InvalidAmbientFact) o;
-      return e.equals(other.e);
+      return err.equals(other.err);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(e);
+      return Objects.hash(err);
     }
 
     @Override
     public String toString() {
-      return "LogicError.InvalidAmbientFact{ error: " + e + " }";
+      return "LogicError.InvalidAmbientFact{ error: " + err + " }";
     }
 
     @Override
     public JsonElement toJson() {
       JsonObject child = new JsonObject();
-      child.addProperty("error", this.e);
+      child.addProperty("error", this.err);
       JsonObject root = new JsonObject();
       root.add("InvalidAmbientFact", child);
       return root;
@@ -93,11 +93,11 @@ public class LogicError {
 
   public static final class InvalidBlockFact extends LogicError {
     public final long id;
-    public final String e;
+    public final String err;
 
     public InvalidBlockFact(long id, String e) {
       this.id = id;
-      this.e = e;
+      this.err = e;
     }
 
     @Override
@@ -109,24 +109,24 @@ public class LogicError {
         return false;
       }
       InvalidBlockFact other = (InvalidBlockFact) o;
-      return id == other.id && e.equals(other.e);
+      return id == other.id && err.equals(other.err);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(id, e);
+      return Objects.hash(id, err);
     }
 
     @Override
     public String toString() {
-      return "LogicError.InvalidBlockFact{ id: " + id + ", error: " + e + " }";
+      return "LogicError.InvalidBlockFact{ id: " + id + ", error: " + err + " }";
     }
 
     @Override
     public JsonElement toJson() {
       JsonObject child = new JsonObject();
       child.addProperty("id", this.id);
-      child.addProperty("error", this.e);
+      child.addProperty("error", this.err);
       JsonObject root = new JsonObject();
       root.add("InvalidBlockFact", child);
       return root;
@@ -135,11 +135,11 @@ public class LogicError {
 
   public static final class InvalidBlockRule extends LogicError {
     public final long id;
-    public final String e;
+    public final String err;
 
     public InvalidBlockRule(long id, String e) {
       this.id = id;
-      this.e = e;
+      this.err = e;
     }
 
     @Override
@@ -151,24 +151,24 @@ public class LogicError {
         return false;
       }
       InvalidBlockRule other = (InvalidBlockRule) o;
-      return id == other.id && e.equals(other.e);
+      return id == other.id && err.equals(other.err);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(id, e);
+      return Objects.hash(id, err);
     }
 
     @Override
     public String toString() {
-      return "LogicError.InvalidBlockRule{ id: " + id + ", error: " + e + " }";
+      return "LogicError.InvalidBlockRule{ id: " + id + ", error: " + err + " }";
     }
 
     @Override
     public JsonElement toJson() {
       JsonArray child = new JsonArray();
       child.add(this.id);
-      child.add(this.e);
+      child.add(this.err);
       JsonObject root = new JsonObject();
       root.add("InvalidBlockRule", child);
       return root;
