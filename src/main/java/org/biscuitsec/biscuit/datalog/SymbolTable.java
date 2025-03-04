@@ -81,6 +81,16 @@ public final class SymbolTable implements Serializable {
     }
   }
 
+  public long insert(final PublicKey publicKey) {
+    int index = this.publicKeys.indexOf(publicKey);
+    if (index == -1) {
+      this.publicKeys.add(publicKey);
+      return this.publicKeys.size() - 1;
+    } else {
+      return index;
+    }
+  }
+
   public int currentOffset() {
     return this.symbols.size();
   }
@@ -91,16 +101,6 @@ public final class SymbolTable implements Serializable {
 
   public List<PublicKey> getPublicKeys() {
     return publicKeys;
-  }
-
-  public long insert(final PublicKey publicKey) {
-    int index = this.publicKeys.indexOf(publicKey);
-    if (index == -1) {
-      this.publicKeys.add(publicKey);
-      return this.publicKeys.size() - 1;
-    } else {
-      return index;
-    }
   }
 
   public Term add(final String symbol) {
@@ -182,14 +182,14 @@ public final class SymbolTable implements Serializable {
       case Previous:
         return "previous";
       case PublicKey:
-        Option<PublicKey> pk = this.getPublicKey((int) scope.publicKey());
+        Option<PublicKey> pk = this.getPublicKey((int) scope.getPublicKey());
         if (pk.isDefined()) {
           return pk.get().toString();
         } else {
-          return "<" + scope.publicKey() + "?>";
+          return "<" + scope.getPublicKey() + "?>";
         }
       default:
-        return "<" + scope.publicKey() + "?>";
+        return "<" + scope.getPublicKey() + "?>";
     }
   }
 

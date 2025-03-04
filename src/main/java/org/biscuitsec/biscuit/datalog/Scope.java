@@ -38,7 +38,7 @@ public final class Scope {
     return kind;
   }
 
-  public long publicKey() {
+  public long getPublicKey() {
     return publicKey;
   }
 

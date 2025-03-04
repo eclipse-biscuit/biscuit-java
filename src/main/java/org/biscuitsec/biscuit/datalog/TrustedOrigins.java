@@ -65,7 +65,7 @@ public final class TrustedOrigins {
           }
           break;
         case PublicKey:
-          List<Long> blockIds = publicKeyToBlockId.get(scope.publicKey());
+          List<Long> blockIds = publicKeyToBlockId.get(scope.getPublicKey());
           if (blockIds != null) {
             origins.origin.addAll(blockIds);
           }
