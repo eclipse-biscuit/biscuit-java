@@ -34,16 +34,19 @@ public final class Parser {
    *
    * <p>If one succeeds it returns Right(Block) else it returns a Map[lineNumber, List[Error]]
    *
-   * @param index block index
    * @param s datalog string to parse
-   * @return Either<Map<Integer, List<Error>>, Block>
+   * @return Either<Map<Integer, List<Error>>, Tuple4<List<Fact>, List<Rule>,
+   *         List<Check>, List<Scope>>>
    */
-  public static Either<Map<Integer, List<Error>>, Block> datalog(long index, String s) {
-    Block blockBuilder = new Block();
+  public static Either<Map<Integer, List<Error>>, Tuple4<List<Fact>, List<Rule>, List<Check>, List<Scope>>> datalogComponents(
+      String s) {
+    List<Fact> facts = new ArrayList<>();
+    List<Rule> rules = new ArrayList<>();
+    List<Check> checks = new ArrayList<>();
+    List<Scope> scopes = new ArrayList<>();
 
-    // empty block code
     if (s.isEmpty()) {
-      return Either.right(blockBuilder);
+      return Either.right(new Tuple4<>(facts, rules, checks, scopes));
     }
 
     Map<Integer, List<Error>> errors = new HashMap<>();
@@ -61,58 +64,54 @@ public final class Parser {
                 List<Error> lineErrors = new ArrayList<>();
 
                 boolean parsed = false;
-                parsed =
-                    rule(code)
-                        .fold(
-                            e -> {
-                              lineErrors.add(e);
-                              return false;
-                            },
-                            r -> {
-                              blockBuilder.addRule(r._2);
-                              return true;
-                            });
+                parsed = rule(code)
+                    .fold(
+                        e -> {
+                          lineErrors.add(e);
+                          return false;
+                        },
+                        r -> {
+                          rules.add(r._2);
+                          return true;
+                        });
 
                 if (!parsed) {
-                  parsed =
-                      fact(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                blockBuilder.addFact(r._2);
-                                return true;
-                              });
+                  parsed = fact(code)
+                      .fold(
+                          e -> {
+                            lineErrors.add(e);
+                            return false;
+                          },
+                          r -> {
+                            facts.add(r._2);
+                            return true;
+                          });
                 }
 
                 if (!parsed) {
-                  parsed =
-                      check(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                blockBuilder.addCheck(r._2);
-                                return true;
-                              });
+                  parsed = check(code)
+                      .fold(
+                          e -> {
+                            lineErrors.add(e);
+                            return false;
+                          },
+                          r -> {
+                            checks.add(r._2);
+                            return true;
+                          });
                 }
 
                 if (!parsed) {
-                  parsed =
-                      scope(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                blockBuilder.addScope(r._2);
-                                return true;
-                              });
+                  parsed = scope(code)
+                      .fold(
+                          e -> {
+                            lineErrors.add(e);
+                            return false;
+                          },
+                          r -> {
+                            scopes.add(r._2);
+                            return true;
+                          });
                 }
 
                 if (!parsed) {
@@ -126,6 +125,39 @@ public final class Parser {
     if (!errors.isEmpty()) {
       return Either.left(errors);
     }
+
+    return Either.right(new Tuple4<>(facts, rules, checks, scopes));
+  }
+
+  /**
+   * Takes a datalog string with <code>\n</code> as datalog line separator. It
+   * tries to parse each
+   * line using fact, rule, check and scope sequentially.
+   *
+   * <p>
+   * If one succeeds it returns Right(Block) else it returns a Map[lineNumber,
+   * List[Error]]
+   *
+   * @param index block index
+   * @param s     datalog string to parse
+   * @return Either<Map<Integer, List<Error>>, Block>
+   */
+  public static Either<Map<Integer, List<Error>>, Block> datalog(long index, String s) {
+    Block blockBuilder = new Block();
+
+    Either<Map<Integer, List<Error>>, Tuple4<List<Fact>, List<Rule>, List<Check>, List<Scope>>> result = datalogComponents(
+        s);
+
+    if (result.isLeft()) {
+      return Either.left(result.getLeft());
+    }
+
+    Tuple4<List<Fact>, List<Rule>, List<Check>, List<Scope>> components = result.get();
+
+    components._1.forEach(blockBuilder::addFact);
+    components._2.forEach(blockBuilder::addRule);
+    components._3.forEach(blockBuilder::addCheck);
+    components._4.forEach(blockBuilder::addScope);
 
     return Either.right(blockBuilder);
   }

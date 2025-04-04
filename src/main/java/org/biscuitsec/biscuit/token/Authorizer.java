@@ -4,6 +4,7 @@ import static io.vavr.API.Left;
 import static io.vavr.API.Right;
 
 import io.vavr.Tuple2;
+import io.vavr.Tuple4;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
 import java.time.Instant;
@@ -201,6 +202,32 @@ public final class Authorizer {
     this.token = token;
     updateOnToken();
     return this;
+  }
+
+  public Either<Map<Integer, List<Error>>, Authorizer> addDatalog(String s) {
+    Either<Map<Integer, List<org.biscuitsec.biscuit.token.builder.parser.Error>>, Tuple4<List<org.biscuitsec.biscuit.token.builder.Fact>, List<org.biscuitsec.biscuit.token.builder.Rule>, List<org.biscuitsec.biscuit.token.builder.Check>, List<org.biscuitsec.biscuit.token.builder.Scope>>> result = Parser
+        .datalogComponents(s);
+
+    if (result.isLeft()) {
+      Map<Integer, List<org.biscuitsec.biscuit.token.builder.parser.Error>> errors = result.getLeft();
+      Map<Integer, List<Error>> errorMap = new HashMap<>();
+      for (Map.Entry<Integer, List<org.biscuitsec.biscuit.token.builder.parser.Error>> entry : errors.entrySet()) {
+        List<Error> errorsList = new ArrayList<>();
+        for (org.biscuitsec.biscuit.token.builder.parser.Error error : entry.getValue()) {
+          errorsList.add(new Error.Parser(error));
+        }
+        errorMap.put(entry.getKey(), errorsList);
+      }
+      return Either.left(errorMap);
+    }
+
+    Tuple4<List<org.biscuitsec.biscuit.token.builder.Fact>, List<org.biscuitsec.biscuit.token.builder.Rule>, List<org.biscuitsec.biscuit.token.builder.Check>, List<org.biscuitsec.biscuit.token.builder.Scope>> components = result
+        .get();
+    components._1.forEach(this::addFact);
+    components._2.forEach(this::addRule);
+    components._3.forEach(this::addCheck);
+
+    return Either.right(this);
   }
 
   public Authorizer addFact(org.biscuitsec.biscuit.token.builder.Fact fact) {
