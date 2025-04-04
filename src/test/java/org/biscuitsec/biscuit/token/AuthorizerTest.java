@@ -1,6 +1,8 @@
 package org.biscuitsec.biscuit.token;
 
 import static org.biscuitsec.biscuit.token.builder.Utils.constrainedRule;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import biscuit.format.schema.Schema;
@@ -71,6 +73,33 @@ public class AuthorizerTest {
     assertEquals(
         Set.of(new Term.Integer(1), new Term.Integer(2), new Term.Integer(3)),
         ((Term.Set) permsTerm).getValue());
+  }
+
+  @Test
+  public void testDatalogAuthorizer() throws Exception {
+    KeyPair keypair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, new SecureRandom());
+
+    Biscuit token = Biscuit.builder(keypair)
+        .addAuthorityFact("email(\"bob@example.com\")")
+        .addAuthorityFact("id(123)")
+        .addAuthorityFact("enabled(true)")
+        .addAuthorityFact("perms([1,2,3])")
+        .build();
+
+    Authorizer authorizer = Biscuit.fromBase64Url(token.serializeBase64Url(), keypair.getPublicKey())
+        .verify(keypair.getPublicKey())
+        .authorizer();
+
+    String l0 = "right($email) <- email($email)";
+    String l1 = "check if right(\"bob@example.com\")";
+    String datalog = String.join(";", Arrays.asList(l0, l1));
+    authorizer.addDatalog(datalog);
+    authorizer.addPolicy("allow if true");
+
+    assertDoesNotThrow(() -> authorizer.authorize());
+
+    Term emailTerm = queryFirstResult(authorizer, "right($address) <- email($address)");
+    assertEquals("bob@example.com", ((Term.Str) emailTerm).getValue());
   }
 
   private static Term queryFirstResult(Authorizer authorizer, String query) throws Error {
