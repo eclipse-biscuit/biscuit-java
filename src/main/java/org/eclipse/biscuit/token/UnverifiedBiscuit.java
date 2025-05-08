@@ -236,6 +236,10 @@ public class UnverifiedBiscuit {
     return this.serializedBiscuit.getRootKeyId();
   }
 
+  public SerializedBiscuit getContainer() {
+    return this.serializedBiscuit;
+  }
+
   public int blockCount() {
     return 1 + blocks.size();
   }
