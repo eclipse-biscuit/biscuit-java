@@ -54,14 +54,14 @@ public final class ThirdPartyBlockRequest {
 
   public Schema.ThirdPartyBlockRequest serialize() throws Error.FormatError.SerializationError {
     Schema.ThirdPartyBlockRequest.Builder b = Schema.ThirdPartyBlockRequest.newBuilder();
-    b.setPreviousKey(this.previousKey.serialize());
+    b.setLegacyPreviousKey(this.previousKey.serialize());
 
     return b.build();
   }
 
   public static ThirdPartyBlockRequest deserialize(Schema.ThirdPartyBlockRequest b)
       throws Error.FormatError.DeserializationError {
-    PublicKey previousKey = PublicKey.deserialize(b.getPreviousKey());
+    PublicKey previousKey = PublicKey.deserialize(b.getLegacyPreviousKey());
     return new ThirdPartyBlockRequest(previousKey);
   }
 
