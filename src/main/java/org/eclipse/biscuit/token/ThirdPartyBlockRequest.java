@@ -42,7 +42,9 @@ public final class ThirdPartyBlockRequest {
     }
 
     byte[] serializedBlock = res.get();
-    byte[] payload = BlockSignatureBuffer.getBufferSignature(this.previousKey, serializedBlock);
+    byte[] payload =
+        BlockSignatureBuffer.generateExternalBlockSignaturePayloadV0(
+            serializedBlock, this.previousKey);
     byte[] signature = externalSigner.sign(payload);
 
     PublicKey publicKey = externalSigner.getPublicKey();

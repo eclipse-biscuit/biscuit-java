@@ -292,7 +292,8 @@ public class UnverifiedBiscuit {
     }
     KeyPair nextKeyPair = KeyPair.generate(previousKey.getAlgorithm());
     byte[] payload =
-        BlockSignatureBuffer.getBufferSignature(previousKey, blockResponse.getPayload());
+        BlockSignatureBuffer.generateExternalBlockSignaturePayloadV0(
+            blockResponse.getPayload(), previousKey);
     if (!externalKey.verify(payload, blockResponse.getSignature())) {
       throw new Error.FormatError.Signature.InvalidSignature(
           "signature error: Verification equation was not satisfied");
