@@ -381,10 +381,6 @@ public final class SerializedBiscuit {
       return Left(signatureLengthError.get());
     }
 
-    ByteBuffer algoBuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-    algoBuf.putInt(Integer.valueOf(nextKey.getAlgorithm().getNumber()));
-    algoBuf.flip();
-
     byte[] block = signedBlock.getBlock();
     byte[] payload =
         BlockSignatureBuffer.generateBlockSignaturePayloadV0(
