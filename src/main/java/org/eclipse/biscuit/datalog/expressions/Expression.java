@@ -10,12 +10,12 @@ import static io.vavr.API.Right;
 
 import biscuit.format.schema.Schema;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
@@ -46,15 +46,15 @@ public final class Expression {
     }
   }
 
-  public Option<String> print(SymbolTable symbolTable) {
+  public Optional<String> print(SymbolTable symbolTable) {
     Deque<String> stack = new ArrayDeque<>();
     for (Op op : ops) {
       op.print(stack, symbolTable);
     }
     if (stack.size() == 1) {
-      return Option.some(stack.remove());
+      return Optional.of(stack.remove());
     } else {
-      return Option.none();
+      return Optional.empty();
     }
   }
 

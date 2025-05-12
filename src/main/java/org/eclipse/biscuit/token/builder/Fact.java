@@ -5,10 +5,10 @@
 
 package org.eclipse.biscuit.token.builder;
 
-import io.vavr.control.Option;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.datalog.SymbolTable;
@@ -17,25 +17,25 @@ import org.eclipse.biscuit.error.FailedCheck;
 
 public final class Fact implements Cloneable {
   Predicate predicate;
-  Option<Map<String, Option<Term>>> variables;
+  Optional<Map<String, Optional<Term>>> variables;
 
   public Fact(String name, List<Term> terms) {
-    Map<String, Option<Term>> variables = new HashMap<String, Option<Term>>();
+    Map<String, Optional<Term>> variables = new HashMap<String, Optional<Term>>();
     for (Term term : terms) {
       if (term instanceof Term.Variable) {
-        variables.put(((Term.Variable) term).value, Option.none());
+        variables.put(((Term.Variable) term).value, Optional.empty());
       }
     }
     this.predicate = new Predicate(name, terms);
-    this.variables = Option.some(variables);
+    this.variables = Optional.of(variables);
   }
 
   public Fact(Predicate p) {
     this.predicate = p;
-    this.variables = Option.none();
+    this.variables = Optional.empty();
   }
 
-  private Fact(Predicate predicate, Option<Map<String, Option<Term>>> variables) {
+  private Fact(Predicate predicate, Optional<Map<String, Optional<Term>>> variables) {
     this.predicate = predicate;
     this.variables = variables;
   }
@@ -63,10 +63,10 @@ public final class Fact implements Cloneable {
     if (this.variables.isEmpty()) {
       throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable(name));
     }
-    Map<String, Option<Term>> localVariables = this.variables.get();
-    Option<Term> r = localVariables.get(name);
+    Map<String, Optional<Term>> localVariables = this.variables.get();
+    Optional<Term> r = localVariables.get(name);
     if (r != null) {
-      localVariables.put(name, Option.some(term));
+      localVariables.put(name, Optional.of(term));
     } else {
       throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable(name));
     }
@@ -74,16 +74,16 @@ public final class Fact implements Cloneable {
   }
 
   public Fact applyVariables() {
-    this.variables.forEach(
+    this.variables.ifPresent(
         laVariables -> {
           this.predicate.terms =
               this.predicate.terms.stream()
                   .flatMap(
                       t -> {
                         if (t instanceof Term.Variable) {
-                          Option<Term> term =
-                              laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
-                          return term.map(t2 -> Stream.of(t2)).getOrElse(Stream.empty());
+                          Optional<Term> term =
+                              laVariables.getOrDefault(((Term.Variable) t).value, Optional.empty());
+                          return term.map(t2 -> Stream.of(t2)).orElse(Stream.empty());
                         } else {
                           return Stream.of(t);
                         }
@@ -140,10 +140,10 @@ public final class Fact implements Cloneable {
   @Override
   public Fact clone() {
     Predicate p = this.predicate.clone();
-    Option<Map<String, Option<Term>>> variables =
+    Optional<Map<String, Optional<Term>>> variables =
         this.variables.map(
             v -> {
-              Map<String, Option<Term>> m = new HashMap<>();
+              Map<String, Optional<Term>> m = new HashMap<>();
               m.putAll(v);
               return m;
             });

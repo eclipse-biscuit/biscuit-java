@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.vavr.Tuple2;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -36,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.crypto.KeyPair;
@@ -74,10 +74,10 @@ class SamplesTest {
 
   void compareBlocks(KeyPair root, List<Block> sampleBlocks, Biscuit token) throws Error {
     assertEquals(sampleBlocks.size(), 1 + token.blocks.size());
-    Option<Biscuit> sampleToken = Option.none();
+    Optional<Biscuit> sampleToken = Optional.empty();
     Biscuit b =
         compareBlock(root, sampleToken, 0, sampleBlocks.get(0), token.authority, token.symbolTable);
-    sampleToken = Option.some(b);
+    sampleToken = Optional.of(b);
 
     for (int i = 0; i < token.blocks.size(); i++) {
       b =
@@ -88,19 +88,19 @@ class SamplesTest {
               sampleBlocks.get(i + 1),
               token.blocks.get(i),
               token.symbolTable);
-      sampleToken = Option.some(b);
+      sampleToken = Optional.of(b);
     }
   }
 
   Biscuit compareBlock(
       KeyPair root,
-      Option<Biscuit> sampleToken,
+      Optional<Biscuit> sampleToken,
       long sampleBlockIndex,
       Block sampleBlock,
       org.eclipse.biscuit.token.Block tokenBlock,
       SymbolTable tokenSymbols)
       throws Error {
-    Option<PublicKey> sampleExternalKey = sampleBlock.getExternalKey();
+    Optional<PublicKey> sampleExternalKey = sampleBlock.getExternalKey();
     List<PublicKey> samplePublicKeys = sampleBlock.getPublicKeys();
     String sampleDatalog = sampleBlock.getCode().replace("\"", "\\\"");
 
@@ -115,10 +115,10 @@ class SamplesTest {
     }
 
     Biscuit newSampleToken;
-    if (!sampleToken.isDefined()) {
+    if (sampleToken.isEmpty()) {
       org.eclipse.biscuit.token.builder.Biscuit builder =
           new org.eclipse.biscuit.token.builder.Biscuit(
-              new SecureRandom(), root, Option.none(), outputSample.get());
+              new SecureRandom(), root, Optional.empty(), outputSample.get());
       newSampleToken = builder.build();
     } else {
       Biscuit s = sampleToken.get();
@@ -126,7 +126,7 @@ class SamplesTest {
     }
 
     org.eclipse.biscuit.token.Block generatedSampleBlock;
-    if (!sampleToken.isDefined()) {
+    if (sampleToken.isEmpty()) {
       generatedSampleBlock = newSampleToken.authority;
     } else {
       generatedSampleBlock = newSampleToken.blocks.get((int) sampleBlockIndex - 1);
@@ -344,7 +344,7 @@ class SamplesTest {
           .collect(Collectors.toList());
     }
 
-    public Option<PublicKey> getExternalKey() {
+    public Optional<PublicKey> getExternalKey() {
       if (this.externalKey != null) {
         PublicKey externalKey =
             Parser.publicKey(this.externalKey)
@@ -353,9 +353,9 @@ class SamplesTest {
                       throw new IllegalArgumentException(e.toString());
                     },
                     r -> r._2);
-        return Option.of(externalKey);
+        return Optional.of(externalKey);
       } else {
-        return Option.none();
+        return Optional.empty();
       }
     }
   }

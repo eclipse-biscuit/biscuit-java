@@ -13,7 +13,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vavr.Tuple2;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -27,7 +26,6 @@ import org.eclipse.biscuit.crypto.BlockSignatureBuffer;
 import org.eclipse.biscuit.crypto.KeyDelegate;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
-import org.eclipse.biscuit.crypto.Signer;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.Block;
@@ -37,7 +35,7 @@ public final class SerializedBiscuit {
   private final SignedBlock authority;
   private final List<SignedBlock> blocks;
   private Proof proof;
-  private Option<Integer> rootKeyId;
+  private Optional<Integer> rootKeyId;
 
   // minimum supported version of the serialization format
   public static final int MIN_SCHEMA_VERSION = 3;
@@ -79,12 +77,12 @@ public final class SerializedBiscuit {
     try {
       Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
 
-      Option<Integer> rootKeyId = Option.none();
+      Optional<Integer> rootKeyId = Optional.empty();
       if (data.hasRootKeyId()) {
-        rootKeyId = Option.some(data.getRootKeyId());
+        rootKeyId = Optional.of(data.getRootKeyId());
       }
 
-      Option<PublicKey> root = delegate.getRootKey(rootKeyId);
+      Optional<org.eclipse.biscuit.crypto.PublicKey> root = delegate.getRootKey(rootKeyId);
       if (root.isEmpty()) {
         throw new InvalidKeyException("unknown root key id");
       }
@@ -99,7 +97,7 @@ public final class SerializedBiscuit {
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
     SerializedBiscuit b = SerializedBiscuit.deserialize(data);
     if (data.hasRootKeyId()) {
-      b.rootKeyId = Option.some(data.getRootKeyId());
+      b.rootKeyId = Optional.of(data.getRootKeyId());
     }
 
     Either<Error, Void> res = b.verify(root);
@@ -144,18 +142,18 @@ public final class SerializedBiscuit {
             data.getAuthority().getBlock().toByteArray(),
             PublicKey.deserialize(data.getAuthority().getNextKey()),
             data.getAuthority().getSignature().toByteArray(),
-            Option.none(),
+            Optional.empty(),
             data.getAuthority().getVersion());
 
     ArrayList<SignedBlock> blocks = new ArrayList<>();
     for (Schema.SignedBlock block : data.getBlocksList()) {
-      Option<ExternalSignature> external = Option.none();
+      Optional<ExternalSignature> external = Optional.empty();
       if (block.hasExternalSignature()
           && block.getExternalSignature().hasPublicKey()
           && block.getExternalSignature().hasSignature()) {
         Schema.ExternalSignature ex = block.getExternalSignature();
         external =
-            Option.some(
+            Optional.of(
                 new ExternalSignature(
                     PublicKey.deserialize(ex.getPublicKey()), ex.getSignature().toByteArray()));
       }
@@ -191,8 +189,8 @@ public final class SerializedBiscuit {
               KeyPair.generate(proofAlgorithm, data.getProof().getNextSecret().toByteArray()));
     }
 
-    Option<Integer> rootKeyId =
-        data.hasRootKeyId() ? Option.some(data.getRootKeyId()) : Option.none();
+    Optional<Integer> rootKeyId =
+        data.hasRootKeyId() ? Optional.of(data.getRootKeyId()) : Optional.empty();
 
     return new SerializedBiscuit(authority, blocks, proof, rootKeyId);
   }
@@ -223,7 +221,7 @@ public final class SerializedBiscuit {
         blockBuilder.setVersion(b.getVersion());
       }
 
-      if (b.getExternalSignature().isDefined()) {
+      if (b.getExternalSignature().isPresent()) {
         ExternalSignature externalSignature = b.getExternalSignature().get();
         Schema.ExternalSignature.Builder externalSignatureBuilder =
             Schema.ExternalSignature.newBuilder();
@@ -264,12 +262,12 @@ public final class SerializedBiscuit {
   public static Either<Error.FormatError, SerializedBiscuit> make(
       final KeyPair root, final Block authority, final KeyPair next) {
 
-    return make(root, Option.none(), authority, next);
+    return make(root, Optional.empty(), authority, next);
   }
 
   public static Either<Error.FormatError, SerializedBiscuit> make(
-      final Signer rootSigner,
-      final Option<Integer> rootKeyId,
+      final org.eclipse.biscuit.crypto.Signer rootSigner,
+      final Optional<Integer> rootKeyId,
       final Block authority,
       final KeyPair next) {
     Schema.Block b = authority.serialize();
@@ -293,7 +291,7 @@ public final class SerializedBiscuit {
       }
       byte[] signature = rootSigner.sign(payload.get());
       SignedBlock signedBlock =
-          new SignedBlock(block, nextKey, signature, Option.none(), blockSignatureVersion);
+          new SignedBlock(block, nextKey, signature, Optional.empty(), blockSignatureVersion);
       Proof proof = new Proof.NextSecret(next);
 
       return Right(new SerializedBiscuit(signedBlock, new ArrayList<>(), proof, rootKeyId));
@@ -303,7 +301,9 @@ public final class SerializedBiscuit {
   }
 
   public Either<Error.FormatError, SerializedBiscuit> append(
-      final KeyPair next, final Block newBlock, Option<ExternalSignature> externalSignature) {
+      final org.eclipse.biscuit.crypto.KeyPair next,
+      final Block newBlock,
+      Optional<ExternalSignature> externalSignature) {
     if (this.proof.isSealed()) {
       return Left(new Error.FormatError.SerializationError("the token is sealed"));
     }
@@ -320,14 +320,14 @@ public final class SerializedBiscuit {
           BlockSignatureBuffer.blockSignatureVersion(
               proof.secretKey().getPublicKey(),
               next.getPublicKey(),
-              externalSignature.toJavaOptional(),
+              externalSignature,
               Optional.of(newBlock.getVersion()),
               this.blocks.stream().map(SignedBlock::getVersion));
       var payload =
           BlockSignatureBuffer.generateBlockSignaturePayload(
               block,
               nextKey,
-              externalSignature.toJavaOptional(),
+              externalSignature,
               Optional.of(
                   this.blocks.isEmpty()
                       ? this.authority.getSignature()
@@ -429,7 +429,7 @@ public final class SerializedBiscuit {
         BlockSignatureBuffer.generateBlockSignaturePayload(
             signedBlock.getBlock(),
             signedBlock.getKey(),
-            signedBlock.getExternalSignature().toJavaOptional(),
+            signedBlock.getExternalSignature(),
             Optional.empty(),
             signedBlock.getVersion());
     if (payload.isLeft()) {
@@ -459,7 +459,7 @@ public final class SerializedBiscuit {
         BlockSignatureBuffer.generateBlockSignaturePayload(
             signedBlock.getBlock(),
             signedBlock.getKey(),
-            signedBlock.getExternalSignature().toJavaOptional(),
+            signedBlock.getExternalSignature(),
             Optional.of(previousSignature),
             signedBlock.getVersion());
     if (payload.isLeft()) {
@@ -472,7 +472,7 @@ public final class SerializedBiscuit {
               "signature error: Verification equation was not satisfied"));
     }
 
-    if (signedBlock.getExternalSignature().isDefined()) {
+    if (signedBlock.getExternalSignature().isPresent()) {
       byte[] externalPayload =
           BlockSignatureBuffer.generateExternalBlockSignaturePayload(
               signedBlock.getBlock(), publicKey, previousSignature, signedBlock.getVersion());
@@ -489,9 +489,9 @@ public final class SerializedBiscuit {
   }
 
   public Tuple2<Block, ArrayList<Block>> extractBlocks(SymbolTable symbolTable) throws Error {
-    ArrayList<Option<PublicKey>> blockExternalKeys = new ArrayList<>();
+    ArrayList<Optional<org.eclipse.biscuit.crypto.PublicKey>> blockExternalKeys = new ArrayList<>();
     Either<Error.FormatError, Block> authRes =
-        Block.fromBytes(this.authority.getBlock(), Option.none());
+        Block.fromBytes(this.authority.getBlock(), Optional.empty());
     if (authRes.isLeft()) {
       throw authRes.getLeft();
     }
@@ -499,7 +499,7 @@ public final class SerializedBiscuit {
     for (PublicKey pk : authority.getPublicKeys()) {
       symbolTable.insert(pk);
     }
-    blockExternalKeys.add(Option.none());
+    blockExternalKeys.add(Optional.empty());
 
     for (String s : authority.getSymbolTable().symbols()) {
       symbolTable.add(s);
@@ -507,9 +507,9 @@ public final class SerializedBiscuit {
 
     ArrayList<Block> blocks = new ArrayList<>();
     for (SignedBlock bdata : this.blocks) {
-      Option<PublicKey> externalKey = Option.none();
-      if (bdata.getExternalSignature().isDefined()) {
-        externalKey = Option.some(bdata.getExternalSignature().get().getKey());
+      Optional<org.eclipse.biscuit.crypto.PublicKey> externalKey = Optional.empty();
+      if (bdata.getExternalSignature().isPresent()) {
+        externalKey = Optional.of(bdata.getExternalSignature().get().getKey());
       }
       Either<Error.FormatError, Block> blockRes = Block.fromBytes(bdata.getBlock(), externalKey);
       if (blockRes.isLeft()) {
@@ -518,11 +518,11 @@ public final class SerializedBiscuit {
       Block block = blockRes.get();
 
       // blocks with external signatures keep their own symbol table
-      if (bdata.getExternalSignature().isDefined()) {
+      if (bdata.getExternalSignature().isPresent()) {
         // symbolTable.insert(bdata.externalSignature.get().key);
-        blockExternalKeys.add(Option.some(bdata.getExternalSignature().get().getKey()));
+        blockExternalKeys.add(Optional.of(bdata.getExternalSignature().get().getKey()));
       } else {
-        blockExternalKeys.add(Option.none());
+        blockExternalKeys.add(Optional.empty());
         for (String s : block.getSymbolTable().symbols()) {
           symbolTable.add(s);
         }
@@ -573,11 +573,11 @@ public final class SerializedBiscuit {
     this.authority = authority;
     this.blocks = blocks;
     this.proof = proof;
-    this.rootKeyId = Option.none();
+    this.rootKeyId = Optional.empty();
   }
 
   SerializedBiscuit(
-      SignedBlock authority, List<SignedBlock> blocks, Proof proof, Option<Integer> rootKeyId) {
+      SignedBlock authority, List<SignedBlock> blocks, Proof proof, Optional<Integer> rootKeyId) {
     this.authority = authority;
     this.blocks = blocks;
     this.proof = proof;
@@ -596,7 +596,7 @@ public final class SerializedBiscuit {
     return proof;
   }
 
-  public Option<Integer> getRootKeyId() {
+  public Optional<Integer> getRootKeyId() {
     return rootKeyId;
   }
 }

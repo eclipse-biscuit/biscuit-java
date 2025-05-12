@@ -6,11 +6,11 @@
 package org.eclipse.biscuit.token.builder;
 
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,7 +22,7 @@ public final class Rule implements Cloneable {
   Predicate head;
   List<Predicate> body;
   List<Expression> expressions;
-  Option<Map<String, Option<Term>>> variables;
+  Optional<Map<String, Optional<Term>>> variables;
   List<Scope> scopes;
 
   public Rule(
@@ -31,16 +31,16 @@ public final class Rule implements Cloneable {
     this.body = body;
     this.expressions = expressions;
     this.scopes = scopes;
-    Map<String, Option<Term>> variables = new HashMap<>();
+    Map<String, Optional<Term>> variables = new HashMap<>();
     for (Term t : head.terms) {
       if (t instanceof Term.Variable) {
-        variables.put(((Term.Variable) t).value, Option.none());
+        variables.put(((Term.Variable) t).value, Optional.empty());
       }
     }
     for (Predicate p : body) {
       for (Term t : p.terms) {
         if (t instanceof Term.Variable) {
-          variables.put(((Term.Variable) t).value, Option.none());
+          variables.put(((Term.Variable) t).value, Optional.empty());
         }
       }
     }
@@ -48,11 +48,11 @@ public final class Rule implements Cloneable {
       if (e instanceof Expression.Value) {
         Expression.Value ev = (Expression.Value) e;
         if (ev.value instanceof Term.Variable) {
-          variables.put(((Term.Variable) ev.value).value, Option.none());
+          variables.put(((Term.Variable) ev.value).value, Optional.empty());
         }
       }
     }
-    this.variables = Option.some(variables);
+    this.variables = Optional.of(variables);
   }
 
   @Override
@@ -68,10 +68,10 @@ public final class Rule implements Cloneable {
   }
 
   public void set(String name, Term term) throws Error.Language {
-    if (this.variables.isDefined()) {
-      Option<Option<Term>> t = Option.of(this.variables.get().get(name));
-      if (t.isDefined()) {
-        this.variables.get().put(name, Option.some(term));
+    if (this.variables.isPresent()) {
+      Optional<Optional<Term>> t = Optional.of(this.variables.get().get(name));
+      if (t.get().isPresent()) {
+        this.variables.get().put(name, Optional.of(term));
       } else {
         throw new Error.Language(new FailedCheck.LanguageError.UnknownVariable("name"));
       }
@@ -81,16 +81,16 @@ public final class Rule implements Cloneable {
   }
 
   public void applyVariables() {
-    this.variables.forEach(
+    this.variables.ifPresent(
         laVariables -> {
           this.head.terms =
               this.head.terms.stream()
                   .flatMap(
                       t -> {
                         if (t instanceof Term.Variable) {
-                          Option<Term> term =
-                              laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
-                          return term.map(t2 -> Stream.of(t2)).getOrElse(Stream.of(t));
+                          Optional<Term> term =
+                              laVariables.getOrDefault(((Term.Variable) t).value, Optional.empty());
+                          return term.map(t2 -> Stream.of(t2)).orElse(Stream.of(t));
                         } else {
                           return Stream.of(t);
                         }
@@ -102,9 +102,10 @@ public final class Rule implements Cloneable {
                     .flatMap(
                         t -> {
                           if (t instanceof Term.Variable) {
-                            Option<Term> term =
-                                laVariables.getOrDefault(((Term.Variable) t).value, Option.none());
-                            return term.map(t2 -> Stream.of(t2)).getOrElse(Stream.of(t));
+                            Optional<Term> term =
+                                laVariables.getOrDefault(
+                                    ((Term.Variable) t).value, Optional.empty());
+                            return term.map(t2 -> Stream.of(t2)).orElse(Stream.of(t));
                           } else {
                             return Stream.of(t);
                           }
@@ -118,10 +119,10 @@ public final class Rule implements Cloneable {
                         if (e instanceof Expression.Value) {
                           Expression.Value ev = (Expression.Value) e;
                           if (ev.value instanceof Term.Variable) {
-                            Option<Term> t =
+                            Optional<Term> t =
                                 laVariables.getOrDefault(
-                                    ((Term.Variable) ev.value).value, Option.none());
-                            if (t.isDefined()) {
+                                    ((Term.Variable) ev.value).value, Optional.empty());
+                            if (t.isPresent()) {
                               return Stream.of(new Expression.Value(t.get()));
                             }
                           }

@@ -8,7 +8,6 @@ package org.eclipse.biscuit.token;
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import io.vavr.Tuple2;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -16,6 +15,7 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.KeyDelegate;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
@@ -60,7 +60,9 @@ public final class Biscuit extends UnverifiedBiscuit {
    * @return
    */
   public static org.eclipse.biscuit.token.builder.Biscuit builder(
-      final SecureRandom rng, final Signer root, final Option<Integer> rootKeyId) {
+      final SecureRandom rng,
+      final org.eclipse.biscuit.crypto.Signer root,
+      final Optional<Integer> rootKeyId) {
     return new org.eclipse.biscuit.token.builder.Biscuit(rng, root, rootKeyId);
   }
 
@@ -74,7 +76,7 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public static Biscuit make(final SecureRandom rng, final Signer root, final Block authority)
       throws Error.FormatError {
-    return Biscuit.make(rng, root, Option.none(), authority);
+    return Biscuit.make(rng, root, Optional.empty(), authority);
   }
 
   /**
@@ -88,7 +90,7 @@ public final class Biscuit extends UnverifiedBiscuit {
   public static Biscuit make(
       final SecureRandom rng, final Signer root, final Integer rootKeyId, final Block authority)
       throws Error.FormatError {
-    return Biscuit.make(rng, root, Option.of(rootKeyId), authority);
+    return Biscuit.make(rng, root, Optional.of(rootKeyId), authority);
   }
 
   /**
@@ -101,8 +103,8 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   private static Biscuit make(
       final SecureRandom rng,
-      final Signer root,
-      final Option<Integer> rootKeyId,
+      final org.eclipse.biscuit.crypto.Signer root,
+      final Optional<Integer> rootKeyId,
       final Block authority)
       throws Error.FormatError {
     ArrayList<Block> blocks = new ArrayList<>();
@@ -120,7 +122,7 @@ public final class Biscuit extends UnverifiedBiscuit {
     } else {
       SerializedBiscuit s = container.get();
 
-      Option<SerializedBiscuit> c = Option.some(s);
+      Optional<SerializedBiscuit> c = Optional.of(s);
       return new Biscuit(authority, blocks, authority.getSymbolTable(), s);
     }
   }
@@ -328,8 +330,7 @@ public final class Biscuit extends UnverifiedBiscuit {
       throw new Error.SymbolTableOverlap();
     }
 
-    Either<Error.FormatError, SerializedBiscuit> containerRes =
-        copiedBiscuit.serializedBiscuit.append(keypair, block, Option.none());
+    var containerRes = copiedBiscuit.serializedBiscuit.append(keypair, block, Optional.empty());
     if (containerRes.isLeft()) {
       throw containerRes.getLeft();
     }
@@ -375,7 +376,7 @@ public final class Biscuit extends UnverifiedBiscuit {
     s.append("\n\tblocks: [\n");
     for (Block b : this.blocks) {
       s.append("\t\t");
-      if (b.getExternalKey().isDefined()) {
+      if (b.getExternalKey().isPresent()) {
         s.append(b.print(b.getSymbolTable()));
       } else {
         s.append(b.print(this.symbolTable));

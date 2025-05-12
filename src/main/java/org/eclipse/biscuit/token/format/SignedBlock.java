@@ -5,21 +5,21 @@
 
 package org.eclipse.biscuit.token.format;
 
-import io.vavr.control.Option;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 
 public class SignedBlock {
   private byte[] block;
   private PublicKey key;
   private byte[] signature;
-  private Option<ExternalSignature> externalSignature;
+  private Optional<ExternalSignature> externalSignature;
   private int version;
 
   public SignedBlock(
       byte[] block,
       PublicKey key,
       byte[] signature,
-      Option<ExternalSignature> externalSignature,
+      Optional<ExternalSignature> externalSignature,
       int version) {
     this.block = block;
     this.key = key;
@@ -40,7 +40,7 @@ public class SignedBlock {
     return signature;
   }
 
-  public Option<ExternalSignature> getExternalSignature() {
+  public Optional<ExternalSignature> getExternalSignature() {
     return externalSignature;
   }
 

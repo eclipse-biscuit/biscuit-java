@@ -9,13 +9,13 @@ import biscuit.format.schema.Schema;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.BlockSignatureBuffer;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.crypto.Signer;
@@ -35,7 +35,7 @@ public final class ThirdPartyBlockRequest {
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     SymbolTable symbolTable = new SymbolTable();
     org.eclipse.biscuit.token.Block block =
-        blockBuilder.build(symbolTable, Option.some(externalSigner.getPublicKey()));
+        blockBuilder.build(symbolTable, Optional.of(externalSigner.getPublicKey()));
 
     Either<Error.FormatError, byte[]> res = block.toBytes();
     if (res.isLeft()) {

@@ -5,7 +5,7 @@
 
 package org.eclipse.biscuit.crypto;
 
-import io.vavr.control.Option;
+import java.util.Optional;
 
 /**
  * Used to find the key associated with a key id
@@ -14,5 +14,5 @@ import io.vavr.control.Option;
  * time. Tokens can carry a root key id, that can be used to indicate which key will verify it.
  */
 public interface KeyDelegate {
-  Option<PublicKey> getRootKey(Option<Integer> keyId);
+  Optional<PublicKey> getRootKey(Optional<Integer> keyId);
 }

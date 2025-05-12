@@ -11,13 +11,13 @@ import static io.vavr.API.Right;
 import biscuit.format.schema.Schema;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.Check;
 import org.eclipse.biscuit.datalog.Fact;
@@ -39,7 +39,7 @@ public final class Block {
   private final List<Check> checks;
   private final List<Scope> scopes;
   private final List<PublicKey> publicKeys;
-  private Option<PublicKey> externalKey;
+  private Optional<PublicKey> externalKey;
   private long version;
 
   /**
@@ -55,7 +55,7 @@ public final class Block {
     this.checks = new ArrayList<>();
     this.scopes = new ArrayList<>();
     this.publicKeys = new ArrayList<>();
-    this.externalKey = Option.none();
+    this.externalKey = Optional.empty();
   }
 
   /**
@@ -73,7 +73,7 @@ public final class Block {
       List<Check> checks,
       List<Scope> scopes,
       List<PublicKey> publicKeys,
-      Option<PublicKey> externalKey,
+      Optional<PublicKey> externalKey,
       int version) {
     this.symbolTable = baseSymbols;
     this.context = context;
@@ -91,7 +91,7 @@ public final class Block {
   }
 
   public void setExternalKey(PublicKey externalKey) {
-    this.externalKey = Option.some(externalKey);
+    this.externalKey = Optional.of(externalKey);
   }
 
   /**
@@ -104,7 +104,7 @@ public final class Block {
     StringBuilder s = new StringBuilder();
 
     SymbolTable localSymbols;
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       localSymbols = new SymbolTable(this.symbolTable);
       for (PublicKey pk : symbolTable.getPublicKeys()) {
         localSymbols.insert(pk);
@@ -121,7 +121,7 @@ public final class Block {
     s.append(this.publicKeys);
     s.append("\n\t\tcontext: ");
     s.append(this.context);
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       s.append("\n\t\texternal key: ");
       s.append(this.externalKey.get().toString());
     }
@@ -154,7 +154,7 @@ public final class Block {
     StringBuilder s = new StringBuilder();
 
     SymbolTable localSymbols;
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       localSymbols = new SymbolTable(this.symbolTable);
       for (PublicKey pk : symbolTable.getPublicKeys()) {
         localSymbols.insert(pk);
@@ -253,7 +253,7 @@ public final class Block {
       }
     }
 
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       return SerializedBiscuit.MAX_SCHEMA_VERSION;
 
     } else if (containsScopes || containsCheckAll || containsV4) {
@@ -286,7 +286,7 @@ public final class Block {
    * @return
    */
   public static Either<Error.FormatError, Block> deserialize(
-      Schema.Block b, Option<PublicKey> externalKey) {
+      Schema.Block b, Optional<PublicKey> externalKey) {
     int version = b.getVersion();
     if (version < SerializedBiscuit.MIN_SCHEMA_VERSION
         || version > SerializedBiscuit.MAX_SCHEMA_VERSION) {
@@ -383,7 +383,7 @@ public final class Block {
    * @return
    */
   public static Either<Error.FormatError, Block> fromBytes(
-      byte[] slice, Option<PublicKey> externalKey) {
+      byte[] slice, Optional<PublicKey> externalKey) {
     try {
       Schema.Block data = Schema.Block.parseFrom(slice);
       return Block.deserialize(data, externalKey);
@@ -505,7 +505,7 @@ public final class Block {
     return Collections.unmodifiableList(scopes);
   }
 
-  public Option<PublicKey> getExternalKey() {
+  public Optional<PublicKey> getExternalKey() {
     return externalKey;
   }
 

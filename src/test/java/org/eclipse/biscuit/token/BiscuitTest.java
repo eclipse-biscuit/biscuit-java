@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import biscuit.format.schema.Schema;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -30,6 +29,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.KeyDelegate;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
@@ -702,8 +702,8 @@ public class BiscuitTest {
                   data,
                   new KeyDelegate() {
                     @Override
-                    public Option<PublicKey> getRootKey(Option<Integer> keyId) {
-                      return Option.none();
+                    public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
+                      return Optional.empty();
                     }
                   });
         });
@@ -716,10 +716,10 @@ public class BiscuitTest {
                   data,
                   new KeyDelegate() {
                     @Override
-                    public Option<PublicKey> getRootKey(Option<Integer> keyId) {
+                    public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
 
                       KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
-                      return Option.some(root.getPublicKey());
+                      return Optional.of(root.getPublicKey());
                     }
                   });
         });
@@ -729,11 +729,11 @@ public class BiscuitTest {
             data,
             new KeyDelegate() {
               @Override
-              public Option<PublicKey> getRootKey(Option<Integer> keyId) {
+              public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
                 if (keyId.get() == 1) {
-                  return Option.some(root.getPublicKey());
+                  return Optional.of(root.getPublicKey());
                 } else {
-                  return Option.none();
+                  return Optional.empty();
                 }
               }
             });

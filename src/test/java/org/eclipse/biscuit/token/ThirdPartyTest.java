@@ -8,7 +8,6 @@ package org.eclipse.biscuit.token;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import biscuit.format.schema.Schema;
-import io.vavr.control.Option;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -17,6 +16,7 @@ import java.security.SignatureException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
@@ -69,9 +69,9 @@ public class ThirdPartyTest {
     Biscuit deser = Biscuit.fromBytes(data, root.getPublicKey());
     assertEquals(b2.print(), deser.print());
     assertEquals(
-        b2.externalPublicKeys(), List.of(Option.none(), Option.of(external.getPublicKey())));
-    assertEquals(Option.none(), b2.blockExternalKey(0));
-    assertEquals(Option.of(external.getPublicKey()), b2.blockExternalKey(1));
+        b2.externalPublicKeys(), List.of(Optional.empty(), Optional.of(external.getPublicKey())));
+    assertEquals(Optional.empty(), b2.blockExternalKey(0));
+    assertEquals(Optional.of(external.getPublicKey()), b2.blockExternalKey(1));
 
     System.out.println("will check the token for resource=file1");
     Authorizer authorizer = deser.authorizer();

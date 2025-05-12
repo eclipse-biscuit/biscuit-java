@@ -10,16 +10,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import io.vavr.control.Option;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 
 public abstract class Error extends Exception {
   static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public Option<List<FailedCheck>> getFailedChecks() {
-    return Option.none();
+  public Optional<List<FailedCheck>> getFailedChecks() {
+    return Optional.empty();
   }
 
   /**
@@ -626,7 +626,7 @@ public abstract class Error extends Exception {
     }
 
     @Override
-    public Option<List<FailedCheck>> getFailedChecks() {
+    public Optional<List<FailedCheck>> getFailedChecks() {
       return this.error.getFailedChecks();
     }
 

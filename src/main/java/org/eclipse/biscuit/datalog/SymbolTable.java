@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.control.Option;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -112,37 +111,37 @@ public final class SymbolTable implements Serializable {
     return new Term.Str(this.insert(symbol));
   }
 
-  public Option<Long> get(final String symbol) {
+  public Optional<Long> get(final String symbol) {
     // looking for symbol in default symbols
     long index = this.DEFAULT_SYMBOLS.indexOf(symbol);
     if (index == -1) {
       // looking for symbol in usages defined symbols
       index = this.symbols.indexOf(symbol);
       if (index == -1) {
-        return Option.none();
+        return Optional.empty();
       } else {
-        return Option.some(index + DEFAULT_SYMBOLS_OFFSET);
+        return Optional.of(index + DEFAULT_SYMBOLS_OFFSET);
       }
     } else {
-      return Option.some(index);
+      return Optional.of(index);
     }
   }
 
-  public Option<String> getSymbol(int i) {
+  public Optional<String> getSymbol(int i) {
     if (i >= 0 && i < this.DEFAULT_SYMBOLS.size() && i < DEFAULT_SYMBOLS_OFFSET) {
-      return Option.some(this.DEFAULT_SYMBOLS.get(i));
+      return Optional.of(this.DEFAULT_SYMBOLS.get(i));
     } else if (i >= DEFAULT_SYMBOLS_OFFSET && i < this.symbols.size() + DEFAULT_SYMBOLS_OFFSET) {
-      return Option.some(this.symbols.get(i - DEFAULT_SYMBOLS_OFFSET));
+      return Optional.of(this.symbols.get(i - DEFAULT_SYMBOLS_OFFSET));
     } else {
-      return Option.none();
+      return Optional.empty();
     }
   }
 
-  public Option<PublicKey> getPublicKey(int i) {
+  public Optional<PublicKey> getPublicKey(int i) {
     if (i >= 0 && i < this.publicKeys.size()) {
-      return Option.some(this.publicKeys.get(i));
+      return Optional.of(this.publicKeys.get(i));
     } else {
-      return Option.none();
+      return Optional.empty();
     }
   }
 
@@ -187,8 +186,8 @@ public final class SymbolTable implements Serializable {
       case Previous:
         return "previous";
       case PublicKey:
-        Option<PublicKey> pk = this.getPublicKey((int) scope.getPublicKey());
-        if (pk.isDefined()) {
+        Optional<PublicKey> pk = this.getPublicKey((int) scope.getPublicKey());
+        if (pk.isPresent()) {
           return pk.get().toString();
         } else {
           return "<" + scope.getPublicKey() + "?>";
@@ -274,7 +273,7 @@ public final class SymbolTable implements Serializable {
   }
 
   public String formatSymbol(int i) {
-    return getSymbol(i).getOrElse("<" + i + "?>");
+    return getSymbol(i).orElse("<" + i + "?>");
   }
 
   public SymbolTable() {

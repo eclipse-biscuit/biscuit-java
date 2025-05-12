@@ -137,7 +137,7 @@ public final class Rule implements Serializable {
     MatchedVariables variables = variablesSet();
 
     if (this.body.isEmpty()) {
-      return variables.checkExpressions(this.expressions, symbolTable).isDefined();
+      return variables.checkExpressions(this.expressions, symbolTable).isPresent();
     }
 
     Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
@@ -164,7 +164,7 @@ public final class Rule implements Serializable {
     MatchedVariables variables = variablesSet();
 
     if (this.body.isEmpty()) {
-      return variables.checkExpressions(this.expressions, symbolTable).isDefined();
+      return variables.checkExpressions(this.expressions, symbolTable).isPresent();
     }
 
     Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);

@@ -7,8 +7,6 @@ package org.eclipse.biscuit.token;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import io.vavr.Tuple2;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -16,6 +14,7 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.crypto.BlockSignatureBuffer;
@@ -166,8 +165,7 @@ public class UnverifiedBiscuit {
       throw new Error.SymbolTableOverlap();
     }
 
-    Either<Error.FormatError, SerializedBiscuit> containerRes =
-        copiedBiscuit.serializedBiscuit.append(keypair, block, Option.none());
+    var containerRes = copiedBiscuit.serializedBiscuit.append(keypair, block, Optional.empty());
     if (containerRes.isLeft()) {
       throw containerRes.getLeft();
     }
@@ -195,9 +193,9 @@ public class UnverifiedBiscuit {
         .collect(Collectors.toList());
   }
 
-  public List<Option<PublicKey>> externalPublicKeys() {
-    return Stream.<Option<PublicKey>>concat(
-            Stream.of(Option.none()),
+  public List<Optional<PublicKey>> externalPublicKeys() {
+    return Stream.<Optional<PublicKey>>concat(
+            Stream.of(Optional.empty()),
             this.serializedBiscuit.getBlocks().stream()
                 .map(b -> b.getExternalSignature().map(ExternalSignature::getKey)))
         .collect(Collectors.toList());
@@ -214,26 +212,26 @@ public class UnverifiedBiscuit {
     return l;
   }
 
-  public List<Option<String>> getContext() {
-    ArrayList<Option<String>> res = new ArrayList<>();
+  public List<Optional<String>> getContext() {
+    ArrayList<Optional<String>> res = new ArrayList<>();
     if (this.authority.getContext().isEmpty()) {
-      res.add(Option.none());
+      res.add(Optional.empty());
     } else {
-      res.add(Option.some(this.authority.getContext()));
+      res.add(Optional.of(this.authority.getContext()));
     }
 
     for (Block b : this.blocks) {
       if (b.getContext().isEmpty()) {
-        res.add(Option.none());
+        res.add(Optional.empty());
       } else {
-        res.add(Option.some(b.getContext()));
+        res.add(Optional.of(b.getContext()));
       }
     }
 
     return res;
   }
 
-  public Option<Integer> getRootKeyId() {
+  public Optional<Integer> getRootKeyId() {
     return this.serializedBiscuit.getRootKeyId();
   }
 
@@ -245,7 +243,7 @@ public class UnverifiedBiscuit {
     return 1 + blocks.size();
   }
 
-  public Option<PublicKey> blockExternalKey(int index) {
+  public Optional<PublicKey> blockExternalKey(int index) {
     if (index == 0) {
       return authority.getExternalKey();
     } else {
@@ -299,7 +297,7 @@ public class UnverifiedBiscuit {
           "signature error: Verification equation was not satisfied");
     }
 
-    var res = Block.fromBytes(blockResponse.getPayload(), Option.some(externalKey));
+    var res = Block.fromBytes(blockResponse.getPayload(), Optional.of(externalKey));
     if (res.isLeft()) {
       throw res.getLeft();
     }
@@ -312,7 +310,7 @@ public class UnverifiedBiscuit {
     UnverifiedBiscuit copiedBiscuit = this.copy();
 
     var containerRes =
-        copiedBiscuit.serializedBiscuit.append(nextKeyPair, block, Option.some(externalSignature));
+        copiedBiscuit.serializedBiscuit.append(nextKeyPair, block, Optional.of(externalSignature));
     if (containerRes.isLeft()) {
       throw containerRes.getLeft();
     }
@@ -376,7 +374,7 @@ public class UnverifiedBiscuit {
       throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
     SerializedBiscuit serializedBiscuit = this.serializedBiscuit;
 
-    Option<PublicKey> root = delegate.getRootKey(serializedBiscuit.getRootKeyId());
+    Optional<PublicKey> root = delegate.getRootKey(serializedBiscuit.getRootKeyId());
     if (root.isEmpty()) {
       throw new InvalidKeyException("unknown root key id");
     }

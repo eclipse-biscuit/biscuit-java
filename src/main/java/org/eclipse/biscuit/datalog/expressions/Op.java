@@ -12,12 +12,12 @@ import biscuit.format.schema.Schema;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
@@ -150,7 +150,7 @@ public abstract class Op {
           break;
         case Length:
           if (value instanceof Term.Str) {
-            Option<String> s = temporarySymbolTable.getSymbol((int) ((Term.Str) value).value());
+            Optional<String> s = temporarySymbolTable.getSymbol((int) ((Term.Str) value).value());
             if (s.isEmpty()) {
               throw new Error.Execution("string not found in symbols for id" + value);
             } else {
@@ -405,8 +405,9 @@ public abstract class Op {
             stack.push(new Term.Bool(leftSet.containsAll(rightSet)));
           }
           if (left instanceof Term.Str && right instanceof Term.Str) {
-            Option<String> leftS = temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
-            Option<String> rightS =
+            Optional<String> leftS =
+                temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
+            Optional<String> rightS =
                 temporarySymbolTable.getSymbol((int) ((Term.Str) right).value());
 
             if (leftS.isEmpty()) {
@@ -423,8 +424,9 @@ public abstract class Op {
           break;
         case Prefix:
           if (right instanceof Term.Str && left instanceof Term.Str) {
-            Option<String> leftS = temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
-            Option<String> rightS =
+            Optional<String> leftS =
+                temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
+            Optional<String> rightS =
                 temporarySymbolTable.getSymbol((int) ((Term.Str) right).value());
             if (leftS.isEmpty()) {
               throw new Error.Execution(
@@ -440,8 +442,9 @@ public abstract class Op {
           break;
         case Suffix:
           if (right instanceof Term.Str && left instanceof Term.Str) {
-            Option<String> leftS = temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
-            Option<String> rightS =
+            Optional<String> leftS =
+                temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
+            Optional<String> rightS =
                 temporarySymbolTable.getSymbol((int) ((Term.Str) right).value());
             if (leftS.isEmpty()) {
               throw new Error.Execution(
@@ -456,8 +459,9 @@ public abstract class Op {
           break;
         case Regex:
           if (right instanceof Term.Str && left instanceof Term.Str) {
-            Option<String> leftS = temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
-            Option<String> rightS =
+            Optional<String> leftS =
+                temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
+            Optional<String> rightS =
                 temporarySymbolTable.getSymbol((int) ((Term.Str) right).value());
             if (leftS.isEmpty()) {
               throw new Error.Execution(
@@ -485,8 +489,9 @@ public abstract class Op {
             }
           }
           if (right instanceof Term.Str && left instanceof Term.Str) {
-            Option<String> leftS = temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
-            Option<String> rightS =
+            Optional<String> leftS =
+                temporarySymbolTable.getSymbol((int) ((Term.Str) left).value());
+            Optional<String> rightS =
                 temporarySymbolTable.getSymbol((int) ((Term.Str) right).value());
 
             if (leftS.isEmpty()) {

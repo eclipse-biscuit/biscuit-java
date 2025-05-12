@@ -10,15 +10,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import io.vavr.control.Option;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class LogicError {
   static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public Option<List<FailedCheck>> getFailedChecks() {
-    return Option.none();
+  public Optional<List<FailedCheck>> getFailedChecks() {
+    return Optional.empty();
   }
 
   public abstract JsonNode toJson();
@@ -181,8 +181,8 @@ public abstract class LogicError {
       this.policy = policy;
     }
 
-    public Option<List<FailedCheck>> getFailedChecks() {
-      return Option.some(errors);
+    public Optional<List<FailedCheck>> getFailedChecks() {
+      return Optional.of(errors);
     }
 
     @Override
@@ -242,8 +242,8 @@ public abstract class LogicError {
     }
 
     @Override
-    public Option<List<FailedCheck>> getFailedChecks() {
-      return Option.some(errors);
+    public Optional<List<FailedCheck>> getFailedChecks() {
+      return Optional.of(errors);
     }
 
     @Override

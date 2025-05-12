@@ -11,7 +11,6 @@ import static io.vavr.API.Right;
 import io.vavr.Tuple2;
 import io.vavr.Tuple5;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.crypto.PublicKey;
@@ -120,7 +120,7 @@ public final class Authorizer {
       for (long i = 0; i < token.blocks.size(); i++) {
         Block block = token.blocks.get((int) i);
 
-        if (block.getExternalKey().isDefined()) {
+        if (block.getExternalKey().isPresent()) {
           PublicKey pk = block.getExternalKey().get();
           long newKeyId = this.symbolTable.insert(pk);
           if (!this.publicKeyToBlockId.containsKey(newKeyId)) {
@@ -168,7 +168,7 @@ public final class Authorizer {
 
         SymbolTable blockSymbolTable = token.symbolTable;
 
-        if (block.getExternalKey().isDefined()) {
+        if (block.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(block.getSymbolTable(), block.getPublicKeys());
         }
 
@@ -546,7 +546,7 @@ public final class Authorizer {
       }
     }
 
-    Option<Either<Integer, Integer>> policyResult = Option.none();
+    Optional<Either<Integer, Integer>> policyResult = Optional.empty();
     policies_test:
     for (int i = 0; i < this.policies.size(); i++) {
       Policy policy = this.policies.get(i);
@@ -564,9 +564,9 @@ public final class Authorizer {
 
         if (res) {
           if (this.policies.get(i).kind() == Policy.Kind.ALLOW) {
-            policyResult = Option.some(Right(i));
+            policyResult = Optional.of(Right(i));
           } else {
-            policyResult = Option.some(Left(i));
+            policyResult = Optional.of(Left(i));
           }
           break policies_test;
         }
@@ -580,7 +580,7 @@ public final class Authorizer {
             TrustedOrigins.fromScopes(
                 b.getScopes(), TrustedOrigins.defaultOrigins(), i + 1, this.publicKeyToBlockId);
         SymbolTable blockSymbolTable = token.symbolTable;
-        if (b.getExternalKey().isDefined()) {
+        if (b.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(b.getSymbolTable(), b.getPublicKeys());
         }
 
@@ -624,7 +624,7 @@ public final class Authorizer {
       }
     }
 
-    if (policyResult.isDefined()) {
+    if (policyResult.isPresent()) {
       Either<Integer, Integer> e = policyResult.get();
       if (e.isRight()) {
         if (errors.isEmpty()) {
@@ -676,7 +676,7 @@ public final class Authorizer {
         Block b = this.token.blocks.get(i);
 
         SymbolTable blockSymbolTable = token.symbolTable;
-        if (b.getExternalKey().isDefined()) {
+        if (b.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(b.getSymbolTable(), b.getPublicKeys());
         }
 
@@ -735,7 +735,7 @@ public final class Authorizer {
     for (Block block : this.token.blocks) {
       List<Check> blockChecks = new ArrayList<>();
 
-      if (block.getExternalKey().isDefined()) {
+      if (block.getExternalKey().isPresent()) {
         SymbolTable blockSymbolTable =
             new SymbolTable(block.getSymbolTable(), block.getPublicKeys());
         for (org.eclipse.biscuit.datalog.Check check : block.getChecks()) {
