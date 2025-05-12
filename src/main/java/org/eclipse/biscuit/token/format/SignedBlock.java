@@ -13,13 +13,19 @@ public class SignedBlock {
   private PublicKey key;
   private byte[] signature;
   private Option<ExternalSignature> externalSignature;
+  private int version;
 
   public SignedBlock(
-      byte[] block, PublicKey key, byte[] signature, Option<ExternalSignature> externalSignature) {
+      byte[] block,
+      PublicKey key,
+      byte[] signature,
+      Option<ExternalSignature> externalSignature,
+      int version) {
     this.block = block;
     this.key = key;
     this.signature = signature;
     this.externalSignature = externalSignature;
+    this.version = version;
   }
 
   public byte[] getBlock() {
@@ -36,5 +42,9 @@ public class SignedBlock {
 
   public Option<ExternalSignature> getExternalSignature() {
     return externalSignature;
+  }
+
+  public int getVersion() {
+    return version;
   }
 }
