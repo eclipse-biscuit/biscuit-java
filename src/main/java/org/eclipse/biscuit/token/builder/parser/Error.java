@@ -5,9 +5,6 @@
 
 package org.eclipse.biscuit.token.builder.parser;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 public final class Error extends Exception {
   String input;
   String message;
@@ -21,13 +18,6 @@ public final class Error extends Exception {
   @Override
   public String toString() {
     return "Error{" + "input='" + input + '\'' + ", message='" + message + '\'' + '}';
-  }
-
-  public JsonElement toJson() {
-    JsonObject jo = new JsonObject();
-    jo.addProperty("input", this.input);
-    jo.addProperty("message", this.message);
-    return jo;
   }
 
   @Override

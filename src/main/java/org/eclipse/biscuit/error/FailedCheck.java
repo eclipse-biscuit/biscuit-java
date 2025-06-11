@@ -5,24 +5,25 @@
 
 package org.eclipse.biscuit.error;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Objects;
 
-public class FailedCheck {
+public abstract class FailedCheck {
+  static final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * serialize to Json Object
    *
    * @return json object
    */
-  public JsonElement toJson() {
-    return new JsonObject();
-  }
+  public abstract JsonNode toJson();
 
   public static final class FailedBlock extends FailedCheck {
     public final long blockId;
@@ -54,18 +55,20 @@ public class FailedCheck {
 
     @Override
     public String toString() {
-      return "Block(FailedBlockCheck " + new Gson().toJson(toJson()) + ")";
+      try {
+        return "Block(FailedBlockCheck " + objectMapper.writeValueAsString(toJson()) + ")";
+      } catch (JsonProcessingException e) {
+        throw new IllegalStateException(e);
+      }
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
-      jo.addProperty("block_id", blockId);
-      jo.addProperty("check_id", checkId);
-      jo.addProperty("rule", rule);
-      JsonObject block = new JsonObject();
-      block.add("Block", jo);
-      return block;
+    public JsonNode toJson() {
+      ObjectNode child = objectMapper.createObjectNode();
+      child.set("block_id", LongNode.valueOf(this.blockId));
+      child.set("check_id", LongNode.valueOf(this.checkId));
+      child.set("rule", TextNode.valueOf(this.rule));
+      return objectMapper.createObjectNode().set("Block", child);
     }
   }
 
@@ -101,24 +104,20 @@ public class FailedCheck {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
-      jo.addProperty("check_id", checkId);
-      jo.addProperty("rule", rule);
-      JsonObject authorizer = new JsonObject();
-      authorizer.add("Authorizer", jo);
-      return authorizer;
+    public JsonNode toJson() {
+      ObjectNode child = objectMapper.createObjectNode();
+      child.set("check_id", LongNode.valueOf(this.checkId));
+      child.set("rule", TextNode.valueOf(this.rule));
+      return objectMapper.createObjectNode().set("Authorizer", child);
     }
   }
 
-  public static final class ParseErrors extends FailedCheck {}
-
-  public static class LanguageError extends FailedCheck {
+  public abstract static class LanguageError extends FailedCheck {
     public static final class ParseError extends LanguageError {
 
       @Override
-      public JsonElement toJson() {
-        return new JsonPrimitive("ParseError");
+      public JsonNode toJson() {
+        return TextNode.valueOf("ParseError");
       }
     }
 
@@ -153,14 +152,12 @@ public class FailedCheck {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject authorizer = new JsonObject();
-        JsonArray ja = new JsonArray();
+      public JsonNode toJson() {
+        ArrayNode child = objectMapper.createArrayNode();
         for (String s : invalidVariables) {
-          ja.add(s);
+          child.add(s);
         }
-        authorizer.add("InvalidVariables", ja);
-        return authorizer;
+        return objectMapper.createObjectNode().set("InvalidVariables", child);
       }
     }
 
@@ -194,10 +191,8 @@ public class FailedCheck {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject authorizer = new JsonObject();
-        authorizer.add("UnknownVariable", new JsonPrimitive(message));
-        return authorizer;
+      public JsonNode toJson() {
+        return objectMapper.createObjectNode().put("UnknownVariable", message);
       }
     }
   }
