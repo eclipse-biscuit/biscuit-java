@@ -5,12 +5,9 @@
 
 package org.eclipse.biscuit.datalog;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
-import io.vavr.control.Either;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public final class Scope {
   public enum Kind {
@@ -66,22 +63,22 @@ public final class Scope {
     return b.build();
   }
 
-  public static Either<Error.FormatError, Scope> deserialize(Schema.Scope scope) {
+  public static Result<Scope, Error.FormatError> deserialize(Schema.Scope scope) {
     if (scope.hasPublicKey()) {
       long publicKey = scope.getPublicKey();
-      return Right(Scope.publicKey(publicKey));
+      return Result.ok(Scope.publicKey(publicKey));
     }
     if (scope.hasScopeType()) {
       switch (scope.getScopeType()) {
         case Authority:
-          return Right(Scope.authority());
+          return Result.ok(Scope.authority());
         case Previous:
-          return Right(Scope.previous());
+          return Result.ok(Scope.previous());
         default:
-          return Left(new Error.FormatError.DeserializationError("invalid Scope"));
+          return Result.err(new Error.FormatError.DeserializationError("invalid Scope"));
       }
     }
-    return Left(new Error.FormatError.DeserializationError("invalid Scope"));
+    return Result.err(new Error.FormatError.DeserializationError("invalid Scope"));
   }
 
   @Override

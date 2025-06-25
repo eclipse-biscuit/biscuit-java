@@ -305,43 +305,39 @@ public final class Block {
     ArrayList<Check> checks = new ArrayList<>();
 
     for (Schema.FactV2 fact : b.getFactsV2List()) {
-      Either<Error.FormatError, Fact> res = Fact.deserializeV2(fact);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Fact.deserializeV2(fact);
+      if (res.isErr()) {
+        return Left(res.getErr());
       } else {
-        facts.add(res.get());
+        facts.add(res.getOk());
       }
     }
 
     for (Schema.RuleV2 rule : b.getRulesV2List()) {
-      Either<Error.FormatError, Rule> res = Rule.deserializeV2(rule);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Rule.deserializeV2(rule);
+      if (res.isErr()) {
+        return Left(res.getErr());
       } else {
-        rules.add(res.get());
+        rules.add(res.getOk());
       }
     }
 
     for (Schema.CheckV2 check : b.getChecksV2List()) {
-      Either<Error.FormatError, Check> res = Check.deserializeV2(check);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Check.deserializeV2(check);
+      if (res.isErr()) {
+        return Left(res.getErr());
       } else {
-        checks.add(res.get());
+        checks.add(res.getOk());
       }
     }
 
     ArrayList<Scope> scopes = new ArrayList<>();
     for (Schema.Scope scope : b.getScopeList()) {
-      Either<Error.FormatError, Scope> res = Scope.deserialize(scope);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Scope.deserialize(scope);
+      if (res.isErr()) {
+        return Left(res.getErr());
       } else {
-        scopes.add(res.get());
+        scopes.add(res.getOk());
       }
     }
 

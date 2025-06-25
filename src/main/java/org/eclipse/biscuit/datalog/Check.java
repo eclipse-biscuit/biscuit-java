@@ -6,15 +6,13 @@
 package org.eclipse.biscuit.datalog;
 
 import static biscuit.format.schema.Schema.CheckV2.Kind.All;
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
 
 import biscuit.format.schema.Schema;
-import io.vavr.control.Either;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public final class Check {
   public enum Kind {
@@ -59,7 +57,7 @@ public final class Check {
     return b.build();
   }
 
-  public static Either<Error.FormatError, Check> deserializeV2(Schema.CheckV2 check) {
+  public static Result<Check, Error.FormatError> deserializeV2(Schema.CheckV2 check) {
     ArrayList<Rule> queries = new ArrayList<>();
 
     Kind kind;
@@ -76,16 +74,15 @@ public final class Check {
     }
 
     for (Schema.RuleV2 query : check.getQueriesList()) {
-      Either<Error.FormatError, Rule> res = Rule.deserializeV2(query);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Rule.deserializeV2(query);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        queries.add(res.get());
+        queries.add(res.getOk());
       }
     }
 
-    return Right(new Check(kind, queries));
+    return Result.ok(new Check(kind, queries));
   }
 
   @Override

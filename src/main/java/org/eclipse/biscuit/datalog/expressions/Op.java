@@ -5,13 +5,9 @@
 
 package org.eclipse.biscuit.datalog.expressions;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-import io.vavr.control.Either;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Deque;
@@ -23,6 +19,7 @@ import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public abstract class Op {
   public abstract void evaluate(
@@ -33,15 +30,16 @@ public abstract class Op {
 
   public abstract Schema.Op serialize();
 
-  public static Either<Error.FormatError, Op> deserializeV2(Schema.Op op) {
+  public static Result<Op, Error.FormatError> deserializeV2(Schema.Op op) {
     if (op.hasValue()) {
-      return Term.deserializeEnumV2(op.getValue()).map(v -> new Op.Value(v));
+      var res = Term.deserializeEnumV2(op.getValue());
+      return res.isOk() ? Result.ok(new Op.Value(res.getOk())) : Result.err(res.getErr());
     } else if (op.hasUnary()) {
       return Op.Unary.deserializeV2(op.getUnary());
     } else if (op.hasBinary()) {
       return Op.Binary.deserializeV1(op.getBinary());
     } else {
-      return Left(new Error.FormatError.DeserializationError("invalid unary operation"));
+      return Result.err(new Error.FormatError.DeserializationError("invalid unary operation"));
     }
   }
 
@@ -219,18 +217,18 @@ public abstract class Op {
       return b.build();
     }
 
-    public static Either<Error.FormatError, Op> deserializeV2(Schema.OpUnary op) {
+    public static Result<Op, Error.FormatError> deserializeV2(Schema.OpUnary op) {
       switch (op.getKind()) {
         case Negate:
-          return Right(new Op.Unary(UnaryOp.Negate));
+          return Result.ok(new Op.Unary(UnaryOp.Negate));
         case Parens:
-          return Right(new Op.Unary(UnaryOp.Parens));
+          return Result.ok(new Op.Unary(UnaryOp.Parens));
         case Length:
-          return Right(new Op.Unary(UnaryOp.Length));
+          return Result.ok(new Op.Unary(UnaryOp.Length));
         default:
       }
 
-      return Left(new Error.FormatError.DeserializationError("invalid unary operation"));
+      return Result.err(new Error.FormatError.DeserializationError("invalid unary operation"));
     }
 
     @Override
@@ -773,52 +771,52 @@ public abstract class Op {
       return b.build();
     }
 
-    public static Either<Error.FormatError, Op> deserializeV1(Schema.OpBinary op) {
+    public static Result<Op, Error.FormatError> deserializeV1(Schema.OpBinary op) {
       switch (op.getKind()) {
         case LessThan:
-          return Right(new Op.Binary(BinaryOp.LessThan));
+          return Result.ok(new Op.Binary(BinaryOp.LessThan));
         case GreaterThan:
-          return Right(new Op.Binary(BinaryOp.GreaterThan));
+          return Result.ok(new Op.Binary(BinaryOp.GreaterThan));
         case LessOrEqual:
-          return Right(new Op.Binary(BinaryOp.LessOrEqual));
+          return Result.ok(new Op.Binary(BinaryOp.LessOrEqual));
         case GreaterOrEqual:
-          return Right(new Op.Binary(BinaryOp.GreaterOrEqual));
+          return Result.ok(new Op.Binary(BinaryOp.GreaterOrEqual));
         case Equal:
-          return Right(new Op.Binary(BinaryOp.Equal));
+          return Result.ok(new Op.Binary(BinaryOp.Equal));
         case NotEqual:
-          return Right(new Op.Binary(BinaryOp.NotEqual));
+          return Result.ok(new Op.Binary(BinaryOp.NotEqual));
         case Contains:
-          return Right(new Op.Binary(BinaryOp.Contains));
+          return Result.ok(new Op.Binary(BinaryOp.Contains));
         case Prefix:
-          return Right(new Op.Binary(BinaryOp.Prefix));
+          return Result.ok(new Op.Binary(BinaryOp.Prefix));
         case Suffix:
-          return Right(new Op.Binary(BinaryOp.Suffix));
+          return Result.ok(new Op.Binary(BinaryOp.Suffix));
         case Regex:
-          return Right(new Op.Binary(BinaryOp.Regex));
+          return Result.ok(new Op.Binary(BinaryOp.Regex));
         case Add:
-          return Right(new Op.Binary(BinaryOp.Add));
+          return Result.ok(new Op.Binary(BinaryOp.Add));
         case Sub:
-          return Right(new Op.Binary(BinaryOp.Sub));
+          return Result.ok(new Op.Binary(BinaryOp.Sub));
         case Mul:
-          return Right(new Op.Binary(BinaryOp.Mul));
+          return Result.ok(new Op.Binary(BinaryOp.Mul));
         case Div:
-          return Right(new Op.Binary(BinaryOp.Div));
+          return Result.ok(new Op.Binary(BinaryOp.Div));
         case And:
-          return Right(new Op.Binary(BinaryOp.And));
+          return Result.ok(new Op.Binary(BinaryOp.And));
         case Or:
-          return Right(new Op.Binary(BinaryOp.Or));
+          return Result.ok(new Op.Binary(BinaryOp.Or));
         case Intersection:
-          return Right(new Op.Binary(BinaryOp.Intersection));
+          return Result.ok(new Op.Binary(BinaryOp.Intersection));
         case Union:
-          return Right(new Op.Binary(BinaryOp.Union));
+          return Result.ok(new Op.Binary(BinaryOp.Union));
         case BitwiseAnd:
-          return Right(new Op.Binary(BinaryOp.BitwiseAnd));
+          return Result.ok(new Op.Binary(BinaryOp.BitwiseAnd));
         case BitwiseOr:
-          return Right(new Op.Binary(BinaryOp.BitwiseOr));
+          return Result.ok(new Op.Binary(BinaryOp.BitwiseOr));
         case BitwiseXor:
-          return Right(new Op.Binary(BinaryOp.BitwiseXor));
+          return Result.ok(new Op.Binary(BinaryOp.BitwiseXor));
         default:
-          return Left(
+          return Result.err(
               new Error.FormatError.DeserializationError(
                   "invalid binary operation: " + op.getKind()));
       }

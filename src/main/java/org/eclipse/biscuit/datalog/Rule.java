@@ -5,17 +5,12 @@
 
 package org.eclipse.biscuit.datalog;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
 import io.vavr.Tuple2;
 import io.vavr.Tuple3;
-import io.vavr.control.Either;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +23,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public final class Rule implements Serializable {
   private final Predicate head;
@@ -51,7 +47,7 @@ public final class Rule implements Serializable {
     return scopes;
   }
 
-  public Stream<Either<Error, Tuple2<Origin, Fact>>> apply(
+  public Stream<Result<Tuple2<Origin, Fact>, Error>> apply(
       final Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier,
       Long ruleOrigin,
       SymbolTable symbolTable) {
@@ -61,6 +57,8 @@ public final class Rule implements Serializable {
     Spliterator<Tuple2<Origin, Map<Long, Term>>> splitItr =
         Spliterators.spliteratorUnknownSize(combinator, Spliterator.ORDERED);
     Stream<Tuple2<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
+
+    // (Tuple3<Origin, Map<Long, Term>, Boolean>)
 
     // somehow we have inference errors when writing this as a lambda
     return stream
@@ -76,26 +74,26 @@ public final class Rule implements Serializable {
                   if (term instanceof Term.Bool) {
                     Term.Bool b = (Term.Bool) term;
                     if (!b.value()) {
-                      return Either.right(new Tuple3<>(origin, generatedVariables, false));
+                      return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>ok(
+                          new Tuple3<>(origin, generatedVariables, false));
                     }
                     // continue evaluating if true
                   } else {
-                    return Either.left(new Error.InvalidType());
+                    return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>err(
+                        new Error.InvalidType());
                   }
                 } catch (Error error) {
-                  return Either.left(error);
+                  return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>err(error);
                 }
               }
-              return Either.right(new Tuple3<>(origin, generatedVariables, true));
+              return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>ok(
+                  new Tuple3<>(origin, generatedVariables, true));
             })
         // sometimes we need to make the compiler happy
-        .filter(
-            (java.util.function.Predicate<? super Either<? extends Object, ? extends Object>>)
-                res -> res.isRight() & ((Tuple3<Origin, Map<Long, Term>, Boolean>) res.get())._3)
+        .filter(res -> res.isOk() & res.getOk()._3)
         .map(
             res -> {
-              Tuple3<Origin, Map<Long, Term>, Boolean> t =
-                  (Tuple3<Origin, Map<Long, Term>, Boolean>) res.get();
+              var t = res.getOk();
               Origin origin = t._1;
               Map<Long, Term> generatedVariables = t._2;
 
@@ -106,14 +104,14 @@ public final class Rule implements Serializable {
                   if (!generatedVariables.containsKey(var.value())) {
                     // throw new Error("variables that appear in the head should appear in the body
                     // as well");
-                    return Either.left(new Error.InternalError());
+                    return Result.err(new Error.InternalError());
                   }
                   p.terms().set(index, generatedVariables.get(var.value()));
                 }
               }
 
               origin.add(ruleOrigin);
-              return Either.right(new Tuple2<Origin, Fact>(origin, new Fact(p)));
+              return Result.ok(new Tuple2<Origin, Fact>(origin, new Fact(p)));
             });
   }
 
@@ -141,20 +139,18 @@ public final class Rule implements Serializable {
     }
 
     Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
-    Stream<Either<Error, Tuple2<Origin, Fact>>> stream =
-        this.apply(factsSupplier, origin, symbolTable);
-
-    Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator();
+    var stream = this.apply(factsSupplier, origin, symbolTable);
+    var it = stream.iterator();
 
     if (!it.hasNext()) {
       return false;
     }
 
-    Either<Error, Tuple2<Origin, Fact>> next = it.next();
-    if (next.isRight()) {
+    var next = it.next();
+    if (next.isOk()) {
       return true;
     } else {
-      throw next.getLeft();
+      throw next.getErr();
     }
   }
 
@@ -231,46 +227,43 @@ public final class Rule implements Serializable {
     return b.build();
   }
 
-  public static Either<Error.FormatError, Rule> deserializeV2(Schema.RuleV2 rule) {
+  public static Result<Rule, Error.FormatError> deserializeV2(Schema.RuleV2 rule) {
     ArrayList<Predicate> body = new ArrayList<>();
     for (Schema.PredicateV2 predicate : rule.getBodyList()) {
-      Either<Error.FormatError, Predicate> res = Predicate.deserializeV2(predicate);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Predicate.deserializeV2(predicate);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        body.add(res.get());
+        body.add(res.getOk());
       }
     }
 
     ArrayList<Expression> expressions = new ArrayList<>();
     for (Schema.ExpressionV2 expression : rule.getExpressionsList()) {
-      Either<Error.FormatError, Expression> res = Expression.deserializeV2(expression);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Expression.deserializeV2(expression);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        expressions.add(res.get());
+        expressions.add(res.getOk());
       }
     }
 
     ArrayList<Scope> scopes = new ArrayList<>();
     for (Schema.Scope scope : rule.getScopeList()) {
-      Either<Error.FormatError, Scope> res = Scope.deserialize(scope);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Scope.deserialize(scope);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        scopes.add(res.get());
+        scopes.add(res.getOk());
       }
     }
 
-    Either<Error.FormatError, Predicate> res = Predicate.deserializeV2(rule.getHead());
-    if (res.isLeft()) {
-      Error.FormatError e = res.getLeft();
-      return Left(e);
+    var res = Predicate.deserializeV2(rule.getHead());
+    if (res.isErr()) {
+      Error.FormatError e = res.getErr();
+      return Result.err(e);
     } else {
-      return Right(new Rule(res.get(), body, expressions, scopes));
+      return Result.ok(new Rule(res.getOk(), body, expressions, scopes));
     }
   }
 
