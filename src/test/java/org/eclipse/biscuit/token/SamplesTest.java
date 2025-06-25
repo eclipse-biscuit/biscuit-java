@@ -333,26 +333,13 @@ class SamplesTest {
 
     public List<PublicKey> getPublicKeys() {
       return this.publicKeys.stream()
-          .map(
-              pk ->
-                  Parser.publicKey(pk)
-                      .fold(
-                          e -> {
-                            throw new IllegalArgumentException(e.toString());
-                          },
-                          r -> r._2))
+          .map(pk -> Parser.publicKey(pk).getOk()._2)
           .collect(Collectors.toList());
     }
 
     public Optional<PublicKey> getExternalKey() {
       if (this.externalKey != null) {
-        PublicKey externalKey =
-            Parser.publicKey(this.externalKey)
-                .fold(
-                    e -> {
-                      throw new IllegalArgumentException(e.toString());
-                    },
-                    r -> r._2);
+        PublicKey externalKey = Parser.publicKey(this.externalKey).getOk()._2;
         return Optional.of(externalKey);
       } else {
         return Optional.empty();

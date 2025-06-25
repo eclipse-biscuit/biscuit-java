@@ -22,10 +22,10 @@ import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.expressions.Op;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.Expression;
-import org.eclipse.biscuit.token.builder.Fact;
 import org.eclipse.biscuit.token.builder.Predicate;
 import org.eclipse.biscuit.token.builder.Rule;
 import org.eclipse.biscuit.token.builder.Scope;
@@ -39,58 +39,56 @@ class ParserTest {
 
   @Test
   void testName() {
-    Either<Error, Tuple2<String, String>> res = Parser.name("operation(read)");
-    assertEquals(Either.right(new Tuple2<>("(read)", "operation")), res);
+    var res = Parser.name("operation(read)");
+    assertEquals(Result.ok(new Tuple2<>("(read)", "operation")), res);
   }
 
   @Test
   void testString() {
-    Either<Error, Tuple2<String, Term.Str>> res = Parser.string("\"file1 a hello - 123_\"");
-    assertEquals(
-        Either.right(new Tuple2<>("", (Term.Str) Utils.string("file1 a hello - 123_"))), res);
+    var res = Parser.string("\"file1 a hello - 123_\"");
+    assertEquals(Result.ok(new Tuple2<>("", (Term.Str) Utils.string("file1 a hello - 123_"))), res);
   }
 
   @Test
   void testInteger() {
-    Either<Error, Tuple2<String, Term.Integer>> res = Parser.integer("123");
-    assertEquals(Either.right(new Tuple2<>("", (Term.Integer) Utils.integer(123))), res);
+    var res = Parser.integer("123");
+    assertEquals(Result.ok(new Tuple2<>("", (Term.Integer) Utils.integer(123))), res);
 
-    Either<Error, Tuple2<String, Term.Integer>> res2 = Parser.integer("-42");
-    assertEquals(Either.right(new Tuple2<>("", (Term.Integer) Utils.integer(-42))), res2);
+    var res2 = Parser.integer("-42");
+    assertEquals(Result.ok(new Tuple2<>("", (Term.Integer) Utils.integer(-42))), res2);
   }
 
   @Test
   void testDate() {
-    Either<Error, Tuple2<String, Term.Date>> res = Parser.date("2019-12-02T13:49:53Z,");
-    assertEquals(Either.right(new Tuple2<>(",", new Term.Date(1575294593))), res);
+    var res = Parser.date("2019-12-02T13:49:53Z,");
+    assertEquals(Result.ok(new Tuple2<>(",", new Term.Date(1575294593))), res);
   }
 
   @Test
   void testVariable() {
-    Either<Error, Tuple2<String, Term.Variable>> res = Parser.variable("$name");
-    assertEquals(Either.right(new Tuple2<>("", (Term.Variable) Utils.var("name"))), res);
+    var res = Parser.variable("$name");
+    assertEquals(Result.ok(new Tuple2<>("", (Term.Variable) Utils.var("name"))), res);
   }
 
   @Test
   void testFact() throws org.eclipse.biscuit.error.Error.Language {
-    Either<Error, Tuple2<String, Fact>> res = Parser.fact("right( \"file1\", \"read\" )");
+    var res = Parser.fact("right( \"file1\", \"read\" )");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "", Utils.fact("right", Arrays.asList(Utils.string("file1"), Utils.str("read"))))),
         res);
 
-    Either<Error, Tuple2<String, Fact>> res2 = Parser.fact("right( $var, \"read\" )");
-    assertEquals(Either.left(new Error("$var, \"read\" )", "closing parens not found")), res2);
+    var res2 = Parser.fact("right( $var, \"read\" )");
+    assertEquals(Result.err(new Error("$var, \"read\" )", "closing parens not found")), res2);
 
-    Either<Error, Tuple2<String, Fact>> res3 = Parser.fact("date(2019-12-02T13:49:53Z)");
+    var res3 = Parser.fact("date(2019-12-02T13:49:53Z)");
     assertEquals(
-        Either.right(new Tuple2<>("", Utils.fact("date", List.of(new Term.Date(1575294593))))),
-        res3);
+        Result.ok(new Tuple2<>("", Utils.fact("date", List.of(new Term.Date(1575294593))))), res3);
 
-    Either<Error, Tuple2<String, Fact>> res4 = Parser.fact("n1:right( \"file1\", \"read\" )");
+    var res4 = Parser.fact("n1:right( \"file1\", \"read\" )");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 Utils.fact("n1:right", Arrays.asList(Utils.string("file1"), Utils.str("read"))))),
@@ -99,10 +97,9 @@ class ParserTest {
 
   @Test
   void testRule() {
-    Either<Error, Tuple2<String, Rule>> res =
-        Parser.rule("right($resource, \"read\") <- resource($resource), operation(\"read\")");
+    var res = Parser.rule("right($resource, \"read\") <- resource($resource), operation(\"read\")");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 Utils.rule(
@@ -116,11 +113,11 @@ class ParserTest {
 
   @Test
   void testRuleWithExpression() {
-    Either<Error, Tuple2<String, Rule>> res =
+    var res =
         Parser.rule(
             "valid_date(\"file1\") <- time($0 ), resource( \"file1\"), $0 <= 2019-12-04T09:46:41Z");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 Utils.constrainedRule(
@@ -139,11 +136,11 @@ class ParserTest {
 
   @Test
   void testRuleWithExpressionOrdering() {
-    Either<Error, Tuple2<String, Rule>> res =
+    var res =
         Parser.rule(
             "valid_date(\"file1\") <- time($0 ), $0 <= 2019-12-04T09:46:41Z, resource(\"file1\")");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 Utils.constrainedRule(
@@ -162,11 +159,10 @@ class ParserTest {
 
   @Test
   void expressionIntersectionAndContainsTest() {
-    Either<Error, Tuple2<String, Expression>> res =
-        Parser.expression("[1, 2, 3].intersection([1, 2]).contains(1)");
+    var res = Parser.expression("[1, 2, 3].intersection([1, 2]).contains(1)");
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 new Expression.Binary(
@@ -187,11 +183,10 @@ class ParserTest {
 
   @Test
   void expressionIntersectionAndContainsAndLengthEqualsTest() {
-    Either<Error, Tuple2<String, Expression>> res =
-        Parser.expression("[1, 2, 3].intersection([1, 2]).length() == 2");
+    var res = Parser.expression("[1, 2, 3].intersection([1, 2]).length() == 2");
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 new Expression.Binary(
@@ -217,9 +212,9 @@ class ParserTest {
 
   @Test
   void testNegatePrecedence() {
-    Either<Error, Tuple2<String, Check>> res = Parser.check("check if !false && true");
+    var res = Parser.check("check if !false && true");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 Utils.check(
@@ -239,10 +234,9 @@ class ParserTest {
 
   @Test
   void ruleWithFreeExpressionVariables() {
-    Either<Error, Tuple2<String, Rule>> res =
-        Parser.rule("right($0) <- resource($0), operation(\"read\"), $test");
+    var res = Parser.rule("right($0) <- resource($0), operation(\"read\"), $test");
     assertEquals(
-        Either.left(
+        Result.err(
             new Error(
                 " resource($0), operation(\"read\"), $test",
                 "rule head or expressions contains variables that are not used in predicates of the"
@@ -252,7 +246,7 @@ class ParserTest {
 
   @Test
   void testRuleWithScope() throws org.eclipse.biscuit.error.Error.FormatError {
-    Either<Error, Tuple2<String, Rule>> res =
+    var res =
         Parser.rule(
             "valid_date(\"file1\") <- resource(\"file1\")  trusting"
                 + " ed25519/6e9e6d5a75cf0c0e87ec1256b4dfed0ca3ba452912d213fcc70f8516583db9db,"
@@ -268,15 +262,14 @@ class ParserTest {
                         Schema.PublicKey.Algorithm.Ed25519,
                         "6e9e6d5a75cf0c0e87ec1256b4dfed0ca3ba452912d213fcc70f8516583db9db")),
                 Scope.authority()));
-    assertEquals(Either.right(new Tuple2<>("", refRule)), res);
+    assertEquals(Result.ok(new Tuple2<>("", refRule)), res);
   }
 
   @Test
   void testCheck() {
-    Either<Error, Tuple2<String, Check>> res =
-        Parser.check("check if resource($0), operation(\"read\") or admin()");
+    var res = Parser.check("check if resource($0), operation(\"read\") or admin()");
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<>(
                 "",
                 new Check(
@@ -297,13 +290,12 @@ class ParserTest {
 
   @Test
   void testExpression() {
-    Either<Error, Tuple2<String, Expression>> res = Parser.expression(" -1 ");
+    var res = Parser.expression(" -1 ");
 
     assertEquals(
-        new Tuple2<String, Expression>("", new Expression.Value(Utils.integer(-1))), res.get());
+        new Tuple2<String, Expression>("", new Expression.Value(Utils.integer(-1))), res.getOk());
 
-    Either<Error, Tuple2<String, Expression>> res2 =
-        Parser.expression(" $0 <= 2019-12-04T09:46:41+00:00");
+    var res2 = Parser.expression(" $0 <= 2019-12-04T09:46:41+00:00");
 
     assertEquals(
         new Tuple2<String, Expression>(
@@ -312,12 +304,12 @@ class ParserTest {
                 Expression.Op.LessOrEqual,
                 new Expression.Value(Utils.var("0")),
                 new Expression.Value(new Term.Date(1575452801)))),
-        res2.get());
+        res2.getOk());
 
-    Either<Error, Tuple2<String, Expression>> res3 = Parser.expression(" 1 < $test + 2 ");
+    var res3 = Parser.expression(" 1 < $test + 2 ");
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<String, Expression>(
                 "",
                 new Expression.Binary(
@@ -338,13 +330,12 @@ class ParserTest {
             new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(2)),
             new Op.Binary(Op.BinaryOp.Add),
             new Op.Binary(Op.BinaryOp.LessThan)),
-        res3.get()._2.convert(s3).getOps());
+        res3.getOk()._2.convert(s3).getOps());
 
-    Either<Error, Tuple2<String, Expression>> res4 =
-        Parser.expression("  2 < $test && $var2.starts_with(\"test\") && true ");
+    var res4 = Parser.expression("  2 < $test && $var2.starts_with(\"test\") && true ");
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<String, Expression>(
                 "",
                 new Expression.Binary(
@@ -362,15 +353,14 @@ class ParserTest {
                     new Expression.Value(new Term.Bool(true))))),
         res4);
 
-    Either<Error, Tuple2<String, Expression>> res5 =
-        Parser.expression("  [ \"abc\", \"def\" ].contains($operation) ");
+    var res5 = Parser.expression("  [ \"abc\", \"def\" ].contains($operation) ");
 
     HashSet<Term> s = new HashSet<>();
     s.add(Utils.str("abc"));
     s.add(Utils.str("def"));
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<String, Expression>(
                 "",
                 new Expression.Binary(
@@ -382,10 +372,10 @@ class ParserTest {
 
   @Test
   void testParens() throws org.eclipse.biscuit.error.Error.Execution {
-    Either<Error, Tuple2<String, Expression>> res = Parser.expression("  1 + 2 * 3  ");
+    var res = Parser.expression("  1 + 2 * 3  ");
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<String, Expression>(
                 "",
                 new Expression.Binary(
@@ -397,7 +387,7 @@ class ParserTest {
                         new Expression.Value(Utils.integer(3)))))),
         res);
 
-    Expression e = res.get()._2;
+    Expression e = res.getOk()._2;
     SymbolTable s = new SymbolTable();
 
     org.eclipse.biscuit.datalog.expressions.Expression ex = e.convert(s);
@@ -416,10 +406,10 @@ class ParserTest {
     assertEquals(new org.eclipse.biscuit.datalog.Term.Integer(7), value);
     assertEquals("1 + 2 * 3", ex.print(s).get());
 
-    Either<Error, Tuple2<String, Expression>> res2 = Parser.expression("  (1 + 2) * 3  ");
+    var res2 = Parser.expression("  (1 + 2) * 3  ");
 
     assertEquals(
-        Either.right(
+        Result.ok(
             new Tuple2<String, Expression>(
                 "",
                 new Expression.Binary(
@@ -433,7 +423,7 @@ class ParserTest {
                     new Expression.Value(Utils.integer(3))))),
         res2);
 
-    Expression e2 = res2.get()._2;
+    Expression e2 = res2.getOk()._2;
     SymbolTable s2 = new SymbolTable();
 
     org.eclipse.biscuit.datalog.expressions.Expression ex2 = e2.convert(s2);

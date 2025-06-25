@@ -258,16 +258,11 @@ public final class Authorizer {
   }
 
   public Authorizer addFact(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Fact>> res =
-        Parser.fact(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.fact(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Fact> t = res.get();
-
-    return this.addFact(t._2);
+    return this.addFact(res.getOk()._2);
   }
 
   public Authorizer addRule(Rule rule) {
@@ -280,16 +275,11 @@ public final class Authorizer {
   }
 
   public Authorizer addRule(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return addRule(t._2);
+    return addRule(res.getOk()._2);
   }
 
   public TrustedOrigins authorizerTrustedOrigins() {
@@ -303,16 +293,11 @@ public final class Authorizer {
   }
 
   public Authorizer addCheck(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Check>> res =
-        Parser.check(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.check(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Check> t = res.get();
-
-    return addCheck(t._2);
+    return addCheck(res.getOk()._2);
   }
 
   public Authorizer setTime() throws Error.Language {
@@ -375,16 +360,11 @@ public final class Authorizer {
   }
 
   public Authorizer addPolicy(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Policy>> res =
-        Parser.policy(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.policy(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Policy> t = res.get();
-
-    this.policies.add(t._2);
+    this.policies.add(res.getOk()._2);
     return this;
   }
 
@@ -402,17 +382,12 @@ public final class Authorizer {
     return this.query(query, new RunLimits());
   }
 
-  public Set<Fact> query(String s) throws Error {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+  public Set<org.eclipse.biscuit.token.builder.Fact> query(String s) throws Error {
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return query(t._2);
+    return query(res.getOk()._2);
   }
 
   public Set<Fact> query(Rule query, RunLimits limits) throws Error {
@@ -438,17 +413,13 @@ public final class Authorizer {
     return s;
   }
 
-  public Set<Fact> query(String s, RunLimits limits) throws Error {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+  public Set<org.eclipse.biscuit.token.builder.Fact> query(String s, RunLimits limits)
+      throws Error {
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return query(t._2, limits);
+    return query(res.getOk()._2, limits);
   }
 
   public Long authorize() throws Error {
