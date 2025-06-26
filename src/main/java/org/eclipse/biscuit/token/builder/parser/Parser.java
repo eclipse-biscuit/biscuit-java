@@ -7,7 +7,6 @@ package org.eclipse.biscuit.token.builder.parser;
 
 import biscuit.format.schema.Schema;
 import io.vavr.Tuple2;
-import io.vavr.Tuple4;
 import io.vavr.collection.Stream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -34,11 +33,25 @@ public final class Parser {
   private Parser() {}
 
   public static final class DatalogComponents {
-    public List<Fact> facts = new ArrayList<>();
-    public List<Rule> rules = new ArrayList<>();
-    public List<Check> checks = new ArrayList<>();
-    public List<Scope> scopes = new ArrayList<>();
-    public List<Policy> policies = new ArrayList<>();
+    public final List<Fact> facts = new ArrayList<>();
+    public final List<Rule> rules = new ArrayList<>();
+    public final List<Check> checks = new ArrayList<>();
+    public final List<Scope> scopes = new ArrayList<>();
+    public final List<Policy> policies = new ArrayList<>();
+  }
+
+  public static final class RuleBody {
+    public final String head;
+    public final List<Predicate> predicates;
+    public final List<Expression> expressions;
+    public final List<Scope> scopes;
+
+      public RuleBody(String head, List<Predicate> predicates, List<Expression> expressions, List<Scope> scopes) {
+          this.head = head;
+          this.predicates = predicates;
+          this.expressions = expressions;
+          this.scopes = scopes;
+      }
   }
 
   /**
@@ -217,20 +230,20 @@ public final class Parser {
       return Result.err(bodyRes.getErr());
     }
 
-    Tuple4<String, List<Predicate>, List<Expression>, List<Scope>> body = bodyRes.getOk();
+    RuleBody body = bodyRes.getOk();
 
-    if (!body._1.isEmpty()) {
-      return Result.err(new Error(s, "the string was not entirely parsed, remaining: " + body._1));
+    if (!body.head.isEmpty()) {
+      return Result.err(new Error(s, "the string was not entirely parsed, remaining: " + body.head));
     }
 
     Predicate head = t0._2;
-    Rule rule = new Rule(head, body._2, body._3, body._4);
+    Rule rule = new Rule(head, body.predicates, body.expressions, body.scopes);
     var valid = rule.validateVariables();
     if (valid.isErr()) {
       return Result.err(new Error(s, valid.getErr()));
     }
 
-    return Result.ok(new Tuple2<>(body._1, rule));
+    return Result.ok(new Tuple2<>(body.head, rule));
   }
 
   public static Result<Tuple2<String, Check>, Error> check(String s) {
@@ -296,11 +309,11 @@ public final class Parser {
       return Result.err(bodyRes.getErr());
     }
 
-    Tuple4<String, List<Predicate>, List<Expression>, List<Scope>> body = bodyRes.getOk();
+    var body = bodyRes.getOk();
 
-    s = body._1;
+    s = body.head;
     // FIXME: parse scopes
-    queries.add(new Rule(new Predicate("query", new ArrayList<>()), body._2, body._3, body._4));
+    queries.add(new Rule(new Predicate("query", new ArrayList<>()), body.predicates, body.expressions, body.scopes));
 
     int i = 0;
     while (true) {
@@ -320,18 +333,17 @@ public final class Parser {
         return Result.err(bodyRes2.getErr());
       }
 
-      Tuple4<String, List<Predicate>, List<Expression>, List<Scope>> body2 = bodyRes2.getOk();
+      var body2 = bodyRes2.getOk();
 
-      s = body2._1;
+      s = body2.head;
       queries.add(
-          new Rule(new Predicate("query", new ArrayList<>()), body2._2, body2._3, body2._4));
+          new Rule(new Predicate("query", new ArrayList<>()), body2.predicates, body2.expressions, body2.scopes));
     }
 
     return Result.ok(new Tuple2<>(s, queries));
   }
 
-  public static Result<Tuple4<String, List<Predicate>, List<Expression>, List<Scope>>, Error>
-      ruleBody(String s) {
+  public static Result<RuleBody, Error> ruleBody(String s) {
     List<Predicate> predicates = new ArrayList<Predicate>();
     List<Expression> expressions = new ArrayList<>();
 
@@ -356,7 +368,7 @@ public final class Parser {
 
       s = space(s);
 
-      if (s.length() == 0 || s.charAt(0) != ',') {
+      if (s.isEmpty() || s.charAt(0) != ',') {
         break;
       } else {
         s = s.substring(1);
@@ -365,10 +377,10 @@ public final class Parser {
 
     var res = scopes(s);
     if (res.isErr()) {
-      return Result.ok(new Tuple4<>(s, predicates, expressions, new ArrayList<>()));
+      return Result.ok(new RuleBody(s, predicates,  expressions, new ArrayList<>()));
     } else {
       Tuple2<String, List<Scope>> t = res.getOk();
-      return Result.ok(new Tuple4<>(t._1, predicates, expressions, t._2));
+      return Result.ok(new RuleBody(t._1, predicates, expressions, t._2));
     }
   }
 
