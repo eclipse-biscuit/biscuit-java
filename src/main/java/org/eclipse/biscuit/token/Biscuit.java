@@ -7,7 +7,6 @@ package org.eclipse.biscuit.token;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import io.vavr.Tuple2;
-import io.vavr.control.Either;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -115,12 +114,11 @@ public final class Biscuit extends UnverifiedBiscuit {
       authority.getSymbolTable().insert(pk);
     }
 
-    Either<Error.FormatError, SerializedBiscuit> container =
-        SerializedBiscuit.make(root, rootKeyId, authority, next);
-    if (container.isLeft()) {
-      throw container.getLeft();
+    var container = SerializedBiscuit.make(root, rootKeyId, authority, next);
+    if (container.isErr()) {
+      throw container.getErr();
     } else {
-      SerializedBiscuit s = container.get();
+      SerializedBiscuit s = container.getOk();
 
       Optional<SerializedBiscuit> c = Optional.of(s);
       return new Biscuit(authority, blocks, authority.getSymbolTable(), s);
@@ -331,8 +329,8 @@ public final class Biscuit extends UnverifiedBiscuit {
     }
 
     var containerRes = copiedBiscuit.serializedBiscuit.append(keypair, block, Optional.empty());
-    if (containerRes.isLeft()) {
-      throw containerRes.getLeft();
+    if (containerRes.isErr()) {
+      throw containerRes.getErr();
     }
 
     SymbolTable symbolTable = new SymbolTable(copiedBiscuit.symbolTable);
@@ -350,7 +348,7 @@ public final class Biscuit extends UnverifiedBiscuit {
     }
     blocks.add(block);
 
-    SerializedBiscuit container = containerRes.get();
+    SerializedBiscuit container = containerRes.getOk();
 
     return new Biscuit(copiedBiscuit.authority, blocks, symbolTable, container);
   }

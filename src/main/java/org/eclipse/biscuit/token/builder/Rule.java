@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.token.builder;
 
-import io.vavr.control.Either;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +16,7 @@ import java.util.stream.Stream;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
+import org.eclipse.biscuit.error.Result;
 
 public final class Rule implements Cloneable {
   Predicate head;
@@ -133,7 +133,7 @@ public final class Rule implements Cloneable {
         });
   }
 
-  public Either<String, Rule> validateVariables() {
+  public Result<Rule, String> validateVariables() {
     Set<String> freeVariables =
         this.head.terms.stream()
             .flatMap(
@@ -150,7 +150,7 @@ public final class Rule implements Cloneable {
       e.gatherVariables(freeVariables);
     }
     if (freeVariables.isEmpty()) {
-      return Either.right(this);
+      return Result.ok(this);
     }
 
     for (Predicate p : this.body) {
@@ -158,13 +158,13 @@ public final class Rule implements Cloneable {
         if (term instanceof Term.Variable) {
           freeVariables.remove(((Term.Variable) term).value);
           if (freeVariables.isEmpty()) {
-            return Either.right(this);
+            return Result.ok(this);
           }
         }
       }
     }
 
-    return Either.left(
+    return Result.err(
         "rule head or expressions contains variables that are not "
             + "used in predicates of the rule's body: "
             + freeVariables.toString());

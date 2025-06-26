@@ -58,9 +58,6 @@ public final class Rule implements Serializable {
         Spliterators.spliteratorUnknownSize(combinator, Spliterator.ORDERED);
     Stream<Tuple2<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
 
-    // (Tuple3<Origin, Map<Long, Term>, Boolean>)
-
-    // somehow we have inference errors when writing this as a lambda
     return stream
         .map(
             t -> {
@@ -89,7 +86,6 @@ public final class Rule implements Serializable {
               return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>ok(
                   new Tuple3<>(origin, generatedVariables, true));
             })
-        // sometimes we need to make the compiler happy
         .filter(res -> res.isOk() & res.getOk()._3)
         .map(
             res -> {

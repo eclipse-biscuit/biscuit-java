@@ -10,7 +10,6 @@ import io.vavr.Tuple2;
 import io.vavr.Tuple4;
 import io.vavr.Tuple5;
 import io.vavr.collection.Stream;
-import io.vavr.control.Either;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -42,12 +41,12 @@ public final class Parser {
    * <p>If one succeeds it returns Right(Block) else it returns a Map[lineNumber, List[Error]]
    *
    * @param s datalog string to parse
-   * @return Either<Map<Integer, List<Error>>, Tuple5<List<Fact>, List<Rule>, List<Check>,
-   *     List<Scope>, List<Policy>>>
+   * @return Result<Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>,
+   *     Map<Integer, List<Error>>>
    */
-  public static Either<
-          Map<Integer, List<Error>>,
-          Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>>
+  public static Result<
+          Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>,
+          Map<Integer, List<Error>>>
       datalogComponents(String s) {
     List<Fact> facts = new ArrayList<>();
     List<Rule> rules = new ArrayList<>();
@@ -56,7 +55,7 @@ public final class Parser {
     List<Policy> policies = new ArrayList<>();
 
     if (s.isEmpty()) {
-      return Either.right(new Tuple5<>(facts, rules, checks, scopes, policies));
+      return Result.ok(new Tuple5<>(facts, rules, checks, scopes, policies));
     }
 
     Map<Integer, List<Error>> errors = new HashMap<>();
@@ -136,10 +135,10 @@ public final class Parser {
             });
 
     if (!errors.isEmpty()) {
-      return Either.left(errors);
+      return Result.err(errors);
     }
 
-    return Either.right(new Tuple5<>(facts, rules, checks, scopes, policies));
+    return Result.ok(new Tuple5<>(facts, rules, checks, scopes, policies));
   }
 
   /**
@@ -150,25 +149,20 @@ public final class Parser {
    *
    * @param index block index
    * @param s datalog string to parse
-   * @return Either<Map<Integer, List<Error>>, Block>
+   * @return Result<Block, Map<Integer, List<Error>>>
    */
-  public static Either<Map<Integer, List<Error>>, Block> datalog(long index, String s) {
+  public static Result<Block, Map<Integer, List<Error>>> datalog(long index, String s) {
     Block blockBuilder = new Block();
 
-    Either<
-            Map<Integer, List<Error>>,
-            Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>>
-        result = datalogComponents(s);
-
-    if (result.isLeft()) {
-      return Either.left(result.getLeft());
+    var result = datalogComponents(s);
+    if (result.isErr()) {
+      return Result.err(result.getErr());
     }
 
-    Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>> components =
-        result.get();
+    var components = result.getOk();
 
     if (!components._5.isEmpty()) {
-      return Either.left(
+      return Result.err(
           Map.of(
               -1, // we don't have a line number for policies
               List.of(
@@ -182,7 +176,7 @@ public final class Parser {
     components._3.forEach(blockBuilder::addCheck);
     components._4.forEach(blockBuilder::addScope);
 
-    return Either.right(blockBuilder);
+    return Result.ok(blockBuilder);
   }
 
   public static Result<Tuple2<String, Fact>, Error> fact(String s) {
@@ -230,9 +224,9 @@ public final class Parser {
 
     Predicate head = t0._2;
     Rule rule = new Rule(head, body._2, body._3, body._4);
-    Either<String, Rule> valid = rule.validateVariables();
-    if (valid.isLeft()) {
-      return Result.err(new Error(s, valid.getLeft()));
+    var valid = rule.validateVariables();
+    if (valid.isErr()) {
+      return Result.err(new Error(s, valid.getErr()));
     }
 
     return Result.ok(new Tuple2<>(body._1, rule));

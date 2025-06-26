@@ -8,7 +8,6 @@ package org.eclipse.biscuit.token;
 import biscuit.format.schema.Schema;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.vavr.control.Either;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -21,6 +20,7 @@ import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.crypto.Signer;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Block;
 
 public final class ThirdPartyBlockRequest {
@@ -30,19 +30,19 @@ public final class ThirdPartyBlockRequest {
     this.previousSignature = previousSignature;
   }
 
-  public Either<Error.FormatError, ThirdPartyBlockContents> createBlock(
+  public Result<ThirdPartyBlockContents, Error.FormatError> createBlock(
       final Signer externalSigner, Block blockBuilder)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     SymbolTable symbolTable = new SymbolTable();
     org.eclipse.biscuit.token.Block block =
         blockBuilder.build(symbolTable, Optional.of(externalSigner.getPublicKey()));
 
-    Either<Error.FormatError, byte[]> res = block.toBytes();
-    if (res.isLeft()) {
-      return Either.left(res.getLeft());
+    var res = block.toBytes();
+    if (res.isErr()) {
+      return Result.err(res.getErr());
     }
 
-    byte[] serializedBlock = res.get();
+    byte[] serializedBlock = res.getOk();
     byte[] payload =
         BlockSignatureBuffer.generateExternalBlockSignaturePayloadV1(
             serializedBlock,
@@ -52,7 +52,7 @@ public final class ThirdPartyBlockRequest {
 
     PublicKey publicKey = externalSigner.getPublicKey();
 
-    return Either.right(new ThirdPartyBlockContents(serializedBlock, signature, publicKey));
+    return Result.ok(new ThirdPartyBlockContents(serializedBlock, signature, publicKey));
   }
 
   public Schema.ThirdPartyBlockRequest serialize() throws Error.FormatError.SerializationError {

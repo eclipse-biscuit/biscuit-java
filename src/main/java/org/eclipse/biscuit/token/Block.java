@@ -5,12 +5,8 @@
 
 package org.eclipse.biscuit.token;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.vavr.control.Either;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +24,7 @@ import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.format.SerializedBiscuit;
 
 /** Represents a token's block with its checks */
@@ -285,12 +282,12 @@ public final class Block {
    * @param b
    * @return
    */
-  public static Either<Error.FormatError, Block> deserialize(
+  public static Result<Block, Error.FormatError> deserialize(
       Schema.Block b, Optional<PublicKey> externalKey) {
     int version = b.getVersion();
     if (version < SerializedBiscuit.MIN_SCHEMA_VERSION
         || version > SerializedBiscuit.MAX_SCHEMA_VERSION) {
-      return Left(
+      return Result.err(
           new Error.FormatError.Version(
               SerializedBiscuit.MIN_SCHEMA_VERSION, SerializedBiscuit.MAX_SCHEMA_VERSION, version));
     }
@@ -307,7 +304,7 @@ public final class Block {
     for (Schema.FactV2 fact : b.getFactsV2List()) {
       var res = Fact.deserializeV2(fact);
       if (res.isErr()) {
-        return Left(res.getErr());
+        return Result.err(res.getErr());
       } else {
         facts.add(res.getOk());
       }
@@ -316,7 +313,7 @@ public final class Block {
     for (Schema.RuleV2 rule : b.getRulesV2List()) {
       var res = Rule.deserializeV2(rule);
       if (res.isErr()) {
-        return Left(res.getErr());
+        return Result.err(res.getErr());
       } else {
         rules.add(res.getOk());
       }
@@ -325,7 +322,7 @@ public final class Block {
     for (Schema.CheckV2 check : b.getChecksV2List()) {
       var res = Check.deserializeV2(check);
       if (res.isErr()) {
-        return Left(res.getErr());
+        return Result.err(res.getErr());
       } else {
         checks.add(res.getOk());
       }
@@ -335,7 +332,7 @@ public final class Block {
     for (Schema.Scope scope : b.getScopeList()) {
       var res = Scope.deserialize(scope);
       if (res.isErr()) {
-        return Left(res.getErr());
+        return Result.err(res.getErr());
       } else {
         scopes.add(res.getOk());
       }
@@ -348,18 +345,18 @@ public final class Block {
         publicKeys.add(key);
         newSymbolTable.getPublicKeys().add(key);
       } catch (Error.FormatError e) {
-        return Left(e);
+        return Result.err(e);
       }
     }
 
     SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
-    Either<Error.FormatError, Void> res = schemaVersion.checkCompatibility(version);
-    if (res.isLeft()) {
-      Error.FormatError e = res.getLeft();
-      return Left(e);
+    var res = schemaVersion.checkCompatibility(version);
+    if (res.isErr()) {
+      Error.FormatError e = res.getErr();
+      return Result.err(e);
     }
 
-    return Right(
+    return Result.ok(
         new Block(
             newSymbolTable,
             b.getContext(),
@@ -378,25 +375,25 @@ public final class Block {
    * @param slice
    * @return
    */
-  public static Either<Error.FormatError, Block> fromBytes(
+  public static Result<Block, Error.FormatError> fromBytes(
       byte[] slice, Optional<PublicKey> externalKey) {
     try {
       Schema.Block data = Schema.Block.parseFrom(slice);
       return Block.deserialize(data, externalKey);
     } catch (InvalidProtocolBufferException e) {
-      return Left(new Error.FormatError.DeserializationError(e.toString()));
+      return Result.err(new Error.FormatError.DeserializationError(e.toString()));
     }
   }
 
-  public Either<Error.FormatError, byte[]> toBytes() {
+  public Result<byte[], Error.FormatError> toBytes() {
     Schema.Block b = this.serialize();
     try {
       ByteArrayOutputStream stream = new ByteArrayOutputStream();
       b.writeTo(stream);
       byte[] data = stream.toByteArray();
-      return Right(data);
+      return Result.ok(data);
     } catch (IOException e) {
-      return Left(new Error.FormatError.SerializationError(e.toString()));
+      return Result.err(new Error.FormatError.SerializationError(e.toString()));
     }
   }
 

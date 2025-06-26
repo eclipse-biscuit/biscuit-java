@@ -5,16 +5,13 @@
 
 package org.eclipse.biscuit.crypto;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
-import io.vavr.control.Either;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 class Token {
   private final ArrayList<byte[]> blocks;
@@ -65,7 +62,7 @@ class Token {
   }
 
   // FIXME: rust version returns a Result<(), error::Signature>
-  public Either<Error, Void> verify(PublicKey root)
+  public Result<Void, Error> verify(PublicKey root)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     PublicKey currentKey = root;
     for (int i = 0; i < this.blocks.size(); i++) {
@@ -78,16 +75,16 @@ class Token {
       if (currentKey.verify(payload, signature)) {
         currentKey = nextKey;
       } else {
-        return Left(
+        return Result.err(
             new Error.FormatError.Signature.InvalidSignature(
                 "signature error: Verification equation was not satisfied"));
       }
     }
 
     if (this.next.getPublicKey().equals(currentKey)) {
-      return Right(null);
+      return Result.ok(null);
     } else {
-      return Left(
+      return Result.err(
           new Error.FormatError.Signature.InvalidSignature(
               "signature error: Verification equation was not satisfied"));
     }

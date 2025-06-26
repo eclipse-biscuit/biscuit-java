@@ -5,12 +5,8 @@
 
 package org.eclipse.biscuit.token;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import io.vavr.Tuple2;
 import io.vavr.Tuple5;
-import io.vavr.control.Either;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,6 +31,7 @@ import org.eclipse.biscuit.datalog.World;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.Expression;
 import org.eclipse.biscuit.token.builder.Fact;
@@ -149,8 +146,8 @@ public final class Authorizer {
         Rule locRule = Rule.convertFrom(rule, token.symbolTable);
         org.eclipse.biscuit.datalog.Rule convertedRule = locRule.convert(this.symbolTable);
 
-        Either<String, Rule> res = locRule.validateVariables();
-        if (res.isLeft()) {
+        var res = locRule.validateVariables();
+        if (res.isErr()) {
           throw new Error.FailedLogic(
               new LogicError.InvalidBlockRule(0, token.symbolTable.formatRule(convertedRule)));
         }
@@ -182,8 +179,8 @@ public final class Authorizer {
           Rule syRole = Rule.convertFrom(rule, blockSymbolTable);
           org.eclipse.biscuit.datalog.Rule convertedRule = syRole.convert(this.symbolTable);
 
-          Either<String, Rule> res = syRole.validateVariables();
-          if (res.isLeft()) {
+          var res = syRole.validateVariables();
+          if (res.isErr()) {
             throw new Error.FailedLogic(
                 new LogicError.InvalidBlockRule(0, this.symbolTable.formatRule(convertedRule)));
           }
@@ -206,19 +203,11 @@ public final class Authorizer {
     return this;
   }
 
-  public Either<Map<Integer, List<Error>>, Authorizer> addDatalog(String s) {
-    Either<
-            Map<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>>,
-            Tuple5<
-                List<Fact>,
-                List<Rule>,
-                List<Check>,
-                List<org.eclipse.biscuit.token.builder.Scope>,
-                List<Policy>>>
-        result = Parser.datalogComponents(s);
+  public Result<Authorizer, Map<Integer, List<Error>>> addDatalog(String s) {
+    var result = Parser.datalogComponents(s);
 
-    if (result.isLeft()) {
-      Map<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>> errors = result.getLeft();
+    if (result.isErr()) {
+      var errors = result.getErr();
       Map<Integer, List<Error>> errorMap = new HashMap<>();
       for (Map.Entry<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>> entry :
           errors.entrySet()) {
@@ -228,7 +217,7 @@ public final class Authorizer {
         }
         errorMap.put(entry.getKey(), errorsList);
       }
-      return Either.left(errorMap);
+      return Result.err(errorMap);
     }
 
     Tuple5<
@@ -237,14 +226,14 @@ public final class Authorizer {
             List<Check>,
             List<org.eclipse.biscuit.token.builder.Scope>,
             List<Policy>>
-        components = result.get();
+        components = result.getOk();
     components._1.forEach(this::addFact);
     components._2.forEach(this::addRule);
     components._3.forEach(this::addCheck);
     components._4.forEach(this::addScope);
     components._5.forEach(this::addPolicy);
 
-    return Either.right(this);
+    return Result.ok(this);
   }
 
   public Authorizer addScope(org.eclipse.biscuit.token.builder.Scope s) {
@@ -517,7 +506,7 @@ public final class Authorizer {
       }
     }
 
-    Optional<Either<Integer, Integer>> policyResult = Optional.empty();
+    Optional<Result<Integer, Integer>> policyResult = Optional.empty();
     policies_test:
     for (int i = 0; i < this.policies.size(); i++) {
       Policy policy = this.policies.get(i);
@@ -535,9 +524,9 @@ public final class Authorizer {
 
         if (res) {
           if (this.policies.get(i).kind() == Policy.Kind.ALLOW) {
-            policyResult = Optional.of(Right(i));
+            policyResult = Optional.of(Result.ok(i));
           } else {
-            policyResult = Optional.of(Left(i));
+            policyResult = Optional.of(Result.err(i));
           }
           break policies_test;
         }
@@ -596,17 +585,17 @@ public final class Authorizer {
     }
 
     if (policyResult.isPresent()) {
-      Either<Integer, Integer> e = policyResult.get();
-      if (e.isRight()) {
+      var e = policyResult.get();
+      if (e.isOk()) {
         if (errors.isEmpty()) {
-          return e.get().longValue();
+          return e.getOk().longValue();
         } else {
           throw new Error.FailedLogic(
-              new LogicError.Unauthorized(new LogicError.MatchedPolicy.Allow(e.get()), errors));
+              new LogicError.Unauthorized(new LogicError.MatchedPolicy.Allow(e.getOk()), errors));
         }
       } else {
         throw new Error.FailedLogic(
-            new LogicError.Unauthorized(new LogicError.MatchedPolicy.Deny(e.getLeft()), errors));
+            new LogicError.Unauthorized(new LogicError.MatchedPolicy.Deny(e.getErr()), errors));
       }
     } else {
       throw new Error.FailedLogic(new LogicError.NoMatchingPolicy(errors));

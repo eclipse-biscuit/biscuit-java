@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import biscuit.format.schema.Schema;
 import io.vavr.Tuple2;
-import io.vavr.control.Either;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -454,8 +453,8 @@ class ParserTest {
     String l4 = "check if rule1(2)";
     String toParse = String.join(";", Arrays.asList(l1, l2, l3, l4));
 
-    Either<Map<Integer, List<Error>>, Block> output = Parser.datalog(1, toParse);
-    assertTrue(output.isRight());
+    var output = Parser.datalog(1, toParse);
+    assertTrue(output.isOk());
 
     Block validBlock = new Block();
     validBlock.addFact(l1);
@@ -463,7 +462,7 @@ class ParserTest {
     validBlock.addRule(l3);
     validBlock.addCheck(l4);
 
-    output.forEach(block -> assertEquals(block, validBlock));
+    assertEquals(output.getOk(), validBlock);
   }
 
   @Test
@@ -471,13 +470,13 @@ class ParserTest {
     String l1 = "check if [2, 3].union([2])";
     String toParse = String.join(";", List.of(l1));
 
-    Either<Map<Integer, List<Error>>, Block> output = Parser.datalog(1, toParse);
-    assertTrue(output.isRight());
+    var output = Parser.datalog(1, toParse);
+    assertTrue(output.isOk());
 
     Block validBlock = new Block();
     validBlock.addCheck(l1);
 
-    output.forEach(block -> assertEquals(block, validBlock));
+    assertEquals(output.getOk(), validBlock);
   }
 
   @Test
@@ -486,13 +485,13 @@ class ParserTest {
         "check if [2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z].contains(2020-12-04T09:46:41Z)";
     String toParse = String.join(";", List.of(l1));
 
-    Either<Map<Integer, List<Error>>, Block> output = Parser.datalog(1, toParse);
-    assertTrue(output.isRight());
+    var output = Parser.datalog(1, toParse);
+    assertTrue(output.isOk());
 
     Block validBlock = new Block();
     validBlock.addCheck(l1);
 
-    output.forEach(block -> assertEquals(block, validBlock));
+    assertEquals(output.getOk(), validBlock);
   }
 
   @Test
@@ -501,8 +500,7 @@ class ParserTest {
     String l2 = "check fact(1)"; // typo missing "if"
     String toParse = String.join(";", Arrays.asList(l1, l2));
 
-    Either<Map<Integer, List<Error>>, Block> output = Parser.datalog(1, toParse);
-    assertTrue(output.isLeft());
+    assertTrue(Parser.datalog(1, toParse).isErr());
   }
 
   @Test
@@ -519,7 +517,6 @@ class ParserTest {
     String l8 = "comment */";
     String toParse = String.join("", Arrays.asList(l0, l1, l2, l3, l4, l5, l6, l7, l8));
 
-    Either<Map<Integer, List<Error>>, Block> output = Parser.datalog(1, toParse);
-    assertTrue(output.isRight());
+    assertTrue(Parser.datalog(1, toParse).isOk());
   }
 }

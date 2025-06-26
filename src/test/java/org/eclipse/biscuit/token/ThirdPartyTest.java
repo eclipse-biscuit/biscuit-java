@@ -58,7 +58,7 @@ public class ThirdPartyTest {
     builder.addFact("group(\"admin\")");
     builder.addCheck("check if resource(\"file1\")");
 
-    ThirdPartyBlockContents blockResponse = request.createBlock(external, builder).get();
+    ThirdPartyBlockContents blockResponse = request.createBlock(external, builder).getOk();
     byte[] resb = blockResponse.toBytes();
     ThirdPartyBlockContents resdeser = ThirdPartyBlockContents.fromBytes(resb);
     assertEquals(blockResponse, resdeser);
@@ -133,7 +133,7 @@ public class ThirdPartyTest {
     builder.addFact("first(\"admin\")");
     builder.addFact("second(\"A\")");
     builder.addCheck("check if third(3) trusting ed25519/" + external2.getPublicKey().toHex());
-    ThirdPartyBlockContents blockResponse = request1.createBlock(external1, builder).get();
+    ThirdPartyBlockContents blockResponse = request1.createBlock(external1, builder).getOk();
     Biscuit b2 = b1.appendThirdPartyBlock(external1.getPublicKey(), blockResponse);
     byte[] data = b2.serialize();
     Biscuit deser2 = Biscuit.fromBytes(data, root.getPublicKey());
@@ -148,7 +148,7 @@ public class ThirdPartyTest {
             + external3.getPublicKey().toHex()
             + ", ed25519/"
             + external1.getPublicKey().toHex());
-    ThirdPartyBlockContents blockResponse2 = request2.createBlock(external2, builder2).get();
+    ThirdPartyBlockContents blockResponse2 = request2.createBlock(external2, builder2).getOk();
     Biscuit b3 = deser2.appendThirdPartyBlock(external2.getPublicKey(), blockResponse2);
     byte[] data2 = b3.serialize();
     Biscuit deser3 = Biscuit.fromBytes(data2, root.getPublicKey());
@@ -159,7 +159,7 @@ public class ThirdPartyTest {
     Block builder3 = new Block();
     builder3.addFact("fourth(1)");
     builder3.addCheck("check if resource(\"file1\")");
-    ThirdPartyBlockContents blockResponse3 = request3.createBlock(external1, builder3).get();
+    ThirdPartyBlockContents blockResponse3 = request3.createBlock(external1, builder3).getOk();
     Biscuit b4 = deser3.appendThirdPartyBlock(external1.getPublicKey(), blockResponse3);
     byte[] data3 = b4.serialize();
     Biscuit deser4 = Biscuit.fromBytes(data3, root.getPublicKey());
@@ -222,7 +222,7 @@ public class ThirdPartyTest {
     builder.addCheck("check if resource(\"file1\")");
     builder.addCheck("check if right(\"read\")");
 
-    ThirdPartyBlockContents blockResponse = request.createBlock(external, builder).get();
+    ThirdPartyBlockContents blockResponse = request.createBlock(external, builder).getOk();
     Biscuit b2 = b1.appendThirdPartyBlock(external.getPublicKey(), blockResponse);
 
     byte[] data = b2.serialize();

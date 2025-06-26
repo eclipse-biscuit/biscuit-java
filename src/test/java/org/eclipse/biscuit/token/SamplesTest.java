@@ -17,8 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.vavr.Tuple2;
-import io.vavr.control.Either;
-import io.vavr.control.Try;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +41,7 @@ import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.parser.Parser;
 import org.eclipse.biscuit.token.format.SignedBlock;
@@ -103,14 +102,10 @@ class SamplesTest {
     Optional<PublicKey> sampleExternalKey = sampleBlock.getExternalKey();
     List<PublicKey> samplePublicKeys = sampleBlock.getPublicKeys();
     String sampleDatalog = sampleBlock.getCode().replace("\"", "\\\"");
-
-    Either<
-            Map<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>>,
-            org.eclipse.biscuit.token.builder.Block>
-        outputSample = Parser.datalog(sampleBlockIndex, sampleDatalog);
+    var outputSample = Parser.datalog(sampleBlockIndex, sampleDatalog);
 
     // the invalid block rule with unbound variable cannot be parsed
-    if (outputSample.isLeft()) {
+    if (outputSample.isErr()) {
       return sampleToken.get();
     }
 
@@ -118,11 +113,11 @@ class SamplesTest {
     if (sampleToken.isEmpty()) {
       org.eclipse.biscuit.token.builder.Biscuit builder =
           new org.eclipse.biscuit.token.builder.Biscuit(
-              new SecureRandom(), root, Optional.empty(), outputSample.get());
+              new SecureRandom(), root, Optional.empty(), outputSample.getOk());
       newSampleToken = builder.build();
     } else {
       Biscuit s = sampleToken.get();
-      newSampleToken = s.attenuate(outputSample.get(), Schema.PublicKey.Algorithm.Ed25519);
+      newSampleToken = s.attenuate(outputSample.getOk(), Schema.PublicKey.Algorithm.Ed25519);
     }
 
     org.eclipse.biscuit.token.Block generatedSampleBlock;
@@ -173,124 +168,118 @@ class SamplesTest {
 
             ObjectNode expectedResult = (ObjectNode) validation.get("result");
             String[] authorizerFacts = validation.get("authorizer_code").asText().split(";");
-            Either<Throwable, Long> res =
-                Try.of(
-                        () -> {
-                          inputStream.read(data);
-                          Biscuit token = Biscuit.fromBytes(data, publicKey);
-                          assertArrayEquals(token.serialize(), data);
 
-                          List<org.eclipse.biscuit.token.Block> allBlocks = new ArrayList<>();
-                          allBlocks.add(token.authority);
-                          allBlocks.addAll(token.blocks);
+            Result<Long, Throwable> res;
+            try {
+              inputStream.read(data);
+              Biscuit token = Biscuit.fromBytes(data, publicKey);
+              assertArrayEquals(token.serialize(), data);
 
-                          compareBlocks(privateKey, testCase.token, token);
+              List<org.eclipse.biscuit.token.Block> allBlocks = new ArrayList<>();
+              allBlocks.add(token.authority);
+              allBlocks.addAll(token.blocks);
 
-                          byte[] serBlockAuthority = token.authority.toBytes().get();
-                          System.out.println(Arrays.toString(serBlockAuthority));
-                          System.out.println(
-                              Arrays.toString(token.serializedBiscuit.getAuthority().getBlock()));
-                          org.eclipse.biscuit.token.Block deserBlockAuthority =
-                              fromBytes(serBlockAuthority, token.authority.getExternalKey()).get();
-                          assertEquals(
-                              token.authority.print(token.symbolTable),
-                              deserBlockAuthority.print(token.symbolTable));
-                          assert (Arrays.equals(
-                              serBlockAuthority,
-                              token.serializedBiscuit.getAuthority().getBlock()));
+              compareBlocks(privateKey, testCase.token, token);
 
-                          for (int i = 0; i < token.blocks.size() - 1; i++) {
-                            org.eclipse.biscuit.token.Block block = token.blocks.get(i);
-                            SignedBlock signedBlock = token.serializedBiscuit.getBlocks().get(i);
-                            byte[] serBlock = block.toBytes().get();
-                            org.eclipse.biscuit.token.Block deserBlock =
-                                fromBytes(serBlock, block.getExternalKey()).get();
-                            assertEquals(
-                                block.print(token.symbolTable),
-                                deserBlock.print(token.symbolTable));
-                            assert (Arrays.equals(serBlock, signedBlock.getBlock()));
-                          }
+              byte[] serBlockAuthority = token.authority.toBytes().getOk();
+              System.out.println(Arrays.toString(serBlockAuthority));
+              System.out.println(
+                  Arrays.toString(token.serializedBiscuit.getAuthority().getBlock()));
+              org.eclipse.biscuit.token.Block deserBlockAuthority =
+                  fromBytes(serBlockAuthority, token.authority.getExternalKey()).getOk();
+              assertEquals(
+                  token.authority.print(token.symbolTable),
+                  deserBlockAuthority.print(token.symbolTable));
+              assert (Arrays.equals(
+                  serBlockAuthority, token.serializedBiscuit.getAuthority().getBlock()));
 
-                          List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
-                          ArrayNode validationRevocationIds =
-                              (ArrayNode) validation.get("revocation_ids");
-                          assertEquals(revocationIds.size(), validationRevocationIds.size());
-                          for (int i = 0; i < revocationIds.size(); i++) {
-                            assertEquals(
-                                validationRevocationIds.get(i).asText(),
-                                revocationIds.get(i).toHex());
-                          }
+              for (int i = 0; i < token.blocks.size() - 1; i++) {
+                org.eclipse.biscuit.token.Block block = token.blocks.get(i);
+                SignedBlock signedBlock = token.serializedBiscuit.getBlocks().get(i);
+                byte[] serBlock = block.toBytes().getOk();
+                org.eclipse.biscuit.token.Block deserBlock =
+                    fromBytes(serBlock, block.getExternalKey()).getOk();
+                assertEquals(block.print(token.symbolTable), deserBlock.print(token.symbolTable));
+                assert (Arrays.equals(serBlock, signedBlock.getBlock()));
+              }
 
-                          // TODO Add check of the token
+              List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
+              ArrayNode validationRevocationIds = (ArrayNode) validation.get("revocation_ids");
+              assertEquals(revocationIds.size(), validationRevocationIds.size());
+              for (int i = 0; i < revocationIds.size(); i++) {
+                assertEquals(validationRevocationIds.get(i).asText(), revocationIds.get(i).toHex());
+              }
 
-                          Authorizer authorizer = token.authorizer();
-                          System.out.println(token.print());
-                          for (String f : authorizerFacts) {
-                            f = f.trim();
-                            if (!f.isEmpty()) {
-                              if (f.startsWith("check if") || f.startsWith("check all")) {
-                                authorizer.addCheck(f);
-                              } else if (f.startsWith("allow if") || f.startsWith("deny if")) {
-                                authorizer.addPolicy(f);
-                              } else if (f.startsWith("revocation_id")) {
-                                // do nothing
-                              } else {
-                                authorizer.addFact(f);
-                              }
-                            }
-                          }
-                          System.out.println(authorizer.formatWorld());
-                          try {
-                            Long authorizeResult = authorizer.authorize(runLimits);
+              // TODO Add check of the token
 
-                            if (validation.hasNonNull("world")) {
-                              World world =
-                                  new ObjectMapper()
-                                      .treeToValue(validation.get("world"), World.class);
+              Authorizer authorizer = token.authorizer();
+              System.out.println(token.print());
+              for (String f : authorizerFacts) {
+                f = f.trim();
+                if (!f.isEmpty()) {
+                  if (f.startsWith("check if") || f.startsWith("check all")) {
+                    authorizer.addCheck(f);
+                  } else if (f.startsWith("allow if") || f.startsWith("deny if")) {
+                    authorizer.addPolicy(f);
+                  } else if (f.startsWith("revocation_id")) {
+                    // do nothing
+                  } else {
+                    authorizer.addFact(f);
+                  }
+                }
+              }
+              System.out.println(authorizer.formatWorld());
 
-                              World authorizerWorld = new World(authorizer);
-                              assertEquals(world.factMap(), authorizerWorld.factMap());
-                              assertEquals(world.rules, authorizerWorld.rules);
-                              assertEquals(world.checks, authorizerWorld.checks);
-                              assertEquals(world.policies, authorizerWorld.policies);
-                            }
+              try {
+                Long authorizeResult = authorizer.authorize(runLimits);
 
-                            return authorizeResult;
-                          } catch (Exception e) {
+                if (validation.hasNonNull("world")) {
+                  World world =
+                      new ObjectMapper().treeToValue(validation.get("world"), World.class);
 
-                            if (validation.hasNonNull("world")) {
-                              World world =
-                                  new ObjectMapper()
-                                      .treeToValue(validation.get("world"), World.class);
+                  World authorizerWorld = new World(authorizer);
+                  assertEquals(world.factMap(), authorizerWorld.factMap());
+                  assertEquals(world.rules, authorizerWorld.rules);
+                  assertEquals(world.checks, authorizerWorld.checks);
+                  assertEquals(world.policies, authorizerWorld.policies);
+                }
 
-                              World authorizerWorld = new World(authorizer);
-                              assertEquals(world.factMap(), authorizerWorld.factMap());
-                              assertEquals(world.rules, authorizerWorld.rules);
-                              assertEquals(world.checks, authorizerWorld.checks);
-                              assertEquals(world.policies, authorizerWorld.policies);
-                            }
+                res = Result.ok(authorizeResult);
+              } catch (Exception e) {
 
-                            throw e;
-                          }
-                        })
-                    .toEither();
+                if (validation.hasNonNull("world")) {
+                  World world =
+                      new ObjectMapper().treeToValue(validation.get("world"), World.class);
+
+                  World authorizerWorld = new World(authorizer);
+                  assertEquals(world.factMap(), authorizerWorld.factMap());
+                  assertEquals(world.rules, authorizerWorld.rules);
+                  assertEquals(world.checks, authorizerWorld.checks);
+                  assertEquals(world.policies, authorizerWorld.policies);
+                }
+
+                throw e;
+              }
+            } catch (Exception e) {
+              res = Result.err(e);
+            }
 
             if (expectedResult.has("Ok")) {
-              if (res.isLeft()) {
+              if (res.isErr()) {
                 System.out.println(
                     "validation '"
                         + validationName
                         + "' expected result Ok("
                         + expectedResult.get("Ok").asLong()
                         + "), got error");
-                throw res.getLeft();
+                throw res.getErr();
               } else {
-                assertEquals(expectedResult.get("Ok").asLong(), res.get());
+                assertEquals(expectedResult.get("Ok").asLong(), res.getOk());
               }
             } else {
-              if (res.isLeft()) {
-                if (res.getLeft() instanceof Error) {
-                  Error e = (Error) res.getLeft();
+              if (res.isErr()) {
+                if (res.getErr() instanceof Error) {
+                  Error e = (Error) res.getErr();
                   System.out.println("validation '" + validationName + "' got error: " + e);
 
                   // Serialize and deserialize the error to ensure the jackson node types match.
@@ -298,7 +287,7 @@ class SamplesTest {
                   var result = objectMapper.readTree(objectMapper.writeValueAsString(e.toJson()));
                   assertEquals(expectedResult.get("Err"), result);
                 } else {
-                  throw res.getLeft();
+                  throw res.getErr();
                 }
               } else {
                 throw new Exception(
@@ -307,7 +296,7 @@ class SamplesTest {
                         + "' expected result error("
                         + expectedResult.get("Err")
                         + "), got success: "
-                        + res.get());
+                        + res.getOk());
               }
             }
           }

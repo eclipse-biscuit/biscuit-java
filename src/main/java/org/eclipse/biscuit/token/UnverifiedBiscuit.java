@@ -166,8 +166,8 @@ public class UnverifiedBiscuit {
     }
 
     var containerRes = copiedBiscuit.serializedBiscuit.append(keypair, block, Optional.empty());
-    if (containerRes.isLeft()) {
-      throw containerRes.getLeft();
+    if (containerRes.isErr()) {
+      throw containerRes.getErr();
     }
 
     SymbolTable symbols = new SymbolTable(copiedBiscuit.symbolTable);
@@ -180,7 +180,7 @@ public class UnverifiedBiscuit {
       blocks.add(b);
     }
     blocks.add(block);
-    SerializedBiscuit container = containerRes.get();
+    SerializedBiscuit container = containerRes.getOk();
 
     return new UnverifiedBiscuit(copiedBiscuit.authority, blocks, symbols, container);
   }
@@ -298,11 +298,11 @@ public class UnverifiedBiscuit {
     }
 
     var res = Block.fromBytes(blockResponse.getPayload(), Optional.of(externalKey));
-    if (res.isLeft()) {
-      throw res.getLeft();
+    if (res.isErr()) {
+      throw res.getErr();
     }
 
-    Block block = res.get();
+    Block block = res.getOk();
 
     ExternalSignature externalSignature =
         new ExternalSignature(externalKey, blockResponse.getSignature());
@@ -311,11 +311,11 @@ public class UnverifiedBiscuit {
 
     var containerRes =
         copiedBiscuit.serializedBiscuit.append(nextKeyPair, block, Optional.of(externalSignature));
-    if (containerRes.isLeft()) {
-      throw containerRes.getLeft();
+    if (containerRes.isErr()) {
+      throw containerRes.getErr();
     }
 
-    SerializedBiscuit container = containerRes.get();
+    SerializedBiscuit container = containerRes.getOk();
 
     SymbolTable symbols = new SymbolTable(copiedBiscuit.symbolTable);
 
@@ -364,8 +364,8 @@ public class UnverifiedBiscuit {
       throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
     SerializedBiscuit serializedBiscuit = this.serializedBiscuit;
     var result = serializedBiscuit.verify(publicKey);
-    if (result.isLeft()) {
-      throw result.getLeft();
+    if (result.isErr()) {
+      throw result.getErr();
     }
     return Biscuit.fromSerializedBiscuit(serializedBiscuit, this.symbolTable);
   }
@@ -380,8 +380,8 @@ public class UnverifiedBiscuit {
     }
 
     var result = serializedBiscuit.verify(root.get());
-    if (result.isLeft()) {
-      throw result.getLeft();
+    if (result.isErr()) {
+      throw result.getErr();
     }
     return Biscuit.fromSerializedBiscuit(serializedBiscuit, this.symbolTable);
   }
