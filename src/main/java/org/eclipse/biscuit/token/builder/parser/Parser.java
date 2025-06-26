@@ -8,7 +8,6 @@ package org.eclipse.biscuit.token.builder.parser;
 import biscuit.format.schema.Schema;
 import io.vavr.Tuple2;
 import io.vavr.Tuple4;
-import io.vavr.Tuple5;
 import io.vavr.collection.Stream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -34,6 +33,14 @@ import org.eclipse.biscuit.token.builder.Utils;
 public final class Parser {
   private Parser() {}
 
+  public static final class DatalogComponents {
+    public List<Fact> facts = new ArrayList<>();
+    public List<Rule> rules = new ArrayList<>();
+    public List<Check> checks = new ArrayList<>();
+    public List<Scope> scopes = new ArrayList<>();
+    public List<Policy> policies = new ArrayList<>();
+  }
+
   /**
    * Takes a datalog string with <code>\n</code> as datalog line separator. It tries to parse each
    * line using fact, rule, check and scope sequentially.
@@ -41,21 +48,13 @@ public final class Parser {
    * <p>If one succeeds it returns Right(Block) else it returns a Map[lineNumber, List[Error]]
    *
    * @param s datalog string to parse
-   * @return Result<Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>,
-   *     Map<Integer, List<Error>>>
+   * @return Result<Components, Map<Integer, List<Error>>>
    */
-  public static Result<
-          Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>,
-          Map<Integer, List<Error>>>
-      datalogComponents(String s) {
-    List<Fact> facts = new ArrayList<>();
-    List<Rule> rules = new ArrayList<>();
-    List<Check> checks = new ArrayList<>();
-    List<Scope> scopes = new ArrayList<>();
-    List<Policy> policies = new ArrayList<>();
+  public static Result<DatalogComponents, Map<Integer, List<Error>>> datalogComponents(String s) {
+    var components = new DatalogComponents();
 
     if (s.isEmpty()) {
-      return Result.ok(new Tuple5<>(facts, rules, checks, scopes, policies));
+      return Result.ok(components);
     }
 
     Map<Integer, List<Error>> errors = new HashMap<>();
@@ -75,7 +74,7 @@ public final class Parser {
                 boolean parsed;
                 var ruleResult = rule(code);
                 if (ruleResult.isOk()) {
-                  rules.add(ruleResult.getOk()._2);
+                  components.rules.add(ruleResult.getOk()._2);
                   parsed = true;
                 } else {
                   lineErrors.add(ruleResult.getErr());
@@ -85,7 +84,7 @@ public final class Parser {
                 if (!parsed) {
                   var factResult = fact(code);
                   if (factResult.isOk()) {
-                    facts.add(factResult.getOk()._2);
+                    components.facts.add(factResult.getOk()._2);
                     parsed = true;
                   } else {
                     lineErrors.add(factResult.getErr());
@@ -96,7 +95,7 @@ public final class Parser {
                 if (!parsed) {
                   var checkResult = check(code);
                   if (checkResult.isOk()) {
-                    checks.add(checkResult.getOk()._2);
+                    components.checks.add(checkResult.getOk()._2);
                     parsed = true;
                   } else {
                     lineErrors.add(checkResult.getErr());
@@ -107,7 +106,7 @@ public final class Parser {
                 if (!parsed) {
                   var scopeResult = scope(code);
                   if (scopeResult.isOk()) {
-                    scopes.add(scopeResult.getOk()._2);
+                    components.scopes.add(scopeResult.getOk()._2);
                     parsed = true;
                   } else {
                     lineErrors.add(scopeResult.getErr());
@@ -118,7 +117,7 @@ public final class Parser {
                 if (!parsed) {
                   var policyResult = policy(code);
                   if (policyResult.isOk()) {
-                    policies.add(policyResult.getOk()._2);
+                    components.policies.add(policyResult.getOk()._2);
                     parsed = true;
                   } else {
                     lineErrors.add(policyResult.getErr());
@@ -138,7 +137,7 @@ public final class Parser {
       return Result.err(errors);
     }
 
-    return Result.ok(new Tuple5<>(facts, rules, checks, scopes, policies));
+    return Result.ok(components);
   }
 
   /**
@@ -161,20 +160,22 @@ public final class Parser {
 
     var components = result.getOk();
 
-    if (!components._5.isEmpty()) {
+    if (!components.policies.isEmpty()) {
       return Result.err(
           Map.of(
               -1, // we don't have a line number for policies
               List.of(
                   new Error(
                       s,
-                      "Policies must be empty but found " + components._5.size() + " policies"))));
+                      "Policies must be empty but found "
+                          + components.policies.size()
+                          + " policies"))));
     }
 
-    components._1.forEach(blockBuilder::addFact);
-    components._2.forEach(blockBuilder::addRule);
-    components._3.forEach(blockBuilder::addCheck);
-    components._4.forEach(blockBuilder::addScope);
+    components.facts.forEach(blockBuilder::addFact);
+    components.rules.forEach(blockBuilder::addRule);
+    components.checks.forEach(blockBuilder::addCheck);
+    components.scopes.forEach(blockBuilder::addScope);
 
     return Result.ok(blockBuilder);
   }

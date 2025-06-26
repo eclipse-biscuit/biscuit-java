@@ -6,7 +6,6 @@
 package org.eclipse.biscuit.token;
 
 import io.vavr.Tuple2;
-import io.vavr.Tuple5;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -220,18 +219,12 @@ public final class Authorizer {
       return Result.err(errorMap);
     }
 
-    Tuple5<
-            List<Fact>,
-            List<Rule>,
-            List<Check>,
-            List<org.eclipse.biscuit.token.builder.Scope>,
-            List<Policy>>
-        components = result.getOk();
-    components._1.forEach(this::addFact);
-    components._2.forEach(this::addRule);
-    components._3.forEach(this::addCheck);
-    components._4.forEach(this::addScope);
-    components._5.forEach(this::addPolicy);
+    var components = result.getOk();
+    components.facts.forEach(this::addFact);
+    components.rules.forEach(this::addRule);
+    components.checks.forEach(this::addCheck);
+    components.scopes.forEach(this::addScope);
+    components.policies.forEach(this::addPolicy);
 
     return Result.ok(this);
   }
