@@ -7,7 +7,6 @@ package org.eclipse.biscuit.token.builder.parser;
 
 import biscuit.format.schema.Schema;
 import io.vavr.Tuple2;
-import io.vavr.collection.Stream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -46,12 +45,13 @@ public final class Parser {
     public final List<Expression> expressions;
     public final List<Scope> scopes;
 
-      public RuleBody(String head, List<Predicate> predicates, List<Expression> expressions, List<Scope> scopes) {
-          this.head = head;
-          this.predicates = predicates;
-          this.expressions = expressions;
-          this.scopes = scopes;
-      }
+    public RuleBody(
+        String head, List<Predicate> predicates, List<Expression> expressions, List<Scope> scopes) {
+      this.head = head;
+      this.predicates = predicates;
+      this.expressions = expressions;
+      this.scopes = scopes;
+    }
   }
 
   /**
@@ -75,76 +75,72 @@ public final class Parser {
     s = removeCommentsAndWhitespaces(s);
     String[] codeLines = s.split(";");
 
-    Stream.of(codeLines)
-        .zipWithIndex()
-        .forEach(
-            indexedLine -> {
-              String code = indexedLine._1.strip();
+    for (int i = 0; i < codeLines.length; ++i) {
+      String code = codeLines[i];
 
-              if (!code.isEmpty()) {
-                List<Error> lineErrors = new ArrayList<>();
+      if (!code.isEmpty()) {
+        List<Error> lineErrors = new ArrayList<>();
 
-                boolean parsed;
-                var ruleResult = rule(code);
-                if (ruleResult.isOk()) {
-                  components.rules.add(ruleResult.getOk()._2);
-                  parsed = true;
-                } else {
-                  lineErrors.add(ruleResult.getErr());
-                  parsed = false;
-                }
+        boolean parsed;
+        var ruleResult = rule(code);
+        if (ruleResult.isOk()) {
+          components.rules.add(ruleResult.getOk()._2);
+          parsed = true;
+        } else {
+          lineErrors.add(ruleResult.getErr());
+          parsed = false;
+        }
 
-                if (!parsed) {
-                  var factResult = fact(code);
-                  if (factResult.isOk()) {
-                    components.facts.add(factResult.getOk()._2);
-                    parsed = true;
-                  } else {
-                    lineErrors.add(factResult.getErr());
-                    parsed = false;
-                  }
-                }
+        if (!parsed) {
+          var factResult = fact(code);
+          if (factResult.isOk()) {
+            components.facts.add(factResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(factResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  var checkResult = check(code);
-                  if (checkResult.isOk()) {
-                    components.checks.add(checkResult.getOk()._2);
-                    parsed = true;
-                  } else {
-                    lineErrors.add(checkResult.getErr());
-                    parsed = false;
-                  }
-                }
+        if (!parsed) {
+          var checkResult = check(code);
+          if (checkResult.isOk()) {
+            components.checks.add(checkResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(checkResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  var scopeResult = scope(code);
-                  if (scopeResult.isOk()) {
-                    components.scopes.add(scopeResult.getOk()._2);
-                    parsed = true;
-                  } else {
-                    lineErrors.add(scopeResult.getErr());
-                    parsed = false;
-                  }
-                }
+        if (!parsed) {
+          var scopeResult = scope(code);
+          if (scopeResult.isOk()) {
+            components.scopes.add(scopeResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(scopeResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  var policyResult = policy(code);
-                  if (policyResult.isOk()) {
-                    components.policies.add(policyResult.getOk()._2);
-                    parsed = true;
-                  } else {
-                    lineErrors.add(policyResult.getErr());
-                    parsed = false;
-                  }
-                }
+        if (!parsed) {
+          var policyResult = policy(code);
+          if (policyResult.isOk()) {
+            components.policies.add(policyResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(policyResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  lineErrors.forEach(System.out::println);
-                  int lineNumber = indexedLine._2;
-                  errors.put(lineNumber, lineErrors);
-                }
-              }
-            });
+        if (!parsed) {
+          lineErrors.forEach(System.out::println);
+          errors.put(i, lineErrors);
+        }
+      }
+    }
 
     if (!errors.isEmpty()) {
       return Result.err(errors);
@@ -233,7 +229,8 @@ public final class Parser {
     RuleBody body = bodyRes.getOk();
 
     if (!body.head.isEmpty()) {
-      return Result.err(new Error(s, "the string was not entirely parsed, remaining: " + body.head));
+      return Result.err(
+          new Error(s, "the string was not entirely parsed, remaining: " + body.head));
     }
 
     Predicate head = t0._2;
@@ -313,7 +310,12 @@ public final class Parser {
 
     s = body.head;
     // FIXME: parse scopes
-    queries.add(new Rule(new Predicate("query", new ArrayList<>()), body.predicates, body.expressions, body.scopes));
+    queries.add(
+        new Rule(
+            new Predicate("query", new ArrayList<>()),
+            body.predicates,
+            body.expressions,
+            body.scopes));
 
     int i = 0;
     while (true) {
@@ -337,7 +339,11 @@ public final class Parser {
 
       s = body2.head;
       queries.add(
-          new Rule(new Predicate("query", new ArrayList<>()), body2.predicates, body2.expressions, body2.scopes));
+          new Rule(
+              new Predicate("query", new ArrayList<>()),
+              body2.predicates,
+              body2.expressions,
+              body2.scopes));
     }
 
     return Result.ok(new Tuple2<>(s, queries));
@@ -377,7 +383,7 @@ public final class Parser {
 
     var res = scopes(s);
     if (res.isErr()) {
-      return Result.ok(new RuleBody(s, predicates,  expressions, new ArrayList<>()));
+      return Result.ok(new RuleBody(s, predicates, expressions, new ArrayList<>()));
     } else {
       Tuple2<String, List<Scope>> t = res.getOk();
       return Result.ok(new RuleBody(t._1, predicates, expressions, t._2));
