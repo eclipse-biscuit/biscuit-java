@@ -36,7 +36,6 @@
         <protobuf.version>3.25.5</protobuf.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
-        <vavr.version>0.10.3</vavr.version>
         <re2j.version>1.6</re2j.version>
         <jackson.version>2.17.3</jackson.version>
         <bcprov.version>1.80</bcprov.version>
@@ -284,11 +283,6 @@
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <version>${vavr.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.re2j</groupId>
