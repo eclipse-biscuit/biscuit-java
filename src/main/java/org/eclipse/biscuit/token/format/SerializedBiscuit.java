@@ -8,7 +8,6 @@ package org.eclipse.biscuit.token.format;
 import biscuit.format.schema.Schema;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.vavr.Tuple2;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -22,6 +21,7 @@ import org.eclipse.biscuit.crypto.BlockSignatureBuffer;
 import org.eclipse.biscuit.crypto.KeyDelegate;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
+import org.eclipse.biscuit.datalog.Pair;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
@@ -489,7 +489,7 @@ public final class SerializedBiscuit {
     return Result.ok(signedBlock.getKey());
   }
 
-  public Tuple2<Block, ArrayList<Block>> extractBlocks(SymbolTable symbolTable) throws Error {
+  public Pair<Block, ArrayList<Block>> extractBlocks(SymbolTable symbolTable) throws Error {
     ArrayList<Optional<org.eclipse.biscuit.crypto.PublicKey>> blockExternalKeys = new ArrayList<>();
     var authRes = Block.fromBytes(this.authority.getBlock(), Optional.empty());
     if (authRes.isErr()) {
@@ -534,7 +534,7 @@ public final class SerializedBiscuit {
       blocks.add(block);
     }
 
-    return new Tuple2<>(authority, blocks);
+    return new Pair<>(authority, blocks);
   }
 
   public Result<Void, Error> seal()

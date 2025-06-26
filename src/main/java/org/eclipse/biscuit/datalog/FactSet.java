@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.Tuple2;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -71,8 +70,7 @@ public final class FactSet {
               Origin o = entry.getKey();
               return blockIds.contains(o);
             })
-        .flatMap(
-            entry -> entry.getValue().stream().map(fact -> new Tuple2<>(entry.getKey(), fact)));
+        .flatMap(entry -> entry.getValue().stream().map(fact -> new Pair<>(entry.getKey(), fact)));
   }
 
   public Stream<Fact> stream() {

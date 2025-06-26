@@ -6,7 +6,6 @@
 package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
-import io.vavr.Tuple2;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,16 +45,16 @@ public final class Rule implements Serializable {
     return scopes;
   }
 
-  public Stream<Result<Tuple2<Origin, Fact>, Error>> apply(
-      final Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier,
+  public Stream<Result<Pair<Origin, Fact>, Error>> apply(
+      final Supplier<Stream<Pair<Origin, Fact>>> factsSupplier,
       Long ruleOrigin,
       SymbolTable symbolTable) {
     MatchedVariables variables = variablesSet();
 
     Combinator combinator = new Combinator(variables, this.body, factsSupplier, symbolTable);
-    Spliterator<Tuple2<Origin, Map<Long, Term>>> splitItr =
+    Spliterator<Pair<Origin, Map<Long, Term>>> splitItr =
         Spliterators.spliteratorUnknownSize(combinator, Spliterator.ORDERED);
-    Stream<Tuple2<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
+    Stream<Pair<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
 
     return stream
         .map(
@@ -88,14 +87,14 @@ public final class Rule implements Serializable {
                   if (!generatedVariables.containsKey(var.value())) {
                     // throw new Error("variables that appear in the head should appear in the body
                     // as well");
-                    return Result.<Tuple2<Origin, Fact>, Error>err(new Error.InternalError());
+                    return Result.<Pair<Origin, Fact>, Error>err(new Error.InternalError());
                   }
                   p.terms().set(index, generatedVariables.get(var.value()));
                 }
               }
 
               origin.add(ruleOrigin);
-              return Result.<Tuple2<Origin, Fact>, Error>ok(new Tuple2<>(origin, new Fact(p)));
+              return Result.<Pair<Origin, Fact>, Error>ok(new Pair<>(origin, new Fact(p)));
             })
         .filter(Objects::nonNull);
   }
@@ -123,7 +122,7 @@ public final class Rule implements Serializable {
       return variables.checkExpressions(this.expressions, symbolTable).isPresent();
     }
 
-    Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
+    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
     var stream = this.apply(factsSupplier, origin, symbolTable);
     var it = stream.iterator();
 
@@ -148,12 +147,12 @@ public final class Rule implements Serializable {
       return variables.checkExpressions(this.expressions, symbolTable).isPresent();
     }
 
-    Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
+    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
     Combinator combinator = new Combinator(variables, this.body, factsSupplier, symbolTable);
     boolean found = false;
 
     for (Combinator it = combinator; it.hasNext(); ) {
-      Tuple2<Origin, Map<Long, Term>> t = it.next();
+      Pair<Origin, Map<Long, Term>> t = it.next();
       Map<Long, Term> generatedVariables = t._2;
       found = true;
 

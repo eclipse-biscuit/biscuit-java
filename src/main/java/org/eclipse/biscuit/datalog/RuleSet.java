@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.Tuple2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public final class RuleSet {
-  private final HashMap<TrustedOrigins, List<Tuple2<Long, Rule>>> rules;
+  private final HashMap<TrustedOrigins, List<Pair<Long, Rule>>> rules;
 
   public RuleSet() {
     rules = new HashMap<>();
@@ -21,17 +20,17 @@ public final class RuleSet {
 
   public void add(Long origin, TrustedOrigins scope, Rule rule) {
     if (!rules.containsKey(scope)) {
-      rules.put(scope, List.of(new Tuple2<>(origin, rule)));
+      rules.put(scope, List.of(new Pair<>(origin, rule)));
     } else {
-      rules.get(scope).add(new Tuple2<>(origin, rule));
+      rules.get(scope).add(new Pair<>(origin, rule));
     }
   }
 
   public RuleSet clone() {
     RuleSet newRules = new RuleSet();
 
-    for (Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry : this.rules.entrySet()) {
-      List<Tuple2<Long, Rule>> l = new ArrayList<>(entry.getValue());
+    for (Map.Entry<TrustedOrigins, List<Pair<Long, Rule>>> entry : this.rules.entrySet()) {
+      List<Pair<Long, Rule>> l = new ArrayList<>(entry.getValue());
       newRules.rules.put(entry.getKey(), l);
     }
 
@@ -46,7 +45,7 @@ public final class RuleSet {
     this.rules.clear();
   }
 
-  public HashMap<TrustedOrigins, List<Tuple2<Long, Rule>>> getRules() {
+  public HashMap<TrustedOrigins, List<Pair<Long, Rule>>> getRules() {
     return this.rules;
   }
 }

@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.token;
 
-import io.vavr.Tuple2;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +20,7 @@ import java.util.stream.Collectors;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.FactSet;
 import org.eclipse.biscuit.datalog.Origin;
+import org.eclipse.biscuit.datalog.Pair;
 import org.eclipse.biscuit.datalog.RuleSet;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.datalog.Scope;
@@ -670,10 +670,10 @@ public final class Authorizer {
     return this.world.getRules();
   }
 
-  public List<Tuple2<Long, List<Check>>> getChecks() {
-    List<Tuple2<Long, List<Check>>> allChecks = new ArrayList<>();
+  public List<Pair<Long, List<Check>>> getChecks() {
+    List<Pair<Long, List<Check>>> allChecks = new ArrayList<>();
     if (!this.checks.isEmpty()) {
-      allChecks.add(new Tuple2<>(Long.MAX_VALUE, this.checks));
+      allChecks.add(new Pair<>(Long.MAX_VALUE, this.checks));
     }
 
     List<Check> authorityChecks = new ArrayList<>();
@@ -681,7 +681,7 @@ public final class Authorizer {
       authorityChecks.add(Check.convertFrom(check, this.token.symbolTable));
     }
     if (!authorityChecks.isEmpty()) {
-      allChecks.add(new Tuple2<>((long) 0, authorityChecks));
+      allChecks.add(new Pair<>((long) 0, authorityChecks));
     }
 
     long count = 1;
@@ -700,7 +700,7 @@ public final class Authorizer {
         }
       }
       if (!blockChecks.isEmpty()) {
-        allChecks.add(new Tuple2<>(count, blockChecks));
+        allChecks.add(new Pair<>(count, blockChecks));
       }
       count += 1;
     }

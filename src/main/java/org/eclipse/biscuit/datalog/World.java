@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.Tuple2;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
@@ -43,10 +42,10 @@ public final class World implements Serializable {
     while (true) {
       final FactSet newFacts = new FactSet();
 
-      for (Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry :
+      for (Map.Entry<TrustedOrigins, List<Pair<Long, Rule>>> entry :
           this.rules.getRules().entrySet()) {
-        for (Tuple2<Long, Rule> t : entry.getValue()) {
-          Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier =
+        for (Pair<Long, Rule> t : entry.getValue()) {
+          Supplier<Stream<Pair<Origin, Fact>>> factsSupplier =
               () -> this.facts.stream(entry.getKey());
 
           var stream = t._2.apply(factsSupplier, t._1, symbolTable);
@@ -57,7 +56,7 @@ public final class World implements Serializable {
             }
 
             if (res.isOk()) {
-              Tuple2<Origin, Fact> t2 = res.getOk();
+              Pair<Origin, Fact> t2 = res.getOk();
               newFacts.add(t2._1, t2._2);
             } else {
               throw res.getErr();
@@ -96,14 +95,14 @@ public final class World implements Serializable {
       final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbolTable) throws Error {
     final FactSet newFacts = new FactSet();
 
-    Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
+    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
 
     var stream = rule.apply(factsSupplier, origin, symbolTable);
     for (var it = stream.iterator(); it.hasNext(); ) {
       var res = it.next();
 
       if (res.isOk()) {
-        Tuple2<Origin, Fact> t2 = res.getOk();
+        Pair<Origin, Fact> t2 = res.getOk();
         newFacts.add(t2._1, t2._2);
       } else {
         throw res.getErr();

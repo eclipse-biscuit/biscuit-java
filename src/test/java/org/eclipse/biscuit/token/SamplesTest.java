@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.vavr.Tuple2;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
+import org.eclipse.biscuit.datalog.Pair;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
@@ -436,7 +436,7 @@ class SamplesTest {
       this.checks =
           authorizer.getChecks().stream()
               .map(
-                  (Tuple2<Long, List<Check>> t) -> {
+                  (Pair<Long, List<Check>> t) -> {
                     List<String> checks1 =
                         t._2.stream().map(c -> c.toString()).collect(Collectors.toList());
                     Collections.sort(checks1);

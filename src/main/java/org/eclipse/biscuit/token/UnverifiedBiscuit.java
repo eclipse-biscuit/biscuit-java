@@ -6,7 +6,6 @@
 package org.eclipse.biscuit.token;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
-import io.vavr.Tuple2;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -22,6 +21,7 @@ import org.eclipse.biscuit.crypto.KeyDelegate;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.Check;
+import org.eclipse.biscuit.datalog.Pair;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.format.ExternalSignature;
@@ -92,7 +92,7 @@ public class UnverifiedBiscuit {
    */
   private static UnverifiedBiscuit fromSerializedBiscuit(
       SerializedBiscuit ser, SymbolTable symbolTable) throws Error {
-    Tuple2<Block, ArrayList<Block>> t = ser.extractBlocks(symbolTable);
+    Pair<Block, ArrayList<Block>> t = ser.extractBlocks(symbolTable);
     Block authority = t._1;
     ArrayList<Block> blocks = t._2;
 

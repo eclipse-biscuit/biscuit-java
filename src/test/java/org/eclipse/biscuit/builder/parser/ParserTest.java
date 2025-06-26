@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import biscuit.format.schema.Schema;
-import io.vavr.Tuple2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.biscuit.crypto.PublicKey;
+import org.eclipse.biscuit.datalog.Pair;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.expressions.Op;
@@ -39,34 +39,34 @@ class ParserTest {
   @Test
   void testName() {
     var res = Parser.name("operation(read)");
-    assertEquals(Result.ok(new Tuple2<>("(read)", "operation")), res);
+    assertEquals(Result.ok(new Pair<>("(read)", "operation")), res);
   }
 
   @Test
   void testString() {
     var res = Parser.string("\"file1 a hello - 123_\"");
-    assertEquals(Result.ok(new Tuple2<>("", (Term.Str) Utils.string("file1 a hello - 123_"))), res);
+    assertEquals(Result.ok(new Pair<>("", (Term.Str) Utils.string("file1 a hello - 123_"))), res);
   }
 
   @Test
   void testInteger() {
     var res = Parser.integer("123");
-    assertEquals(Result.ok(new Tuple2<>("", (Term.Integer) Utils.integer(123))), res);
+    assertEquals(Result.ok(new Pair<>("", (Term.Integer) Utils.integer(123))), res);
 
     var res2 = Parser.integer("-42");
-    assertEquals(Result.ok(new Tuple2<>("", (Term.Integer) Utils.integer(-42))), res2);
+    assertEquals(Result.ok(new Pair<>("", (Term.Integer) Utils.integer(-42))), res2);
   }
 
   @Test
   void testDate() {
     var res = Parser.date("2019-12-02T13:49:53Z,");
-    assertEquals(Result.ok(new Tuple2<>(",", new Term.Date(1575294593))), res);
+    assertEquals(Result.ok(new Pair<>(",", new Term.Date(1575294593))), res);
   }
 
   @Test
   void testVariable() {
     var res = Parser.variable("$name");
-    assertEquals(Result.ok(new Tuple2<>("", (Term.Variable) Utils.var("name"))), res);
+    assertEquals(Result.ok(new Pair<>("", (Term.Variable) Utils.var("name"))), res);
   }
 
   @Test
@@ -74,7 +74,7 @@ class ParserTest {
     var res = Parser.fact("right( \"file1\", \"read\" )");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "", Utils.fact("right", Arrays.asList(Utils.string("file1"), Utils.str("read"))))),
         res);
 
@@ -83,12 +83,12 @@ class ParserTest {
 
     var res3 = Parser.fact("date(2019-12-02T13:49:53Z)");
     assertEquals(
-        Result.ok(new Tuple2<>("", Utils.fact("date", List.of(new Term.Date(1575294593))))), res3);
+        Result.ok(new Pair<>("", Utils.fact("date", List.of(new Term.Date(1575294593))))), res3);
 
     var res4 = Parser.fact("n1:right( \"file1\", \"read\" )");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 Utils.fact("n1:right", Arrays.asList(Utils.string("file1"), Utils.str("read"))))),
         res4);
@@ -99,7 +99,7 @@ class ParserTest {
     var res = Parser.rule("right($resource, \"read\") <- resource($resource), operation(\"read\")");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 Utils.rule(
                     "right",
@@ -117,7 +117,7 @@ class ParserTest {
             "valid_date(\"file1\") <- time($0 ), resource( \"file1\"), $0 <= 2019-12-04T09:46:41Z");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 Utils.constrainedRule(
                     "valid_date",
@@ -140,7 +140,7 @@ class ParserTest {
             "valid_date(\"file1\") <- time($0 ), $0 <= 2019-12-04T09:46:41Z, resource(\"file1\")");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 Utils.constrainedRule(
                     "valid_date",
@@ -162,7 +162,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 new Expression.Binary(
                     Expression.Op.Contains,
@@ -186,7 +186,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 new Expression.Binary(
                     Expression.Op.Equal,
@@ -214,7 +214,7 @@ class ParserTest {
     var res = Parser.check("check if !false && true");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 Utils.check(
                     Utils.constrainedRule(
@@ -261,7 +261,7 @@ class ParserTest {
                         Schema.PublicKey.Algorithm.Ed25519,
                         "6e9e6d5a75cf0c0e87ec1256b4dfed0ca3ba452912d213fcc70f8516583db9db")),
                 Scope.authority()));
-    assertEquals(Result.ok(new Tuple2<>("", refRule)), res);
+    assertEquals(Result.ok(new Pair<>("", refRule)), res);
   }
 
   @Test
@@ -269,7 +269,7 @@ class ParserTest {
     var res = Parser.check("check if resource($0), operation(\"read\") or admin()");
     assertEquals(
         Result.ok(
-            new Tuple2<>(
+            new Pair<>(
                 "",
                 new Check(
                     ONE,
@@ -292,12 +292,12 @@ class ParserTest {
     var res = Parser.expression(" -1 ");
 
     assertEquals(
-        new Tuple2<String, Expression>("", new Expression.Value(Utils.integer(-1))), res.getOk());
+        new Pair<String, Expression>("", new Expression.Value(Utils.integer(-1))), res.getOk());
 
     var res2 = Parser.expression(" $0 <= 2019-12-04T09:46:41+00:00");
 
     assertEquals(
-        new Tuple2<String, Expression>(
+        new Pair<String, Expression>(
             "",
             new Expression.Binary(
                 Expression.Op.LessOrEqual,
@@ -309,7 +309,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<String, Expression>(
+            new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
                     Expression.Op.LessThan,
@@ -335,7 +335,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<String, Expression>(
+            new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
                     Expression.Op.And,
@@ -360,7 +360,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<String, Expression>(
+            new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
                     Expression.Op.Contains,
@@ -375,7 +375,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<String, Expression>(
+            new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
                     Expression.Op.Add,
@@ -409,7 +409,7 @@ class ParserTest {
 
     assertEquals(
         Result.ok(
-            new Tuple2<String, Expression>(
+            new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
                     Expression.Op.Mul,
