@@ -7,7 +7,6 @@ package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
 import io.vavr.Tuple2;
-import io.vavr.Tuple3;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -71,27 +70,16 @@ public final class Rule implements Serializable {
                   if (term instanceof Term.Bool) {
                     Term.Bool b = (Term.Bool) term;
                     if (!b.value()) {
-                      return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>ok(
-                          new Tuple3<>(origin, generatedVariables, false));
+                      return null;
                     }
                     // continue evaluating if true
                   } else {
-                    return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>err(
-                        new Error.InvalidType());
+                    return null;
                   }
                 } catch (Error error) {
-                  return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>err(error);
+                  return null;
                 }
               }
-              return Result.<Tuple3<Origin, Map<Long, Term>, Boolean>, Error>ok(
-                  new Tuple3<>(origin, generatedVariables, true));
-            })
-        .filter(res -> res.isOk() & res.getOk()._3)
-        .map(
-            res -> {
-              var t = res.getOk();
-              Origin origin = t._1;
-              Map<Long, Term> generatedVariables = t._2;
 
               Predicate p = this.head.clone();
               for (int index = 0; index < p.terms().size(); index++) {
@@ -100,15 +88,16 @@ public final class Rule implements Serializable {
                   if (!generatedVariables.containsKey(var.value())) {
                     // throw new Error("variables that appear in the head should appear in the body
                     // as well");
-                    return Result.err(new Error.InternalError());
+                    return Result.<Tuple2<Origin, Fact>, Error>err(new Error.InternalError());
                   }
                   p.terms().set(index, generatedVariables.get(var.value()));
                 }
               }
 
               origin.add(ruleOrigin);
-              return Result.ok(new Tuple2<Origin, Fact>(origin, new Fact(p)));
-            });
+              return Result.<Tuple2<Origin, Fact>, Error>ok(new Tuple2<>(origin, new Fact(p)));
+            })
+        .filter(Objects::nonNull);
   }
 
   private MatchedVariables variablesSet() {
