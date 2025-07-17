@@ -361,8 +361,7 @@ public final class SerializedBiscuit {
   public Either<Error, Void> verify(PublicKey root)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     PublicKey currentKey = root;
-    Either<Error, PublicKey> res =
-        verifyAuthorityBlockSignature(this.authority, currentKey);
+    Either<Error, PublicKey> res = verifyAuthorityBlockSignature(this.authority, currentKey);
     if (res.isRight()) {
       currentKey = res.get();
     } else {
@@ -449,9 +448,7 @@ public final class SerializedBiscuit {
   }
 
   static Either<Error, PublicKey> verifyBlockSignature(
-      SignedBlock signedBlock,
-      PublicKey publicKey,
-      byte[] previousSignature)
+      SignedBlock signedBlock, PublicKey publicKey, byte[] previousSignature)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     var signatureLengthError =
         PublicKey.validateSignatureLength(

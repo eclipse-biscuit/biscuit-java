@@ -14,7 +14,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Optional;
-
 import org.eclipse.biscuit.error.Error;
 
 class Token {
