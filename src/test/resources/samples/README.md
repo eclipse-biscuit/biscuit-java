@@ -153,7 +153,7 @@ check if resource($0), operation("read"), right($0, "read");
 
 ### validation
 
-result: `Err(Format(InvalidSignatureSize(16)))`
+result: `Err(Format(BlockSignatureDeserializationError("block signature deserialization error: [117, 149, 161, 18, 161, 235, 91, 129, 166, 227, 152, 133, 46, 97, 24, 183]")))`
 
 
 ------------------------------

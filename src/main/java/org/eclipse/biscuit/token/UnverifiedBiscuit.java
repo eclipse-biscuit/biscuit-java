@@ -291,9 +291,9 @@ public class UnverifiedBiscuit {
             blockResponse.getPayload(),
             previousBlock.getSignature(),
             BlockSignatureBuffer.THIRD_PARTY_SIGNATURE_VERSION);
-    if (!externalKey.verify(payload, blockResponse.getSignature())) {
-      throw new Error.FormatError.Signature.InvalidSignature(
-          "signature error: Verification equation was not satisfied");
+    var verificationResult = externalKey.verify(payload, blockResponse.getSignature());
+    if (verificationResult.isPresent()) {
+      throw verificationResult.get();
     }
 
     var res = Block.fromBytes(blockResponse.getPayload(), Optional.of(externalKey));

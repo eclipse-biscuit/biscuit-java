@@ -66,24 +66,6 @@ public abstract class PublicKey {
     return PublicKey.load(pk.getAlgorithm(), pk.getKey().toByteArray());
   }
 
-  public static Optional<Error> validateSignatureLength(Algorithm algorithm, int length) {
-    Optional<Error> error = Optional.empty();
-    if (algorithm == Algorithm.Ed25519) {
-      if (length != Ed25519KeyPair.SIGNATURE_LENGTH) {
-        error = Optional.of(new Error.FormatError.Signature.InvalidSignatureSize(length));
-      }
-    } else if (algorithm == Algorithm.SECP256R1) {
-      if (length < SECP256R1KeyPair.MINIMUM_SIGNATURE_LENGTH
-          || length > SECP256R1KeyPair.MAXIMUM_SIGNATURE_LENGTH) {
-        error = Optional.of(new Error.FormatError.Signature.InvalidSignatureSize(length));
-      }
-    } else {
-      error =
-          Optional.of(new Error.FormatError.Signature.InvalidSignature("unsupported algorithm"));
-    }
-    return error;
-  }
-
   public static void setEd25519Factory(Factory factory) {
     ed25519Factory = factory;
   }
@@ -94,6 +76,6 @@ public abstract class PublicKey {
 
   public abstract Algorithm getAlgorithm();
 
-  public abstract boolean verify(byte[] data, byte[] signature)
+  public abstract Optional<Error> verify(byte[] data, byte[] signature)
       throws InvalidKeyException, SignatureException, NoSuchAlgorithmException;
 }

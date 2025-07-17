@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 
 public abstract class Error extends Exception {
@@ -262,6 +264,46 @@ public abstract class Error extends Exception {
       public JsonNode toJson() {
         return FormatError.jsonWrapper(
             objectMapper.createObjectNode().put("BlockDeserializationError", this.err));
+      }
+    }
+
+    public static final class BlockSignatureDeserializationError extends FormatError {
+      private final String err;
+
+      public BlockSignatureDeserializationError(byte[] signature) {
+        this.err =
+            "block signature deserialization error: "
+                + IntStream.range(0, signature.length)
+                    .mapToObj(i -> String.valueOf(signature[i] & 0xff))
+                    .collect(Collectors.joining(", ", "[", "]"));
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) {
+          return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+          return false;
+        }
+        BlockSignatureDeserializationError other = (BlockSignatureDeserializationError) o;
+        return err.equals(other.err);
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(err);
+      }
+
+      @Override
+      public String toString() {
+        return "Err(FormatError.BlockSignatureDeserializationError{ error: " + err + " }";
+      }
+
+      @Override
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("BlockSignatureDeserializationError", this.err));
       }
     }
 

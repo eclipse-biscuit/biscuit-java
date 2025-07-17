@@ -11,6 +11,7 @@ import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Optional;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -91,7 +92,12 @@ class SECP256R1PublicKey extends PublicKey {
   }
 
   @Override
-  public boolean verify(byte[] data, byte[] signature) {
+  public Optional<Error> verify(byte[] data, byte[] signature) {
+    if (signature.length < SECP256R1KeyPair.MINIMUM_SIGNATURE_LENGTH
+        || signature.length > SECP256R1KeyPair.MAXIMUM_SIGNATURE_LENGTH) {
+      return Optional.of(new Error.FormatError.BlockSignatureDeserializationError(signature));
+    }
+
     var digest = new SHA256Digest();
     digest.update(data, 0, data.length);
     var hash = new byte[digest.getDigestSize()];
@@ -107,6 +113,12 @@ class SECP256R1PublicKey extends PublicKey {
       throw new IllegalStateException(e.toString());
     }
 
-    return signer.verifySignature(hash, sig[0], sig[1]);
+    if (!signer.verifySignature(hash, sig[0], sig[1])) {
+      return Optional.of(
+          new Error.FormatError.Signature.InvalidSignature(
+              "signature error: Verification equation was not satisfied"));
+    }
+
+    return Optional.empty();
   }
 }

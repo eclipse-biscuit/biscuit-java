@@ -7,6 +7,7 @@ package org.eclipse.biscuit.crypto;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import java.util.Arrays;
+import java.util.Optional;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.eclipse.biscuit.error.Error;
@@ -63,10 +64,20 @@ class Ed25519PublicKey extends PublicKey {
   }
 
   @Override
-  public boolean verify(byte[] data, byte[] signature) {
+  public Optional<Error> verify(byte[] data, byte[] signature) {
+    if (signature.length != Ed25519KeyPair.SIGNATURE_LENGTH) {
+      return Optional.of(new Error.FormatError.BlockSignatureDeserializationError(signature));
+    }
+
     var sgr = new Ed25519Signer();
     sgr.init(false, this.publicKey);
     sgr.update(data, 0, data.length);
-    return sgr.verifySignature(signature);
+    if (!sgr.verifySignature(signature)) {
+      return Optional.of(
+          new Error.FormatError.Signature.InvalidSignature(
+              "signature error: Verification equation was not satisfied"));
+    }
+
+    return Optional.empty();
   }
 }

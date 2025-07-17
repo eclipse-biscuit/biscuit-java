@@ -72,13 +72,12 @@ class Token {
 
       byte[] payload =
           BlockSignatureBuffer.generateBlockSignaturePayloadV0(block, nextKey, Optional.empty());
-      if (currentKey.verify(payload, signature)) {
-        currentKey = nextKey;
-      } else {
-        return Result.err(
-            new Error.FormatError.Signature.InvalidSignature(
-                "signature error: Verification equation was not satisfied"));
+      var verificationResult = currentKey.verify(payload, signature);
+      if (verificationResult.isPresent()) {
+        return Result.err(verificationResult.get());
       }
+
+      currentKey = nextKey;
     }
 
     if (this.next.getPublicKey().equals(currentKey)) {

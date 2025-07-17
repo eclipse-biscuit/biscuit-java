@@ -358,7 +358,7 @@ public final class SerializedBiscuit {
 
   public Result<Void, Error> verify(org.eclipse.biscuit.crypto.PublicKey root)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-    org.eclipse.biscuit.crypto.PublicKey currentKey = root;
+    PublicKey currentKey = root;
     var res = verifyAuthorityBlockSignature(this.authority, currentKey);
     if (res.isOk()) {
       currentKey = res.getOk();
@@ -377,26 +377,15 @@ public final class SerializedBiscuit {
       }
     }
 
-    // System.out.println("signatures verified, checking proof");
-
     if (!this.proof.isSealed()) {
-      // System.out.println("checking secret key");
-      // System.out.println("current key: " + currentKey.toHex());
-      // System.out.println("key from proof: " + this.proof.secretKey.get().public_key().toHex());
       if (this.proof.secretKey().getPublicKey().equals(currentKey)) {
-        // System.out.println("public keys are equal");
-
         return Result.ok(null);
       } else {
-        // System.out.println("public keys are not equal");
-
         return Result.err(
             new Error.FormatError.Signature.InvalidSignature(
                 "signature error: Verification equation was not satisfied"));
       }
     } else {
-      // System.out.println("checking final signature");
-
       byte[] finalSignature = this.proof.getSignature().get();
 
       SignedBlock b;
@@ -407,10 +396,11 @@ public final class SerializedBiscuit {
       }
 
       byte[] payload = BlockSignatureBuffer.generateSealBlockSignaturePayloadV0(b);
-      if (currentKey.verify(payload, finalSignature)) {
-        return Result.ok(null);
-      } else {
+      var verificationResult = currentKey.verify(payload, finalSignature);
+      if (verificationResult.isPresent()) {
         return Result.err(new Error.FormatError.Signature.SealedSignature());
+      } else {
+        return Result.ok(null);
       }
     }
   }
@@ -418,13 +408,6 @@ public final class SerializedBiscuit {
   static Result<org.eclipse.biscuit.crypto.PublicKey, Error> verifyAuthorityBlockSignature(
       SignedBlock signedBlock, org.eclipse.biscuit.crypto.PublicKey publicKey)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-    var signatureLengthError =
-        PublicKey.validateSignatureLength(
-            publicKey.getAlgorithm(), signedBlock.getSignature().length);
-    if (signatureLengthError.isPresent()) {
-      return Result.err(signatureLengthError.get());
-    }
-
     var payload =
         BlockSignatureBuffer.generateBlockSignaturePayload(
             signedBlock.getBlock(),
@@ -436,10 +419,9 @@ public final class SerializedBiscuit {
       return Result.err(payload.getErr());
     }
 
-    if (!publicKey.verify(payload.getOk(), signedBlock.getSignature())) {
-      return Result.err(
-          new Error.FormatError.Signature.InvalidSignature(
-              "signature error: Verification equation was not satisfied"));
+    var verificationResult = publicKey.verify(payload.getOk(), signedBlock.getSignature());
+    if (verificationResult.isPresent()) {
+      return Result.err(verificationResult.get());
     }
 
     return Result.ok(signedBlock.getKey());
@@ -450,13 +432,6 @@ public final class SerializedBiscuit {
       org.eclipse.biscuit.crypto.PublicKey publicKey,
       byte[] previousSignature)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-    var signatureLengthError =
-        PublicKey.validateSignatureLength(
-            publicKey.getAlgorithm(), signedBlock.getSignature().length);
-    if (signatureLengthError.isPresent()) {
-      return Result.err(signatureLengthError.get());
-    }
-
     var payload =
         BlockSignatureBuffer.generateBlockSignaturePayload(
             signedBlock.getBlock(),
@@ -468,10 +443,9 @@ public final class SerializedBiscuit {
       return Result.err(payload.getErr());
     }
 
-    if (!publicKey.verify(payload.getOk(), signedBlock.getSignature())) {
-      return Result.err(
-          new Error.FormatError.Signature.InvalidSignature(
-              "signature error: Verification equation was not satisfied"));
+    var verificationResult = publicKey.verify(payload.getOk(), signedBlock.getSignature());
+    if (verificationResult.isPresent()) {
+      return Result.err(verificationResult.get());
     }
 
     if (signedBlock.getExternalSignature().isPresent()) {
@@ -480,10 +454,10 @@ public final class SerializedBiscuit {
               signedBlock.getBlock(), publicKey, previousSignature, signedBlock.getVersion());
       ExternalSignature externalSignature = signedBlock.getExternalSignature().get();
 
-      if (!externalSignature.getKey().verify(externalPayload, externalSignature.getSignature())) {
-        return Result.err(
-            new Error.FormatError.Signature.InvalidSignature(
-                "external signature error: Verification equation was not satisfied"));
+      var externalResult =
+          externalSignature.getKey().verify(externalPayload, externalSignature.getSignature());
+      if (externalResult.isPresent()) {
+        return Result.err(externalResult.get());
       }
     }
 
