@@ -13,6 +13,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -23,6 +25,8 @@ right("file1", "write");
 symbols: ["0"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource($0), operation("read"), right($0, "read");
@@ -45,7 +49,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -53,7 +57,7 @@ World {
             "resource(\"file1\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -68,7 +72,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -96,6 +100,8 @@ symbols: ["file1"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 ```
@@ -104,6 +110,8 @@ right("file1", "read");
 symbols: ["0"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource($0), operation("read"), right($0, "read");
@@ -154,6 +162,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -164,6 +174,8 @@ right("file1", "write");
 symbols: ["0"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource($0), operation("read"), right($0, "read");
@@ -184,6 +196,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -194,6 +208,8 @@ right("file1", "write");
 symbols: ["0"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource($0), operation("read"), right($0, "read");
@@ -214,6 +230,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -225,6 +243,8 @@ symbols: ["0"]
 
 public keys: []
 
+block version: 3
+
 ```
 check if resource($0), operation("read"), right($0, "read");
 ```
@@ -233,6 +253,8 @@ check if resource($0), operation("read"), right($0, "read");
 symbols: []
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource("file1");
@@ -253,6 +275,8 @@ symbols: ["user_id", "alice", "file1"]
 
 public keys: []
 
+block version: 3
+
 ```
 user_id("alice");
 owner("alice", "file1");
@@ -263,6 +287,8 @@ symbols: ["0", "1"]
 
 public keys: []
 
+block version: 3
+
 ```
 right($0, "read") <- resource($0), user_id($1), owner($1, $0);
 check if resource($0), operation("read"), right($0, "read");
@@ -272,6 +298,8 @@ check if resource($0), operation("read"), right($0, "read");
 symbols: ["file2"]
 
 public keys: []
+
+block version: 3
 
 ```
 owner("alice", "file2");
@@ -296,7 +324,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -305,7 +333,7 @@ World {
             "resource(\"file2\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -316,7 +344,7 @@ World {
             "user_id(\"alice\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 2,
@@ -328,7 +356,7 @@ World {
     },
 ]
   rules: [
-    AuthorizerRuleSet {
+    Rules {
         origin: Some(
             1,
         ),
@@ -338,7 +366,7 @@ World {
     },
 ]
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -366,6 +394,8 @@ symbols: ["file1"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 ```
@@ -375,6 +405,8 @@ symbols: ["0"]
 
 public keys: []
 
+block version: 3
+
 ```
 check if resource($0), operation("read"), right($0, "read");
 ```
@@ -383,6 +415,8 @@ check if resource($0), operation("read"), right($0, "read");
 symbols: ["file2"]
 
 public keys: []
+
+block version: 3
 
 ```
 right("file2", "read");
@@ -407,7 +441,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -416,7 +450,7 @@ World {
             "resource(\"file2\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -426,7 +460,7 @@ World {
             "right(\"file1\", \"read\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 2,
@@ -439,7 +473,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -467,6 +501,8 @@ symbols: []
 
 public keys: []
 
+block version: 3
+
 ```
 ```
 
@@ -474,6 +510,8 @@ public keys: []
 symbols: ["file1"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource("file1");
@@ -499,7 +537,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -512,7 +550,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -541,6 +579,8 @@ symbols: ["file1"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 ```
@@ -549,6 +589,8 @@ right("file1", "read");
 symbols: ["file2"]
 
 public keys: []
+
+block version: 3
 
 ```
 right("file2", "read");
@@ -574,7 +616,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -583,7 +625,7 @@ World {
             "resource(\"file2\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -593,7 +635,7 @@ World {
             "right(\"file1\", \"read\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 1,
@@ -606,7 +648,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             18446744073709551615,
         ),
@@ -634,6 +676,8 @@ symbols: ["file1"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 ```
@@ -657,7 +701,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -666,7 +710,7 @@ World {
             "resource(\"file2\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -679,7 +723,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             18446744073709551615,
         ),
@@ -707,6 +751,8 @@ symbols: ["file1"]
 
 public keys: []
 
+block version: 3
+
 ```
 check if resource("file1");
 ```
@@ -728,7 +774,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -740,7 +786,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -773,7 +819,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -785,7 +831,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -986,6 +1032,8 @@ symbols: ["0", "file[0-9]+.txt"]
 
 public keys: []
 
+block version: 3
+
 ```
 check if resource($0), $0.matches("file[0-9]+.txt");
 ```
@@ -1006,7 +1054,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -1017,7 +1065,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -1049,7 +1097,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -1060,7 +1108,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -1088,6 +1136,8 @@ symbols: ["must_be_present", "hello"]
 
 public keys: []
 
+block version: 3
+
 ```
 must_be_present("hello");
 ```
@@ -1108,7 +1158,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -1121,7 +1171,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             18446744073709551615,
         ),
@@ -1149,6 +1199,8 @@ symbols: ["hello"]
 
 public keys: []
 
+block version: 3
+
 ```
 check if resource("hello");
 ```
@@ -1157,6 +1209,8 @@ check if resource("hello");
 symbols: ["test"]
 
 public keys: []
+
+block version: 3
 
 ```
 query("test");
@@ -1177,7 +1231,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 1,
@@ -1190,7 +1244,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -1346,6 +1400,8 @@ symbols: []
 
 public keys: []
 
+block version: 3
+
 ```
 check if operation("read");
 ```
@@ -1354,6 +1410,8 @@ check if operation("read");
 symbols: ["unbound", "any1", "any2"]
 
 public keys: []
+
+block version: 3
 
 ```
 operation($unbound, "read") <- operation($any1, $any2);
@@ -1374,6 +1432,8 @@ symbols: []
 
 public keys: []
 
+block version: 3
+
 ```
 check if operation("read");
 ```
@@ -1382,6 +1442,8 @@ check if operation("read");
 symbols: ["any"]
 
 public keys: []
+
+block version: 3
 
 ```
 operation("read") <- operation($any);
@@ -1404,7 +1466,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -1412,7 +1474,7 @@ World {
             "operation(\"write\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
             Some(
@@ -1425,7 +1487,7 @@ World {
     },
 ]
   rules: [
-    AuthorizerRuleSet {
+    Rules {
         origin: Some(
             1,
         ),
@@ -1435,7 +1497,7 @@ World {
     },
 ]
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -1463,6 +1525,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -1473,6 +1537,8 @@ right("file1", "write");
 symbols: ["0"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource($0), operation("read"), right($0, "read");
@@ -1496,7 +1562,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -1505,7 +1571,7 @@ World {
             "resource(\"file1\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -1520,7 +1586,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -1548,6 +1614,8 @@ symbols: ["ns::fact_123", "hello é\t😁"]
 
 public keys: []
 
+block version: 3
+
 ```
 ns::fact_123("hello é	😁");
 ```
@@ -1568,7 +1636,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -1581,7 +1649,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             18446744073709551615,
         ),
@@ -1608,6 +1676,8 @@ authority:
 symbols: []
 
 public keys: []
+
+block version: 3
 
 ```
 read(0);
@@ -1656,7 +1726,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -1696,7 +1766,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             18446744073709551615,
         ),
@@ -1724,6 +1794,8 @@ symbols: ["authority_fact"]
 
 public keys: []
 
+block version: 3
+
 ```
 authority_fact(1);
 ```
@@ -1733,6 +1805,8 @@ symbols: ["block1_fact"]
 
 public keys: []
 
+block version: 3
+
 ```
 block1_fact(1);
 ```
@@ -1741,6 +1815,8 @@ block1_fact(1);
 symbols: ["var"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if authority_fact($var);
@@ -1763,7 +1839,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -1773,7 +1849,7 @@ World {
             "authority_fact(1)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 1,
@@ -1786,7 +1862,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             2,
         ),
@@ -1815,6 +1891,8 @@ symbols: []
 
 public keys: ["ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189"]
 
+block version: 4
+
 ```
 right("read");
 check if group("admin") trusting ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189;
@@ -1826,6 +1904,8 @@ symbols: []
 public keys: []
 
 external signature by: "ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189"
+
+block version: 5
 
 ```
 group("admin");
@@ -1841,13 +1921,13 @@ allow if true;
 
 revocation ids:
 - `470e4bf7aa2a01ab39c98150bd06aa15b4aa5d86509044a8809a8634cd8cf2b42269a51a774b65d10bac9369d013070b00187925196a8e680108473f11cf8f03`
-- `342167bc54bc642b6718a276875e55b6d39e9b21e4ce13b926a3d398b6c057fc436385bf4c817a16f9ecdf0b0d950e8b8258a20aeb3fd8896c5e9c1f0a53da03`
+- `901b2af4dacf33458d2d91ac484b60bad948e8d10faa9695b096054d5b46e832a977b60b17464cacf545ad0801f549ea454675f0ac88c413406925e2af83ff08`
 
 authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -1857,7 +1937,7 @@ World {
             "right(\"read\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 1,
@@ -1870,7 +1950,7 @@ World {
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -1878,7 +1958,7 @@ World {
             "check if group(\"admin\") trusting ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189",
         ],
     },
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -1898,6 +1978,7 @@ result: `Ok(0)`
 
 ------------------------------
 
+## block rules: test025_check_all.bc
 ## block rules: test025_check_all.bc
 ### token
 
@@ -2033,6 +2114,8 @@ symbols: []
 
 public keys: ["ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189"]
 
+block version: 4
+
 ```
 query(0);
 check if true trusting previous, ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189;
@@ -2044,6 +2127,8 @@ symbols: []
 public keys: ["ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463", "ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189"]
 
 external signature by: "ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189"
+
+block version: 5
 
 ```
 query(1);
@@ -2059,6 +2144,8 @@ public keys: ["ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7
 
 external signature by: "ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463"
 
+block version: 5
+
 ```
 query(2);
 check if query(2), query(3) trusting ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463;
@@ -2072,6 +2159,8 @@ public keys: ["ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7
 
 external signature by: "ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463"
 
+block version: 5
+
 ```
 query(3);
 check if query(2), query(3) trusting ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463;
@@ -2082,6 +2171,8 @@ check if query(1) trusting ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5
 symbols: []
 
 public keys: ["ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463", "ed25519/f98da8c1cf907856431bfc3dc87531e0eaadba90f919edc232405b85877ef136"]
+
+block version: 4
 
 ```
 query(4);
@@ -2103,16 +2194,16 @@ allow if true;
 
 revocation ids:
 - `3771cefe71beb21ead35a59c8116ee82627a5717c0295f35980662abccb159fe1b37848cb1818e548656bd4fd882d0094a2daab631c76b2b72e3a093914bfe04`
-- `6528db2c9a561ada9086268549a600a8a52ff434ea8183812623eec0e9b6c5d3c41ab7868808623021d92294d583afdf92f4354bcdaa1bc50453e1b89afd630d`
-- `5d5679fe69bfe74b7919323515e9ecba9d01422b16be9341b57f88e695b2bb0bd7966b781001d2b9e00ee618fdc239c96e17e32cb379f13f12d6bd7b1b47ad04`
-- `c37bf24c063f0310eccab8864e48dbeffcdd7240b4f8d1e01eba4fc703e6c9082b845bb55543b10f008dc7f4e78540411912ac1f36fa2aa90011dca40f323b09`
-- `3f675d6c364e06405d4868c904e40f3d81c32b083d91586db814d4cb4bf536b4ba209d82f11b4cb6da293b60b20d6122fc3e0e08e80c381dee83edd848211900`
+- `7113d4dbb3b688b80e941f365a2c6342d480c77ed03937bccf85dc5cc3554c7517887b1b0c9021388a71e6ca9047aabaaad5ae5b511a2880902568444a98e50b`
+- `d0e3fc4bbd1b7320022800af909585aa906f677c4ca79c275a10b6779f669384c464ee84a1b04f13877a25761a874748362c065f4d15a8cab5c5e16c34074403`
+- `29b7e0a1f118a6185814a552660c516c43482044e280e7a8de85b8e7e54947e0ae82eb39d7b524d4b72cb9812a7a4b8871964f8f825b1c1ed85d344c05281d0d`
+- `c0a505d4d921a8b2d0b885917d42e2bca87b5302d13249a61af6f3802af44d691c40a624f901d677724740cb974a188aeb1c3992c1565ac0fbec3aa4f68dac0a`
 
 authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -2122,7 +2213,7 @@ World {
             "query(0)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 1,
@@ -2132,7 +2223,7 @@ World {
             "query(1)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 1,
@@ -2145,7 +2236,7 @@ World {
             "query(1, 2)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 2,
@@ -2155,7 +2246,7 @@ World {
             "query(2)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 3,
@@ -2165,7 +2256,7 @@ World {
             "query(3)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 4,
@@ -2177,7 +2268,7 @@ World {
     },
 ]
   rules: [
-    AuthorizerRuleSet {
+    Rules {
         origin: Some(
             1,
         ),
@@ -2187,7 +2278,7 @@ World {
     },
 ]
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -2195,7 +2286,7 @@ World {
             "check if true trusting previous, ed25519/acdd6d5b53bfee478bf689f8e012fe7988bf755e3d7c5152947abc149bc20189",
         ],
     },
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -2204,7 +2295,7 @@ World {
             "check if query(2), query(3) trusting ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463",
         ],
     },
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             2,
         ),
@@ -2213,7 +2304,7 @@ World {
             "check if query(2), query(3) trusting ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463",
         ],
     },
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             3,
         ),
@@ -2222,7 +2313,7 @@ World {
             "check if query(2), query(3) trusting ed25519/a060270db7e9c9f06e8f9cc33a64e99f6596af12cb01c4b638df8afc7b642463",
         ],
     },
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             4,
         ),
@@ -2231,7 +2322,7 @@ World {
             "check if query(4) trusting ed25519/f98da8c1cf907856431bfc3dc87531e0eaadba90f919edc232405b85877ef136",
         ],
     },
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             18446744073709551615,
         ),
@@ -2251,199 +2342,6 @@ World {
 
 result: `Ok(3)`
 
-
-------------------------------
-
-## integer wraparound: test027_integer_wraparound.bc
-### token
-
-authority:
-symbols: []
-
-public keys: []
-
-```
-check if true || 10000000000 * 10000000000 != 0;
-check if true || 9223372036854775807 + 1 != 0;
-check if true || -9223372036854775808 - 1 != 0;
-```
-
-### validation
-
-authorizer code:
-```
-allow if true;
-```
-
-revocation ids:
-- `3346a22aae0abfc1ffa526f02f7650e90af909e5e519989026441e78cdc245b7fd126503cfdc8831325fc04307edc65238db319724477915f7040a2f6a719a05`
-
-authorizer world:
-```
-World {
-  facts: []
-  rules: []
-  checks: [
-    AuthorizerCheckSet {
-        origin: Some(
-            0,
-        ),
-        checks: [
-            "check if true || -9223372036854775808 - 1 != 0",
-            "check if true || 10000000000 * 10000000000 != 0",
-            "check if true || 9223372036854775807 + 1 != 0",
-        ],
-    },
-]
-  policies: [
-    "allow if true",
-]
-}
-```
-
-result: `Err(Execution(Overflow))`
-
-
-------------------------------
-
-## test expression syntax and all available operations (v4 blocks): test028_expressions_v4.bc
-### token
-
-authority:
-symbols: ["abcD12x", "abcD12"]
-
-public keys: []
-
-```
-check if 1 != 3;
-check if 1 | 2 ^ 3 == 0;
-check if "abcD12x" != "abcD12";
-check if 2022-12-04T09:46:41Z != 2020-12-04T09:46:41Z;
-check if hex:12abcd != hex:12ab;
-check if [1, 4] != [1, 2];
-```
-
-### validation
-
-authorizer code:
-```
-allow if true;
-```
-
-revocation ids:
-- `117fa653744c859561555e6a6f5990e3a8e7817f91b87aa6991b6d64297158b4e884c92d10f49f74c96069df722aa676839b72751ca9d1fe83a7025b591de00b`
-
-authorizer world:
-```
-World {
-  facts: []
-  rules: []
-  checks: [
-    AuthorizerCheckSet {
-        origin: Some(
-            0,
-        ),
-        checks: [
-            "check if \"abcD12x\" != \"abcD12\"",
-            "check if 1 != 3",
-            "check if 1 | 2 ^ 3 == 0",
-            "check if 2022-12-04T09:46:41Z != 2020-12-04T09:46:41Z",
-            "check if [1, 4] != [1, 2]",
-            "check if hex:12abcd != hex:12ab",
-        ],
-    },
-]
-  policies: [
-    "allow if true",
-]
-}
-```
-
-result: `Ok(0)`
-
-
-------------------------------
-
-## ECDSA secp256r1 signatures: test031_secp256r1.bc
-### token
-
-authority:
-symbols: ["file1", "file2"]
-
-public keys: []
-
-```
-right("file1", "read");
-right("file2", "read");
-right("file1", "write");
-```
-
-1:
-symbols: ["0"]
-
-public keys: []
-
-```
-check if resource($0), operation("read"), right($0, "read");
-```
-
-### validation
-
-authorizer code:
-```
-resource("file1");
-operation("read");
-allow if true;
-```
-
-revocation ids:
-- `760785de30d7348e9c847aab8b3bdad6a0d463f4f50ed9667aade563e9112ee6d2f589630dd7553c2eced2a57edf3636d5c874b35df15120c62fddcbdbd2de09`
-- `30440220039667c7a4d964e4b449289dc8fd206d7aa0e77eb701a9253b3307d32c177fa8022023f7523c143c5fb55ee4cafe49804702ef05a70883ebf42185b54bd36a7e7cd4`
-
-authorizer world:
-```
-World {
-  facts: [
-    Facts {
-        origin: {
-            None,
-        },
-        facts: [
-            "operation(\"read\")",
-            "resource(\"file1\")",
-        ],
-    },
-    Facts {
-        origin: {
-            Some(
-                0,
-            ),
-        },
-        facts: [
-            "right(\"file1\", \"read\")",
-            "right(\"file1\", \"write\")",
-            "right(\"file2\", \"read\")",
-        ],
-    },
-]
-  rules: []
-  checks: [
-    Checks {
-        origin: Some(
-            1,
-        ),
-        checks: [
-            "check if resource($0), operation(\"read\"), right($0, \"read\")",
-        ],
-    },
-]
-  policies: [
-    "allow if true",
-]
-}
-```
-
-result: `Ok(0)`
 
 ------------------------------
 
@@ -2516,6 +2414,117 @@ World {
 ]
   rules: []
   checks: [
+    Checks {
+        origin: Some(
+            1,
+        ),
+        checks: [
+            "check if resource($0), operation(\"read\"), right($0, \"read\")",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+
+
+------------------------------
+
+## ECDSA secp256r1 signature on third-party block: test037_secp256r1_third_party.bc
+### token
+
+authority:
+symbols: ["file1", "file2", "from_third"]
+
+public keys: ["secp256r1/025e918fd4463832aea2823dfd9716a36b4d9b1377bd53dd82ddf4c0bc75ed6bbf"]
+
+block version: 4
+
+```
+right("file1", "read");
+right("file2", "read");
+right("file1", "write");
+check if from_third(true) trusting secp256r1/025e918fd4463832aea2823dfd9716a36b4d9b1377bd53dd82ddf4c0bc75ed6bbf;
+```
+
+1:
+symbols: ["from_third", "0"]
+
+public keys: []
+
+external signature by: "secp256r1/025e918fd4463832aea2823dfd9716a36b4d9b1377bd53dd82ddf4c0bc75ed6bbf"
+
+block version: 5
+
+```
+from_third(true);
+check if resource($0), operation("read"), right($0, "read");
+```
+
+### validation
+
+authorizer code:
+```
+resource("file1");
+operation("read");
+
+allow if true;
+```
+
+revocation ids:
+- `70f5402208516fd44cfc9df3dfcfc0a327ee9004f1801ed0a7abdcbbae923d566ddcd2d4a14f4622b35732c4e538af04075cc67ab0888fa2d8923cc668187f0f`
+- `30450220793f95665d9af646339503a073670ea2c352459d2a2c2e14c57565f6c7eaf6bc022100cccadfc37e46755f52bb054ed206d7335067885df599a69431db40e33f33d4cf`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "operation(\"read\")",
+            "resource(\"file1\")",
+        ],
+    },
+    Facts {
+        origin: {
+            Some(
+                0,
+            ),
+        },
+        facts: [
+            "right(\"file1\", \"read\")",
+            "right(\"file1\", \"write\")",
+            "right(\"file2\", \"read\")",
+        ],
+    },
+    Facts {
+        origin: {
+            Some(
+                1,
+            ),
+        },
+        facts: [
+            "from_third(true)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if from_third(true) trusting secp256r1/025e918fd4463832aea2823dfd9716a36b4d9b1377bd53dd82ddf4c0bc75ed6bbf",
+        ],
+    },
     Checks {
         origin: Some(
             1,

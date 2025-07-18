@@ -27,6 +27,7 @@ import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.format.ExternalSignature;
 import org.eclipse.biscuit.token.format.SerializedBiscuit;
+import org.eclipse.biscuit.token.format.SignedBlock;
 
 /**
  * UnverifiedBiscuit auth token. UnverifiedBiscuit means it's deserialized without checking
@@ -236,6 +237,10 @@ public class UnverifiedBiscuit {
     return this.serializedBiscuit.getRootKeyId();
   }
 
+  public SerializedBiscuit getContainer() {
+    return this.serializedBiscuit;
+  }
+
   public int blockCount() {
     return 1 + blocks.size();
   }
@@ -258,44 +263,43 @@ public class UnverifiedBiscuit {
 
   /** Generates a third party block request from a token */
   public ThirdPartyBlockRequest thirdPartyRequest() {
-    PublicKey previousKey;
+    byte[] previousSignature;
     if (this.serializedBiscuit.getBlocks().isEmpty()) {
-      previousKey = this.serializedBiscuit.getAuthority().getKey();
+      previousSignature = this.serializedBiscuit.getAuthority().getSignature();
     } else {
-      previousKey =
+      previousSignature =
           this.serializedBiscuit
               .getBlocks()
               .get(this.serializedBiscuit.getBlocks().size() - 1)
-              .getKey();
+              .getSignature();
     }
 
-    return new ThirdPartyBlockRequest(previousKey);
+    return new ThirdPartyBlockRequest(previousSignature);
   }
 
   /** Generates a third party block request from a token */
   public UnverifiedBiscuit appendThirdPartyBlock(
       PublicKey externalKey, ThirdPartyBlockContents blockResponse)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    PublicKey previousKey;
+    SignedBlock previousBlock;
     if (this.serializedBiscuit.getBlocks().isEmpty()) {
-      previousKey = this.serializedBiscuit.getAuthority().getKey();
+      previousBlock = this.serializedBiscuit.getAuthority();
     } else {
-      previousKey =
-          this.serializedBiscuit
-              .getBlocks()
-              .get(this.serializedBiscuit.getBlocks().size() - 1)
-              .getKey();
+      previousBlock =
+          this.serializedBiscuit.getBlocks().get(this.serializedBiscuit.getBlocks().size() - 1);
     }
-    KeyPair nextKeyPair = KeyPair.generate(previousKey.getAlgorithm());
+    KeyPair nextKeyPair = KeyPair.generate(previousBlock.getKey().getAlgorithm());
     byte[] payload =
-        BlockSignatureBuffer.getBufferSignature(previousKey, blockResponse.getPayload());
+        BlockSignatureBuffer.generateExternalBlockSignaturePayloadV1(
+            blockResponse.getPayload(),
+            previousBlock.getSignature(),
+            BlockSignatureBuffer.THIRD_PARTY_SIGNATURE_VERSION);
     if (!externalKey.verify(payload, blockResponse.getSignature())) {
       throw new Error.FormatError.Signature.InvalidSignature(
           "signature error: Verification equation was not satisfied");
     }
 
-    Either<Error.FormatError, Block> res =
-        Block.fromBytes(blockResponse.getPayload(), Option.some(externalKey));
+    var res = Block.fromBytes(blockResponse.getPayload(), Option.some(externalKey));
     if (res.isLeft()) {
       throw res.getLeft();
     }
@@ -307,7 +311,7 @@ public class UnverifiedBiscuit {
 
     UnverifiedBiscuit copiedBiscuit = this.copy();
 
-    Either<Error.FormatError, SerializedBiscuit> containerRes =
+    var containerRes =
         copiedBiscuit.serializedBiscuit.append(nextKeyPair, block, Option.some(externalSignature));
     if (containerRes.isLeft()) {
       throw containerRes.getLeft();

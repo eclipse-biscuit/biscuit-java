@@ -13,6 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Optional;
 import org.eclipse.biscuit.error.Error;
 
 class Token {
@@ -29,7 +30,9 @@ class Token {
     this.keys = new ArrayList<>();
     this.keys.add(next.getPublicKey());
     this.signatures = new ArrayList<>();
-    byte[] payload = BlockSignatureBuffer.getBufferSignature(next.getPublicKey(), message);
+    byte[] payload =
+        BlockSignatureBuffer.generateBlockSignaturePayloadV0(
+            message, next.getPublicKey(), Optional.empty());
     byte[] signature = rootSigner.sign(payload);
     this.signatures.add(signature);
     this.next = next;
@@ -48,7 +51,9 @@ class Token {
 
   Token append(KeyPair keyPair, byte[] message)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-    byte[] payload = BlockSignatureBuffer.getBufferSignature(keyPair.getPublicKey(), message);
+    byte[] payload =
+        BlockSignatureBuffer.generateBlockSignaturePayloadV0(
+            message, keyPair.getPublicKey(), Optional.empty());
     byte[] signature = this.next.sign(payload);
 
     Token token = new Token(this.blocks, this.keys, this.signatures, keyPair);
@@ -68,7 +73,8 @@ class Token {
       PublicKey nextKey = this.keys.get(i);
       byte[] signature = this.signatures.get(i);
 
-      byte[] payload = BlockSignatureBuffer.getBufferSignature(nextKey, block);
+      byte[] payload =
+          BlockSignatureBuffer.generateBlockSignaturePayloadV0(block, nextKey, Optional.empty());
       if (currentKey.verify(payload, signature)) {
         currentKey = nextKey;
       } else {

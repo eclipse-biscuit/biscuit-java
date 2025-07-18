@@ -83,6 +83,7 @@ public final class Block {
     this.scopes = scopes;
     this.publicKeys = publicKeys;
     this.externalKey = externalKey;
+    this.version = version;
   }
 
   public SymbolTable getSymbolTable() {
@@ -435,7 +436,10 @@ public final class Block {
     if (!Objects.equals(publicKeys, block.publicKeys)) {
       return false;
     }
-    return Objects.equals(externalKey, block.externalKey);
+    if (!Objects.equals(externalKey, block.externalKey)) {
+      return false;
+    }
+    return Objects.equals(version, block.version);
   }
 
   @Override
@@ -448,6 +452,7 @@ public final class Block {
     result = 31 * result + (scopes != null ? scopes.hashCode() : 0);
     result = 31 * result + (publicKeys != null ? publicKeys.hashCode() : 0);
     result = 31 * result + (externalKey != null ? externalKey.hashCode() : 0);
+    result = 31 * result + Long.hashCode(version);
     return result;
   }
 
@@ -471,6 +476,8 @@ public final class Block {
         + publicKeys
         + ", externalKey="
         + externalKey
+        + ", version="
+        + version
         + '}';
   }
 

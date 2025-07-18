@@ -6,6 +6,7 @@
 package org.eclipse.biscuit.token;
 
 import biscuit.format.schema.Schema;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
@@ -14,7 +15,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.util.Objects;
+import java.util.Arrays;
 import org.eclipse.biscuit.crypto.BlockSignatureBuffer;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.crypto.Signer;
@@ -23,10 +24,10 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Block;
 
 public final class ThirdPartyBlockRequest {
-  private final PublicKey previousKey;
+  private final byte[] previousSignature;
 
-  ThirdPartyBlockRequest(PublicKey previousKey) {
-    this.previousKey = previousKey;
+  ThirdPartyBlockRequest(byte[] previousSignature) {
+    this.previousSignature = previousSignature;
   }
 
   public Either<Error.FormatError, ThirdPartyBlockContents> createBlock(
@@ -42,7 +43,11 @@ public final class ThirdPartyBlockRequest {
     }
 
     byte[] serializedBlock = res.get();
-    byte[] payload = BlockSignatureBuffer.getBufferSignature(this.previousKey, serializedBlock);
+    byte[] payload =
+        BlockSignatureBuffer.generateExternalBlockSignaturePayloadV1(
+            serializedBlock,
+            this.previousSignature,
+            BlockSignatureBuffer.THIRD_PARTY_SIGNATURE_VERSION);
     byte[] signature = externalSigner.sign(payload);
 
     PublicKey publicKey = externalSigner.getPublicKey();
@@ -52,15 +57,29 @@ public final class ThirdPartyBlockRequest {
 
   public Schema.ThirdPartyBlockRequest serialize() throws Error.FormatError.SerializationError {
     Schema.ThirdPartyBlockRequest.Builder b = Schema.ThirdPartyBlockRequest.newBuilder();
-    b.setPreviousKey(this.previousKey.serialize());
+    b.setPreviousSignature(ByteString.copyFrom(this.previousSignature));
 
     return b.build();
   }
 
   public static ThirdPartyBlockRequest deserialize(Schema.ThirdPartyBlockRequest b)
       throws Error.FormatError.DeserializationError {
-    PublicKey previousKey = PublicKey.deserialize(b.getPreviousKey());
-    return new ThirdPartyBlockRequest(previousKey);
+
+    if (b.hasLegacyPreviousKey()) {
+      throw new Error.FormatError.DeserializationError(
+          "public keys were provided in third-party block request");
+    }
+    if (b.getLegacyPublicKeysCount() > 0) {
+      throw new Error.FormatError.DeserializationError(
+          "public keys were provided in third-party block request");
+    }
+
+    if (!b.hasPreviousSignature()) {
+      throw new Error.FormatError.DeserializationError(
+          "missing previous signature in third-party block request");
+    }
+
+    return new ThirdPartyBlockRequest(b.getPreviousSignature().toByteArray());
   }
 
   public static ThirdPartyBlockRequest fromBytes(byte[] slice)
@@ -86,16 +105,16 @@ public final class ThirdPartyBlockRequest {
 
     ThirdPartyBlockRequest that = (ThirdPartyBlockRequest) o;
 
-    return Objects.equals(previousKey, that.previousKey);
+    return Arrays.equals(previousSignature, that.previousSignature);
   }
 
   @Override
   public int hashCode() {
-    return previousKey != null ? previousKey.hashCode() : 0;
+    return previousSignature != null ? Arrays.hashCode(previousSignature) : 0;
   }
 
   @Override
   public String toString() {
-    return "ThirdPartyBlockRequest{previousKey=" + previousKey + '}';
+    return "ThirdPartyBlockRequest{previousKey=" + previousSignature + '}';
   }
 }

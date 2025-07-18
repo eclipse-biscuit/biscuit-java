@@ -313,6 +313,8 @@ class SamplesTest {
     @SuppressWarnings("checkstyle:MemberName")
     String external_key;
 
+    int version;
+
     public List<String> getSymbols() {
       return symbols;
     }
