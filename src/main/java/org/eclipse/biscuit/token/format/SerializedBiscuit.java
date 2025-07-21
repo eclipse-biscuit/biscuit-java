@@ -115,10 +115,9 @@ public final class SerializedBiscuit {
    *
    * @param slice
    * @return SerializedBiscuit
-   * @throws Error.FormatError.DeserializationError
+   * @throws Error.FormatError
    */
-  public static SerializedBiscuit deserializeUnsafe(byte[] slice)
-      throws Error.FormatError.DeserializationError {
+  public static SerializedBiscuit deserializeUnsafe(byte[] slice) throws Error.FormatError {
     try {
       Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
       return SerializedBiscuit.deserialize(data);
@@ -132,10 +131,9 @@ public final class SerializedBiscuit {
    *
    * @param data
    * @return SerializedBiscuit
-   * @throws Error.FormatError.DeserializationError
+   * @throws Error.FormatError
    */
-  private static SerializedBiscuit deserialize(Schema.Biscuit data)
-      throws Error.FormatError.DeserializationError {
+  private static SerializedBiscuit deserialize(Schema.Biscuit data) throws Error.FormatError {
     if (data.getAuthority().hasExternalSignature()) {
       throw new Error.FormatError.DeserializationError(
           "the authority block must not contain an external signature");

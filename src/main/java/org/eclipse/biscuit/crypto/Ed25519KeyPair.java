@@ -12,6 +12,8 @@ import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.bouncycastle.math.ec.rfc8032.Ed25519;
+import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Utils;
 
 final class Ed25519KeyPair extends KeyPair {
@@ -20,7 +22,11 @@ final class Ed25519KeyPair extends KeyPair {
   private final Ed25519PrivateKeyParameters privateKey;
   private final Ed25519PublicKeyParameters publicKey;
 
-  Ed25519KeyPair(byte[] bytes) {
+  Ed25519KeyPair(byte[] bytes) throws Error.FormatError.InvalidKeySize {
+    if (bytes.length != Ed25519.SECRET_KEY_SIZE) {
+      throw new Error.FormatError.InvalidKeySize(bytes.length);
+    }
+
     Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(bytes);
     Ed25519PublicKeyParameters publicKey = privateKey.generatePublicKey();
 

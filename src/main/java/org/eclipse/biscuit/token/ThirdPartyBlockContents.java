@@ -39,7 +39,7 @@ public final class ThirdPartyBlockContents {
   }
 
   public static ThirdPartyBlockContents deserialize(Schema.ThirdPartyBlockContents b)
-      throws Error.FormatError.DeserializationError {
+      throws Error.FormatError {
     byte[] payload = b.getPayload().toByteArray();
     byte[] signature = b.getExternalSignature().getSignature().toByteArray();
     PublicKey publicKey = PublicKey.deserialize(b.getExternalSignature().getPublicKey());
@@ -48,7 +48,7 @@ public final class ThirdPartyBlockContents {
   }
 
   public static ThirdPartyBlockContents fromBytes(byte[] slice)
-      throws InvalidProtocolBufferException, Error.FormatError.DeserializationError {
+      throws InvalidProtocolBufferException, Error.FormatError {
     return ThirdPartyBlockContents.deserialize(Schema.ThirdPartyBlockContents.parseFrom(slice));
   }
 

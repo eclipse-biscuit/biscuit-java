@@ -251,7 +251,7 @@ class ParserTest {
   }
 
   @Test
-  void testRuleWithScope() {
+  void testRuleWithScope() throws org.eclipse.biscuit.error.Error.FormatError {
     Either<Error, Tuple2<String, Rule>> res =
         Parser.rule(
             "valid_date(\"file1\") <- resource(\"file1\")  trusting"

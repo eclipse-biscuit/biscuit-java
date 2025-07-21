@@ -48,7 +48,7 @@ class SamplesTest {
   final RunLimits runLimits = new RunLimits(500, 100, Duration.ofMillis(500));
 
   @TestFactory
-  Stream<DynamicTest> jsonTest() {
+  Stream<DynamicTest> jsonTest() throws Error.FormatError {
     InputStream inputStream =
         Thread.currentThread().getContextClassLoader().getResourceAsStream("samples/samples.json");
     Gson gson = new Gson();

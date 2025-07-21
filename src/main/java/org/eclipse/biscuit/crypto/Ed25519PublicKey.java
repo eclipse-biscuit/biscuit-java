@@ -9,6 +9,7 @@ import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import java.util.Arrays;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.eclipse.biscuit.error.Error;
 
 class Ed25519PublicKey extends PublicKey {
   private final Ed25519PublicKeyParameters publicKey;
@@ -18,8 +19,14 @@ class Ed25519PublicKey extends PublicKey {
     this.publicKey = publicKey;
   }
 
-  static Ed25519PublicKey loadEd25519(byte[] data) {
-    return new Ed25519PublicKey(new Ed25519PublicKeyParameters(data));
+  static Ed25519PublicKey loadEd25519(byte[] data) throws Error.FormatError.InvalidKey {
+    Ed25519PublicKeyParameters params;
+    try {
+      params = new Ed25519PublicKeyParameters(data);
+    } catch (IllegalArgumentException e) {
+      throw new Error.FormatError.InvalidKey(e.getMessage());
+    }
+    return new Ed25519PublicKey(params);
   }
 
   @Override

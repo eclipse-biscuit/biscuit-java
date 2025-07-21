@@ -6,20 +6,36 @@
 package org.eclipse.biscuit.crypto;
 
 import static org.eclipse.biscuit.crypto.SECP256R1KeyPair.CURVE;
-import static org.eclipse.biscuit.crypto.SECP256R1KeyPair.getSignature;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Arrays;
+import org.bouncycastle.asn1.sec.SECNamedCurves;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
+import org.bouncycastle.crypto.signers.ECDSASigner;
+import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
+import org.bouncycastle.crypto.signers.StandardDSAEncoding;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECPoint;
+import org.eclipse.biscuit.error.Error;
 
 @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 class SECP256R1PublicKey extends PublicKey {
+
+  private static final X9ECParameters x9ECParameters = SECNamedCurves.getByName("secp256r1");
+  private static final ECDomainParameters domainParameters =
+      new ECDomainParameters(
+          x9ECParameters.getCurve(),
+          x9ECParameters.getG(),
+          x9ECParameters.getN(),
+          x9ECParameters.getH());
 
   private final BCECPublicKey publicKey;
 
@@ -28,9 +44,15 @@ class SECP256R1PublicKey extends PublicKey {
     this.publicKey = publicKey;
   }
 
-  static SECP256R1PublicKey loadSECP256R1(byte[] data) {
+  static SECP256R1PublicKey loadSECP256R1(byte[] data) throws Error.FormatError.InvalidKey {
     var params = ECNamedCurveTable.getParameterSpec(CURVE);
-    var spec = new ECPublicKeySpec(params.getCurve().decodePoint(data), params);
+    ECPoint ecPoint;
+    try {
+      ecPoint = params.getCurve().decodePoint(data);
+    } catch (IllegalArgumentException e) {
+      throw new Error.FormatError.InvalidKey(e.getMessage());
+    }
+    var spec = new ECPublicKeySpec(ecPoint, params);
     return new SECP256R1PublicKey(
         new BCECPublicKey(SECP256R1KeyPair.ALGORITHM, spec, BouncyCastleProvider.CONFIGURATION));
   }
@@ -69,11 +91,22 @@ class SECP256R1PublicKey extends PublicKey {
   }
 
   @Override
-  public boolean verify(byte[] data, byte[] signature)
-      throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-    var sgr = getSignature();
-    sgr.initVerify(this.publicKey);
-    sgr.update(data);
-    return sgr.verify(signature);
+  public boolean verify(byte[] data, byte[] signature) {
+    var digest = new SHA256Digest();
+    digest.update(data, 0, data.length);
+    var hash = new byte[digest.getDigestSize()];
+    digest.doFinal(hash, 0);
+
+    var signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
+    signer.init(false, new ECPublicKeyParameters(publicKey.getQ(), domainParameters));
+
+    BigInteger[] sig;
+    try {
+      sig = StandardDSAEncoding.INSTANCE.decode(signer.getOrder(), signature);
+    } catch (IOException e) {
+      throw new IllegalStateException(e.toString());
+    }
+
+    return signer.verifySignature(hash, sig[0], sig[1]);
   }
 }

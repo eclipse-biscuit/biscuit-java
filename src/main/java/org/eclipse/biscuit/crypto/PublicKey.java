@@ -17,21 +17,32 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Utils;
 
 public abstract class PublicKey {
+  public interface Factory {
+    PublicKey load(byte[] bytes) throws Error.FormatError.InvalidKey;
+  }
+
+  public static final Factory DEFAULT_ED25519_FACTORY =
+      bytes -> Ed25519PublicKey.loadEd25519(bytes);
+  public static final Factory DEFAULT_SECP256R1_FACTORY =
+      bytes -> SECP256R1PublicKey.loadSECP256R1(bytes);
+
+  private static volatile Factory ed25519Factory = DEFAULT_ED25519_FACTORY;
+  private static volatile Factory secp256r1Factory = DEFAULT_SECP256R1_FACTORY;
 
   private static final Set<Algorithm> SUPPORTED_ALGORITHMS =
       Set.of(Algorithm.Ed25519, Algorithm.SECP256R1);
 
-  public static PublicKey load(Algorithm algorithm, byte[] data) {
+  public static PublicKey load(Algorithm algorithm, byte[] data) throws Error.FormatError {
     if (algorithm == Algorithm.Ed25519) {
-      return Ed25519PublicKey.loadEd25519(data);
+      return ed25519Factory.load(data);
     } else if (algorithm == Algorithm.SECP256R1) {
-      return SECP256R1PublicKey.loadSECP256R1(data);
+      return secp256r1Factory.load(data);
     } else {
       throw new IllegalArgumentException("Unsupported algorithm");
     }
   }
 
-  public static PublicKey load(Algorithm algorithm, String hex) {
+  public static PublicKey load(Algorithm algorithm, String hex) throws Error.FormatError {
     return load(algorithm, Utils.hexStringToByteArray(hex));
   }
 
@@ -48,8 +59,7 @@ public abstract class PublicKey {
     return publicKey.build();
   }
 
-  public static PublicKey deserialize(Schema.PublicKey pk)
-      throws Error.FormatError.DeserializationError {
+  public static PublicKey deserialize(Schema.PublicKey pk) throws Error.FormatError {
     if (!pk.hasAlgorithm() || !pk.hasKey() || !SUPPORTED_ALGORITHMS.contains(pk.getAlgorithm())) {
       throw new Error.FormatError.DeserializationError("Invalid public key");
     }
@@ -72,6 +82,14 @@ public abstract class PublicKey {
           Optional.of(new Error.FormatError.Signature.InvalidSignature("unsupported algorithm"));
     }
     return error;
+  }
+
+  public static void setEd25519Factory(Factory factory) {
+    ed25519Factory = factory;
+  }
+
+  public static void setSECP256R1Factory(Factory factory) {
+    secp256r1Factory = factory;
   }
 
   public abstract Algorithm getAlgorithm();

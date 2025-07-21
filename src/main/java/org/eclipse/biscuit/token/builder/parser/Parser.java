@@ -41,8 +41,8 @@ public final class Parser {
    * <p>If one succeeds it returns Right(Block) else it returns a Map[lineNumber, List[Error]]
    *
    * @param s datalog string to parse
-   * @return Either<Map<Integer, List<Error>>, Tuple5<List<Fact>, List<Rule>,
-   *         List<Check>, List<Scope>, List<Policy>>>
+   * @return Either<Map<Integer, List<Error>>, Tuple5<List<Fact>, List<Rule>, List<Check>,
+   *     List<Scope>, List<Policy>>>
    */
   public static Either<
           Map<Integer, List<Error>>,
@@ -157,16 +157,13 @@ public final class Parser {
   }
 
   /**
-   * Takes a datalog string with <code>\n</code> as datalog line separator. It
-   * tries to parse each
+   * Takes a datalog string with <code>\n</code> as datalog line separator. It tries to parse each
    * line using fact, rule, check and scope sequentially.
    *
-   * <p>
-   * If one succeeds it returns Right(Block) else it returns a Map[lineNumber,
-   * List[Error]]
+   * <p>If one succeeds it returns Right(Block) else it returns a Map[lineNumber, List[Error]]
    *
    * @param index block index
-   * @param s     datalog string to parse
+   * @param s datalog string to parse
    * @return Either<Map<Integer, List<Error>>, Block>
    */
   public static Either<Map<Integer, List<Error>>, Block> datalog(long index, String s) {
@@ -510,19 +507,25 @@ public final class Parser {
   }
 
   public static Either<Error, Tuple2<String, PublicKey>> publicKey(String s) {
+    Schema.PublicKey.Algorithm algorithm;
     if (s.startsWith("ed25519/")) {
       s = s.substring("ed25519/".length());
-      Tuple2<String, byte[]> t = hex(s);
-      return Either.right(
-          new Tuple2(t._1, PublicKey.load(Schema.PublicKey.Algorithm.Ed25519, t._2)));
+      algorithm = Schema.PublicKey.Algorithm.Ed25519;
     } else if (s.startsWith("secp256r1/")) {
       s = s.substring("secp256r1/".length());
-      Tuple2<String, byte[]> t = hex(s);
-      return Either.right(
-          new Tuple2(t._1, PublicKey.load(Schema.PublicKey.Algorithm.SECP256R1, t._2)));
+      algorithm = Schema.PublicKey.Algorithm.SECP256R1;
     } else {
       return Either.left(new Error(s, "unrecognized public key prefix"));
     }
+
+    var t = hex(s);
+    PublicKey publicKey;
+    try {
+      publicKey = PublicKey.load(algorithm, t._2);
+    } catch (org.eclipse.biscuit.error.Error.FormatError e) {
+      return Either.left(new Error(s, e.getMessage()));
+    }
+    return Either.right(new Tuple2<>(t._1, publicKey));
   }
 
   public static Either<Error, Tuple2<String, Predicate>> factPredicate(String s) {
