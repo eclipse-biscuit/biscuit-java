@@ -5,13 +5,6 @@
 
 package org.eclipse.biscuit.token;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
-import io.vavr.Tuple2;
-import io.vavr.Tuple5;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,11 +14,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.FactSet;
 import org.eclipse.biscuit.datalog.Origin;
+import org.eclipse.biscuit.datalog.Pair;
 import org.eclipse.biscuit.datalog.RuleSet;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.datalog.Scope;
@@ -35,6 +30,7 @@ import org.eclipse.biscuit.datalog.World;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.Expression;
 import org.eclipse.biscuit.token.builder.Fact;
@@ -120,7 +116,7 @@ public final class Authorizer {
       for (long i = 0; i < token.blocks.size(); i++) {
         Block block = token.blocks.get((int) i);
 
-        if (block.getExternalKey().isDefined()) {
+        if (block.getExternalKey().isPresent()) {
           PublicKey pk = block.getExternalKey().get();
           long newKeyId = this.symbolTable.insert(pk);
           if (!this.publicKeyToBlockId.containsKey(newKeyId)) {
@@ -149,8 +145,8 @@ public final class Authorizer {
         Rule locRule = Rule.convertFrom(rule, token.symbolTable);
         org.eclipse.biscuit.datalog.Rule convertedRule = locRule.convert(this.symbolTable);
 
-        Either<String, Rule> res = locRule.validateVariables();
-        if (res.isLeft()) {
+        var res = locRule.validateVariables();
+        if (res.isErr()) {
           throw new Error.FailedLogic(
               new LogicError.InvalidBlockRule(0, token.symbolTable.formatRule(convertedRule)));
         }
@@ -168,7 +164,7 @@ public final class Authorizer {
 
         SymbolTable blockSymbolTable = token.symbolTable;
 
-        if (block.getExternalKey().isDefined()) {
+        if (block.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(block.getSymbolTable(), block.getPublicKeys());
         }
 
@@ -182,8 +178,8 @@ public final class Authorizer {
           Rule syRole = Rule.convertFrom(rule, blockSymbolTable);
           org.eclipse.biscuit.datalog.Rule convertedRule = syRole.convert(this.symbolTable);
 
-          Either<String, Rule> res = syRole.validateVariables();
-          if (res.isLeft()) {
+          var res = syRole.validateVariables();
+          if (res.isErr()) {
             throw new Error.FailedLogic(
                 new LogicError.InvalidBlockRule(0, this.symbolTable.formatRule(convertedRule)));
           }
@@ -206,19 +202,11 @@ public final class Authorizer {
     return this;
   }
 
-  public Either<Map<Integer, List<Error>>, Authorizer> addDatalog(String s) {
-    Either<
-            Map<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>>,
-            Tuple5<
-                List<Fact>,
-                List<Rule>,
-                List<Check>,
-                List<org.eclipse.biscuit.token.builder.Scope>,
-                List<Policy>>>
-        result = Parser.datalogComponents(s);
+  public Result<Authorizer, Map<Integer, List<Error>>> addDatalog(String s) {
+    var result = Parser.datalogComponents(s);
 
-    if (result.isLeft()) {
-      Map<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>> errors = result.getLeft();
+    if (result.isErr()) {
+      var errors = result.getErr();
       Map<Integer, List<Error>> errorMap = new HashMap<>();
       for (Map.Entry<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>> entry :
           errors.entrySet()) {
@@ -228,23 +216,17 @@ public final class Authorizer {
         }
         errorMap.put(entry.getKey(), errorsList);
       }
-      return Either.left(errorMap);
+      return Result.err(errorMap);
     }
 
-    Tuple5<
-            List<Fact>,
-            List<Rule>,
-            List<Check>,
-            List<org.eclipse.biscuit.token.builder.Scope>,
-            List<Policy>>
-        components = result.get();
-    components._1.forEach(this::addFact);
-    components._2.forEach(this::addRule);
-    components._3.forEach(this::addCheck);
-    components._4.forEach(this::addScope);
-    components._5.forEach(this::addPolicy);
+    var components = result.getOk();
+    components.facts.forEach(this::addFact);
+    components.rules.forEach(this::addRule);
+    components.checks.forEach(this::addCheck);
+    components.scopes.forEach(this::addScope);
+    components.policies.forEach(this::addPolicy);
 
-    return Either.right(this);
+    return Result.ok(this);
   }
 
   public Authorizer addScope(org.eclipse.biscuit.token.builder.Scope s) {
@@ -258,16 +240,11 @@ public final class Authorizer {
   }
 
   public Authorizer addFact(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Fact>> res =
-        Parser.fact(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.fact(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Fact> t = res.get();
-
-    return this.addFact(t._2);
+    return this.addFact(res.getOk()._2);
   }
 
   public Authorizer addRule(Rule rule) {
@@ -280,16 +257,11 @@ public final class Authorizer {
   }
 
   public Authorizer addRule(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return addRule(t._2);
+    return addRule(res.getOk()._2);
   }
 
   public TrustedOrigins authorizerTrustedOrigins() {
@@ -303,16 +275,11 @@ public final class Authorizer {
   }
 
   public Authorizer addCheck(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Check>> res =
-        Parser.check(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.check(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Check> t = res.get();
-
-    return addCheck(t._2);
+    return addCheck(res.getOk()._2);
   }
 
   public Authorizer setTime() throws Error.Language {
@@ -375,16 +342,11 @@ public final class Authorizer {
   }
 
   public Authorizer addPolicy(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Policy>> res =
-        Parser.policy(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.policy(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Policy> t = res.get();
-
-    this.policies.add(t._2);
+    this.policies.add(res.getOk()._2);
     return this;
   }
 
@@ -402,17 +364,12 @@ public final class Authorizer {
     return this.query(query, new RunLimits());
   }
 
-  public Set<Fact> query(String s) throws Error {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+  public Set<org.eclipse.biscuit.token.builder.Fact> query(String s) throws Error {
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return query(t._2);
+    return query(res.getOk()._2);
   }
 
   public Set<Fact> query(Rule query, RunLimits limits) throws Error {
@@ -438,17 +395,13 @@ public final class Authorizer {
     return s;
   }
 
-  public Set<Fact> query(String s, RunLimits limits) throws Error {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+  public Set<org.eclipse.biscuit.token.builder.Fact> query(String s, RunLimits limits)
+      throws Error {
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return query(t._2, limits);
+    return query(res.getOk()._2, limits);
   }
 
   public Long authorize() throws Error {
@@ -546,7 +499,7 @@ public final class Authorizer {
       }
     }
 
-    Option<Either<Integer, Integer>> policyResult = Option.none();
+    Optional<Result<Integer, Integer>> policyResult = Optional.empty();
     policies_test:
     for (int i = 0; i < this.policies.size(); i++) {
       Policy policy = this.policies.get(i);
@@ -564,9 +517,9 @@ public final class Authorizer {
 
         if (res) {
           if (this.policies.get(i).kind() == Policy.Kind.ALLOW) {
-            policyResult = Option.some(Right(i));
+            policyResult = Optional.of(Result.ok(i));
           } else {
-            policyResult = Option.some(Left(i));
+            policyResult = Optional.of(Result.err(i));
           }
           break policies_test;
         }
@@ -580,7 +533,7 @@ public final class Authorizer {
             TrustedOrigins.fromScopes(
                 b.getScopes(), TrustedOrigins.defaultOrigins(), i + 1, this.publicKeyToBlockId);
         SymbolTable blockSymbolTable = token.symbolTable;
-        if (b.getExternalKey().isDefined()) {
+        if (b.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(b.getSymbolTable(), b.getPublicKeys());
         }
 
@@ -624,18 +577,18 @@ public final class Authorizer {
       }
     }
 
-    if (policyResult.isDefined()) {
-      Either<Integer, Integer> e = policyResult.get();
-      if (e.isRight()) {
+    if (policyResult.isPresent()) {
+      var e = policyResult.get();
+      if (e.isOk()) {
         if (errors.isEmpty()) {
-          return e.get().longValue();
+          return e.getOk().longValue();
         } else {
           throw new Error.FailedLogic(
-              new LogicError.Unauthorized(new LogicError.MatchedPolicy.Allow(e.get()), errors));
+              new LogicError.Unauthorized(new LogicError.MatchedPolicy.Allow(e.getOk()), errors));
         }
       } else {
         throw new Error.FailedLogic(
-            new LogicError.Unauthorized(new LogicError.MatchedPolicy.Deny(e.getLeft()), errors));
+            new LogicError.Unauthorized(new LogicError.MatchedPolicy.Deny(e.getErr()), errors));
       }
     } else {
       throw new Error.FailedLogic(new LogicError.NoMatchingPolicy(errors));
@@ -676,7 +629,7 @@ public final class Authorizer {
         Block b = this.token.blocks.get(i);
 
         SymbolTable blockSymbolTable = token.symbolTable;
-        if (b.getExternalKey().isDefined()) {
+        if (b.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(b.getSymbolTable(), b.getPublicKeys());
         }
 
@@ -717,10 +670,10 @@ public final class Authorizer {
     return this.world.getRules();
   }
 
-  public List<Tuple2<Long, List<Check>>> getChecks() {
-    List<Tuple2<Long, List<Check>>> allChecks = new ArrayList<>();
+  public List<Pair<Long, List<Check>>> getChecks() {
+    List<Pair<Long, List<Check>>> allChecks = new ArrayList<>();
     if (!this.checks.isEmpty()) {
-      allChecks.add(new Tuple2<>(Long.MAX_VALUE, this.checks));
+      allChecks.add(new Pair<>(Long.MAX_VALUE, this.checks));
     }
 
     List<Check> authorityChecks = new ArrayList<>();
@@ -728,14 +681,14 @@ public final class Authorizer {
       authorityChecks.add(Check.convertFrom(check, this.token.symbolTable));
     }
     if (!authorityChecks.isEmpty()) {
-      allChecks.add(new Tuple2<>((long) 0, authorityChecks));
+      allChecks.add(new Pair<>((long) 0, authorityChecks));
     }
 
     long count = 1;
     for (Block block : this.token.blocks) {
       List<Check> blockChecks = new ArrayList<>();
 
-      if (block.getExternalKey().isDefined()) {
+      if (block.getExternalKey().isPresent()) {
         SymbolTable blockSymbolTable =
             new SymbolTable(block.getSymbolTable(), block.getPublicKeys());
         for (org.eclipse.biscuit.datalog.Check check : block.getChecks()) {
@@ -747,7 +700,7 @@ public final class Authorizer {
         }
       }
       if (!blockChecks.isEmpty()) {
-        allChecks.add(new Tuple2<>(count, blockChecks));
+        allChecks.add(new Pair<>(count, blockChecks));
       }
       count += 1;
     }

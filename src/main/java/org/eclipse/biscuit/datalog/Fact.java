@@ -5,15 +5,12 @@
 
 package org.eclipse.biscuit.datalog;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
-import io.vavr.control.Either;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public final class Fact implements Serializable {
   private final Predicate predicate;
@@ -60,13 +57,12 @@ public final class Fact implements Serializable {
     return Schema.FactV2.newBuilder().setPredicate(this.predicate.serialize()).build();
   }
 
-  public static Either<Error.FormatError, Fact> deserializeV2(Schema.FactV2 fact) {
-    Either<Error.FormatError, Predicate> res = Predicate.deserializeV2(fact.getPredicate());
-    if (res.isLeft()) {
-      Error.FormatError e = res.getLeft();
-      return Left(e);
+  public static Result<Fact, Error.FormatError> deserializeV2(Schema.FactV2 fact) {
+    var res = Predicate.deserializeV2(fact.getPredicate());
+    if (res.isErr()) {
+      return Result.err(res.getErr());
     } else {
-      return Right(new Fact(res.get()));
+      return Result.ok(new Fact(res.getOk()));
     }
   }
 }

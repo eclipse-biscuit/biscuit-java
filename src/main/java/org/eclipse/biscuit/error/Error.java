@@ -5,17 +5,21 @@
 
 package org.eclipse.biscuit.error;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import io.vavr.control.Option;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 
-public class Error extends Exception {
-  public Option<List<FailedCheck>> getFailedChecks() {
-    return Option.none();
+public abstract class Error extends Exception {
+  static final ObjectMapper objectMapper = new ObjectMapper();
+
+  public Optional<List<FailedCheck>> getFailedChecks() {
+    return Optional.empty();
   }
 
   /**
@@ -23,25 +27,24 @@ public class Error extends Exception {
    *
    * @return json object
    */
-  public JsonElement toJson() {
-    return new JsonObject();
+  public abstract JsonNode toJson();
+
+  public static final class InternalError extends Error {
+    @Override
+    public JsonNode toJson() {
+      return TextNode.valueOf("InternalError");
+    }
   }
 
-  public static final class InternalError extends Error {}
+  public abstract static class FormatError extends Error {
 
-  public static class FormatError extends Error {
-
-    private static JsonElement jsonWrapper(JsonElement e) {
-      JsonObject root = new JsonObject();
-      root.add("Format", e);
-      return root;
+    private static JsonNode jsonWrapper(JsonNode e) {
+      return objectMapper.createObjectNode().set("Format", e);
     }
 
-    public static class Signature extends FormatError {
-      private static JsonElement jsonWrapper(JsonElement e) {
-        JsonObject signature = new JsonObject();
-        signature.add("Signature", e);
-        return FormatError.jsonWrapper(signature);
+    public abstract static class Signature extends FormatError {
+      private static JsonNode jsonWrapper(JsonNode e) {
+        return FormatError.jsonWrapper(objectMapper.createObjectNode().set("Signature", e));
       }
 
       public static final class InvalidFormat extends Signature {
@@ -56,8 +59,8 @@ public class Error extends Exception {
         }
 
         @Override
-        public JsonElement toJson() {
-          return Signature.jsonWrapper(new JsonPrimitive("InvalidFormat"));
+        public JsonNode toJson() {
+          return Signature.jsonWrapper(TextNode.valueOf("InvalidFormat"));
         }
 
         @Override
@@ -82,10 +85,9 @@ public class Error extends Exception {
         }
 
         @Override
-        public JsonElement toJson() {
-          JsonObject jo = new JsonObject();
-          jo.addProperty("InvalidSignature", this.err);
-          return Signature.jsonWrapper(jo);
+        public JsonNode toJson() {
+          return Signature.jsonWrapper(
+              objectMapper.createObjectNode().put("InvalidSignature", this.err));
         }
 
         @Override
@@ -105,8 +107,8 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        return FormatError.jsonWrapper(new JsonPrimitive("SealedSignature"));
+      public JsonNode toJson() {
+        return Signature.jsonWrapper(TextNode.valueOf("SealedSignature"));
       }
 
       @Override
@@ -125,8 +127,8 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        return FormatError.jsonWrapper(new JsonPrimitive("EmptyKeys"));
+      public JsonNode toJson() {
+        return Signature.jsonWrapper(TextNode.valueOf("EmptyKeys"));
       }
 
       @Override
@@ -145,8 +147,8 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        return FormatError.jsonWrapper(new JsonPrimitive("UnknownPublicKey"));
+      public JsonNode toJson() {
+        return Signature.jsonWrapper(TextNode.valueOf("UnknownPublicKey"));
       }
 
       @Override
@@ -185,10 +187,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("DeserializationError", this.err);
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("DeserializationError", this.err));
       }
     }
 
@@ -222,10 +223,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("SerializationError", this.err);
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("SerializationError", this.err));
       }
     }
 
@@ -259,10 +259,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("BlockDeserializationError", this.err);
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("BlockDeserializationError", this.err));
       }
     }
 
@@ -296,10 +295,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("BlockSerializationError", this.err);
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("BlockSerializationError", this.err));
       }
     }
 
@@ -352,14 +350,14 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject child = new JsonObject();
-        child.addProperty("minimum", this.minimum);
-        child.addProperty("maximum", this.maximum);
-        child.addProperty("actual", this.actual);
-        JsonObject jo = new JsonObject();
-        jo.add("Version", child);
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        ObjectNode child =
+            objectMapper
+                .createObjectNode()
+                .put("minimum", this.minimum)
+                .put("maximum", this.maximum)
+                .put("actual", this.actual);
+        return FormatError.jsonWrapper(objectMapper.createObjectNode().set("Version", child));
       }
     }
 
@@ -395,10 +393,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.add("InvalidSignatureSize", new JsonPrimitive(size));
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().set("InvalidSignatureSize", IntNode.valueOf(size)));
       }
     }
 
@@ -434,10 +431,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.add("InvalidKeySize", new JsonPrimitive(size));
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().set("InvalidKeySize", IntNode.valueOf(size)));
       }
     }
 
@@ -471,10 +467,9 @@ public class Error extends Exception {
       }
 
       @Override
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("InvalidKey", this.err);
-        return FormatError.jsonWrapper(jo);
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().set("InvalidKey", TextNode.valueOf(this.err)));
       }
     }
   }
@@ -509,12 +504,10 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject child = new JsonObject();
-      child.addProperty("index", this.index);
-      JsonObject jo = new JsonObject();
-      jo.add("InvalidAuthorityIndex", child);
-      return jo;
+    public JsonNode toJson() {
+      ObjectNode child = objectMapper.createObjectNode().put("index", index);
+      return FormatError.jsonWrapper(
+          objectMapper.createObjectNode().set("InvalidAuthorityIndex", child));
     }
   }
 
@@ -550,13 +543,11 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject child = new JsonObject();
-      child.addProperty("expected", this.expected);
-      child.addProperty("fount", this.found);
-      JsonObject jo = new JsonObject();
-      jo.add("InvalidBlockIndex", child);
-      return jo;
+    public JsonNode toJson() {
+      ObjectNode child =
+          objectMapper.createObjectNode().put("expected", expected).put("found", found);
+      return FormatError.jsonWrapper(
+          objectMapper.createObjectNode().set("InvalidBlockIndex", child));
     }
   }
 
@@ -570,8 +561,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("SymbolTableOverlap");
+    public JsonNode toJson() {
+      return TextNode.valueOf("SymbolTableOverlap");
     }
   }
 
@@ -585,8 +576,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("MissingSymbols");
+    public JsonNode toJson() {
+      return TextNode.valueOf("MissingSymbols");
     }
   }
 
@@ -600,8 +591,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("Sealed");
+    public JsonNode toJson() {
+      return TextNode.valueOf("Sealed");
     }
   }
 
@@ -635,15 +626,13 @@ public class Error extends Exception {
     }
 
     @Override
-    public Option<List<FailedCheck>> getFailedChecks() {
+    public Optional<List<FailedCheck>> getFailedChecks() {
       return this.error.getFailedChecks();
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
-      jo.add("FailedLogic", this.error.toJson());
-      return jo;
+    public JsonNode toJson() {
+      return objectMapper.createObjectNode().set("FailedLogic", error.toJson());
     }
   }
 
@@ -663,10 +652,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
-      jo.add("Language", langError.toJson());
-      return jo;
+    public JsonNode toJson() {
+      return objectMapper.createObjectNode().set("Language", langError.toJson());
     }
   }
 
@@ -680,8 +667,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("TooManyFacts");
+    public JsonNode toJson() {
+      return TextNode.valueOf("TooManyFacts");
     }
   }
 
@@ -695,8 +682,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("TooManyIterations");
+    public JsonNode toJson() {
+      return TextNode.valueOf("TooManyIterations");
     }
   }
 
@@ -710,8 +697,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("Timeout");
+    public JsonNode toJson() {
+      return TextNode.valueOf("Timeout");
     }
   }
 
@@ -753,10 +740,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
-      jo.add("Execution", new JsonPrimitive(this.kind.toString()));
-      return jo;
+    public JsonNode toJson() {
+      return objectMapper.createObjectNode().put("Execution", kind.toString());
     }
 
     @Override
@@ -775,8 +760,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("InvalidType");
+    public JsonNode toJson() {
+      return TextNode.valueOf("InvalidType");
     }
   }
 
@@ -812,10 +797,8 @@ public class Error extends Exception {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject error = new JsonObject();
-      error.add("error", this.error.toJson());
-      return error;
+    public JsonNode toJson() {
+      return objectMapper.createObjectNode().set("error", objectMapper.valueToTree(error));
     }
   }
 }

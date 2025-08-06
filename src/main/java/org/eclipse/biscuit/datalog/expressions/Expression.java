@@ -5,21 +5,18 @@
 
 package org.eclipse.biscuit.datalog.expressions;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public final class Expression {
   private final ArrayList<Op> ops;
@@ -46,15 +43,15 @@ public final class Expression {
     }
   }
 
-  public Option<String> print(SymbolTable symbolTable) {
+  public Optional<String> print(SymbolTable symbolTable) {
     Deque<String> stack = new ArrayDeque<>();
     for (Op op : ops) {
       op.print(stack, symbolTable);
     }
     if (stack.size() == 1) {
-      return Option.some(stack.remove());
+      return Optional.of(stack.remove());
     } else {
-      return Option.none();
+      return Optional.empty();
     }
   }
 
@@ -68,21 +65,20 @@ public final class Expression {
     return b.build();
   }
 
-  public static Either<Error.FormatError, Expression> deserializeV2(Schema.ExpressionV2 e) {
+  public static Result<Expression, Error.FormatError> deserializeV2(Schema.ExpressionV2 e) {
     ArrayList<Op> ops = new ArrayList<>();
 
     for (Schema.Op op : e.getOpsList()) {
-      Either<Error.FormatError, Op> res = Op.deserializeV2(op);
+      var res = Op.deserializeV2(op);
 
-      if (res.isLeft()) {
-        Error.FormatError err = res.getLeft();
-        return Left(err);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        ops.add(res.get());
+        ops.add(res.getOk());
       }
     }
 
-    return Right(new Expression(ops));
+    return Result.ok(new Expression(ops));
   }
 
   @Override

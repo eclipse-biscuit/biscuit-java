@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.control.Option;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -40,16 +39,16 @@ public final class MatchedVariables implements Serializable {
     return this.variables.values().stream().allMatch((v) -> v.isPresent());
   }
 
-  public Option<Map<Long, Term>> complete() {
+  public Optional<Map<Long, Term>> complete() {
     final Map<Long, Term> variables = new HashMap<>();
     for (final Map.Entry<Long, Optional<Term>> entry : this.variables.entrySet()) {
       if (entry.getValue().isPresent()) {
         variables.put(entry.getKey(), entry.getValue().get());
       } else {
-        return Option.none();
+        return Optional.empty();
       }
     }
-    return Option.some(variables);
+    return Optional.of(variables);
   }
 
   public MatchedVariables clone() {
@@ -69,10 +68,10 @@ public final class MatchedVariables implements Serializable {
     }
   }
 
-  public Option<Map<Long, Term>> checkExpressions(
+  public Optional<Map<Long, Term>> checkExpressions(
       List<Expression> expressions, SymbolTable symbolTable) throws Error {
-    final Option<Map<Long, Term>> vars = this.complete();
-    if (vars.isDefined()) {
+    final Optional<Map<Long, Term>> vars = this.complete();
+    if (vars.isPresent()) {
       Map<Long, Term> variables = vars.get();
 
       for (Expression e : expressions) {
@@ -82,13 +81,13 @@ public final class MatchedVariables implements Serializable {
           throw new Error.InvalidType();
         }
         if (!term.equals(new Term.Bool(true))) {
-          return Option.none();
+          return Optional.empty();
         }
       }
 
-      return Option.some(variables);
+      return Optional.of(variables);
     } else {
-      return Option.none();
+      return Optional.empty();
     }
   }
 }

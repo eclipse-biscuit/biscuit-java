@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.crypto;
 
-import static io.vavr.API.Right;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.Biscuit;
 import org.junit.jupiter.api.Test;
 
@@ -126,17 +126,17 @@ public class SignatureTest {
     System.out.println("keypair2 public: " + keypair2.getPublicKey().toHex());
 
     Token token1 = new Token(root, message1.getBytes(), keypair2);
-    assertEquals(Right(null), token1.verify(root.getPublicKey()));
+    assertEquals(Result.ok(null), token1.verify(root.getPublicKey()));
 
     String message2 = "world";
     KeyPair keypair3 = KeyPair.generate(algorithm, rng);
     Token token2 = token1.append(keypair3, message2.getBytes());
-    assertEquals(Right(null), token2.verify(root.getPublicKey()));
+    assertEquals(Result.ok(null), token2.verify(root.getPublicKey()));
 
     String message3 = "!!";
     KeyPair keypair4 = KeyPair.generate(algorithm, rng);
     Token token3 = token2.append(keypair4, message3.getBytes());
-    assertEquals(Right(null), token3.verify(root.getPublicKey()));
+    assertEquals(Result.ok(null), token3.verify(root.getPublicKey()));
   }
 
   private static void prGenSigKeys(Schema.PublicKey.Algorithm algorithm) throws Error.FormatError {

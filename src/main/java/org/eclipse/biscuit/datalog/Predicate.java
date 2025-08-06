@@ -5,11 +5,7 @@
 
 package org.eclipse.biscuit.datalog;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
-import io.vavr.control.Either;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +13,7 @@ import java.util.ListIterator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
 public final class Predicate implements Serializable {
   private final long name;
@@ -99,18 +96,17 @@ public final class Predicate implements Serializable {
     return builder.build();
   }
 
-  public static Either<Error.FormatError, Predicate> deserializeV2(Schema.PredicateV2 predicate) {
+  public static Result<Predicate, Error.FormatError> deserializeV2(Schema.PredicateV2 predicate) {
     ArrayList<Term> terms = new ArrayList<>();
     for (Schema.TermV2 id : predicate.getTermsList()) {
-      Either<Error.FormatError, Term> res = Term.deserializeEnumV2(id);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Term.deserializeEnumV2(id);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        terms.add(res.get());
+        terms.add(res.getOk());
       }
     }
 
-    return Right(new Predicate(predicate.getName(), terms));
+    return Result.ok(new Predicate(predicate.getName(), terms));
   }
 }

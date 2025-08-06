@@ -7,13 +7,11 @@ package org.eclipse.biscuit.token.builder;
 
 import static org.eclipse.biscuit.token.UnverifiedBiscuit.defaultSymbolTable;
 
-import io.vavr.Tuple2;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.crypto.Signer;
 import org.eclipse.biscuit.datalog.SchemaVersion;
@@ -30,7 +28,7 @@ public final class Biscuit {
   private List<Rule> rules;
   private List<Check> checks;
   private List<Scope> scopes;
-  private Option<Integer> rootKeyId;
+  private Optional<Integer> rootKeyId;
 
   public Biscuit(final SecureRandom rng, final Signer root) {
     this.rng = rng;
@@ -40,10 +38,13 @@ public final class Biscuit {
     this.rules = new ArrayList<>();
     this.checks = new ArrayList<>();
     this.scopes = new ArrayList<>();
-    this.rootKeyId = Option.none();
+    this.rootKeyId = Optional.empty();
   }
 
-  public Biscuit(final SecureRandom rng, final Signer root, Option<Integer> rootKeyId) {
+  public Biscuit(
+      final SecureRandom rng,
+      final org.eclipse.biscuit.crypto.Signer root,
+      Optional<Integer> rootKeyId) {
     this.rng = rng;
     this.root = root;
     this.context = "";
@@ -56,8 +57,8 @@ public final class Biscuit {
 
   public Biscuit(
       final SecureRandom rng,
-      final Signer root,
-      Option<Integer> rootKeyId,
+      final org.eclipse.biscuit.crypto.Signer root,
+      Optional<Integer> rootKeyId,
       org.eclipse.biscuit.token.builder.Block block) {
     this.rng = rng;
     this.root = root;
@@ -76,16 +77,11 @@ public final class Biscuit {
   }
 
   public Biscuit addAuthorityFact(String s) throws Error.Parser, Error.Language {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Fact>> res =
-        Parser.fact(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.fact(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Fact> t = res.get();
-
-    return addAuthorityFact(t._2);
+    return addAuthorityFact(res.getOk()._2);
   }
 
   public Biscuit addAuthorityRule(Rule rule) {
@@ -94,16 +90,11 @@ public final class Biscuit {
   }
 
   public Biscuit addAuthorityRule(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return addAuthorityRule(t._2);
+    return addAuthorityRule(res.getOk()._2);
   }
 
   public Biscuit addAuthorityCheck(Check c) {
@@ -112,16 +103,11 @@ public final class Biscuit {
   }
 
   public Biscuit addAuthorityCheck(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Check>> res =
-        Parser.check(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.check(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Check> t = res.get();
-
-    return addAuthorityCheck(t._2);
+    return addAuthorityCheck(res.getOk()._2);
   }
 
   public Biscuit setContext(String context) {
@@ -135,7 +121,7 @@ public final class Biscuit {
   }
 
   public void setRootKeyId(Integer i) {
-    this.rootKeyId = Option.some(i);
+    this.rootKeyId = Optional.of(i);
   }
 
   public org.eclipse.biscuit.token.Biscuit build() throws Error {
@@ -184,10 +170,10 @@ public final class Biscuit {
             checks,
             scopes,
             publicKeys,
-            Option.none(),
+            Optional.empty(),
             schemaVersion.version());
 
-    if (this.rootKeyId.isDefined()) {
+    if (this.rootKeyId.isPresent()) {
       return org.eclipse.biscuit.token.Biscuit.make(
           this.rng, this.root, this.rootKeyId.get(), authorityBlock);
     } else {

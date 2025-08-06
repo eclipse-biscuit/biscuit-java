@@ -5,7 +5,7 @@
 
 package org.eclipse.biscuit.token.format;
 
-import io.vavr.control.Option;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.KeyPair;
 
 /** Sum type for Proof NextSecret or FinalSignature. */
@@ -29,7 +29,7 @@ interface Proof {
    *
    * @return the signature if sealed or none
    */
-  Option<byte[]> getSignature();
+  Optional<byte[]> getSignature();
 
   /** NextSecret with a keypair. */
   final class NextSecret implements Proof {
@@ -56,8 +56,8 @@ interface Proof {
     }
 
     @Override
-    public Option<byte[]> getSignature() {
-      return Option.none();
+    public Optional<byte[]> getSignature() {
+      return Optional.empty();
     }
   }
 
@@ -84,8 +84,8 @@ interface Proof {
     }
 
     @Override
-    public Option<byte[]> getSignature() {
-      return Option.some(this.signature);
+    public Optional<byte[]> getSignature() {
+      return Optional.of(this.signature);
     }
   }
 }

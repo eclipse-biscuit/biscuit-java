@@ -7,9 +7,9 @@ package org.eclipse.biscuit.datalog;
 
 import static org.eclipse.biscuit.datalog.SymbolTable.DEFAULT_SYMBOLS_OFFSET;
 
-import io.vavr.control.Option;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public final class TemporarySymbolTable {
   private SymbolTable base;
@@ -22,12 +22,12 @@ public final class TemporarySymbolTable {
     this.symbols = new ArrayList<>();
   }
 
-  public Option<String> getSymbol(int i) {
+  public Optional<String> getSymbol(int i) {
     if (i >= this.offset) {
       if (i - this.offset < this.symbols.size()) {
-        return Option.some(this.symbols.get(i - this.offset));
+        return Optional.of(this.symbols.get(i - this.offset));
       } else {
-        return Option.none();
+        return Optional.empty();
       }
     } else {
       return this.base.getSymbol(i);
@@ -35,8 +35,8 @@ public final class TemporarySymbolTable {
   }
 
   public long insert(final String symbol) {
-    Option<Long> opt = this.base.get(symbol);
-    if (opt.isDefined()) {
+    Optional<Long> opt = this.base.get(symbol);
+    if (opt.isPresent()) {
       return opt.get();
     }
 

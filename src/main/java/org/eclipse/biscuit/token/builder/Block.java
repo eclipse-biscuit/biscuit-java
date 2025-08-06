@@ -15,15 +15,13 @@ import static org.eclipse.biscuit.token.builder.Utils.str;
 import static org.eclipse.biscuit.token.builder.Utils.string;
 import static org.eclipse.biscuit.token.builder.Utils.var;
 
-import io.vavr.Tuple2;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.SchemaVersion;
 import org.eclipse.biscuit.datalog.SymbolTable;
@@ -51,16 +49,11 @@ public final class Block {
   }
 
   public Block addFact(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Fact>> res =
-        Parser.fact(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.fact(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Fact> t = res.get();
-
-    return addFact(t._2);
+    return addFact(res.getOk()._2);
   }
 
   public Block addRule(Rule rule) {
@@ -69,16 +62,11 @@ public final class Block {
   }
 
   public Block addRule(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Rule>> res =
-        Parser.rule(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Rule> t = res.get();
-
-    return addRule(t._2);
+    return addRule(res.getOk()._2);
   }
 
   public Block addCheck(Check check) {
@@ -87,16 +75,11 @@ public final class Block {
   }
 
   public Block addCheck(String s) throws Error.Parser {
-    Either<org.eclipse.biscuit.token.builder.parser.Error, Tuple2<String, Check>> res =
-        Parser.check(s);
-
-    if (res.isLeft()) {
-      throw new Error.Parser(res.getLeft());
+    var res = Parser.check(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
     }
-
-    Tuple2<String, Check> t = res.get();
-
-    return addCheck(t._2);
+    return addCheck(res.getOk()._2);
   }
 
   public Block addScope(Scope scope) {
@@ -110,20 +93,20 @@ public final class Block {
   }
 
   public org.eclipse.biscuit.token.Block build() {
-    return build(defaultSymbolTable(), Option.none());
+    return build(defaultSymbolTable(), Optional.empty());
   }
 
-  public org.eclipse.biscuit.token.Block build(final Option<PublicKey> externalKey) {
+  public org.eclipse.biscuit.token.Block build(final Optional<PublicKey> externalKey) {
     return build(defaultSymbolTable(), externalKey);
   }
 
   public org.eclipse.biscuit.token.Block build(SymbolTable symbolTable) {
-    return build(symbolTable, Option.none());
+    return build(symbolTable, Optional.empty());
   }
 
   public org.eclipse.biscuit.token.Block build(
-      SymbolTable symbolTable, final Option<PublicKey> externalKey) {
-    if (externalKey.isDefined()) {
+      SymbolTable symbolTable, final Optional<PublicKey> externalKey) {
+    if (externalKey.isPresent()) {
       symbolTable = new SymbolTable();
     }
     final int symbolStart = symbolTable.currentOffset();

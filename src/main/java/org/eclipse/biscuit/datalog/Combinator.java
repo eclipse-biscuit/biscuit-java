@@ -5,58 +5,57 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.Tuple2;
-import io.vavr.control.Option;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public final class Combinator implements Serializable, Iterator<Tuple2<Origin, Map<Long, Term>>> {
+public final class Combinator implements Serializable, Iterator<Pair<Origin, Map<Long, Term>>> {
   private MatchedVariables variables;
-  private final Supplier<Stream<Tuple2<Origin, Fact>>> allFacts;
+  private final Supplier<Stream<Pair<Origin, Fact>>> allFacts;
   private final List<Predicate> predicates;
-  private final Iterator<Tuple2<Origin, Fact>> currentFacts;
+  private final Iterator<Pair<Origin, Fact>> currentFacts;
   private Combinator currentIt;
   private final SymbolTable symbolTable;
 
   private Origin currentOrigin;
 
-  private Option<Tuple2<Origin, Map<Long, Term>>> nextElement;
+  private Optional<Pair<Origin, Map<Long, Term>>> nextElement;
 
   @Override
   public boolean hasNext() {
-    if (this.nextElement != null && this.nextElement.isDefined()) {
+    if (this.nextElement != null && this.nextElement.isPresent()) {
       return true;
     }
     this.nextElement = getNext();
-    return this.nextElement.isDefined();
+    return this.nextElement.isPresent();
   }
 
   @Override
-  public Tuple2<Origin, Map<Long, Term>> next() {
-    if (this.nextElement == null || !this.nextElement.isDefined()) {
+  public Pair<Origin, Map<Long, Term>> next() {
+    if (this.nextElement == null || !this.nextElement.isPresent()) {
       this.nextElement = getNext();
     }
-    if (this.nextElement == null || !this.nextElement.isDefined()) {
+    if (this.nextElement == null || !this.nextElement.isPresent()) {
       throw new NoSuchElementException();
     } else {
-      Tuple2<Origin, Map<Long, Term>> t = this.nextElement.get();
-      this.nextElement = Option.none();
+      Pair<Origin, Map<Long, Term>> t = this.nextElement.get();
+      this.nextElement = Optional.empty();
       return t;
     }
   }
 
-  public Option<Tuple2<Origin, Map<Long, Term>>> getNext() {
+  public Optional<Pair<Origin, Map<Long, Term>>> getNext() {
     if (this.predicates.isEmpty()) {
-      final Option<Map<Long, Term>> vOpt = this.variables.complete();
+      final Optional<Map<Long, Term>> vOpt = this.variables.complete();
       if (vOpt.isEmpty()) {
-        return Option.none();
+        return Optional.empty();
       } else {
         Map<Long, Term> variables = vOpt.get();
         // if there were no predicates,
@@ -67,7 +66,7 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
         set.add((long) 0);
 
         this.variables = new MatchedVariables(set);
-        return Option.some(new Tuple2<>(new Origin(), variables));
+        return Optional.of(new Pair<>(new Origin(), variables));
       }
     }
 
@@ -78,7 +77,7 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
         while (true) {
           // we iterate over the facts that match the current predicate
           if (this.currentFacts.hasNext()) {
-            final Tuple2<Origin, Fact> t = this.currentFacts.next();
+            final Pair<Origin, Fact> t = this.currentFacts.next();
             Origin currentOrigin = t._1.clone();
             Fact fact = t._2;
 
@@ -111,11 +110,11 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
 
             // there are no more predicates to check
             if (this.predicates.size() == 1) {
-              final Option<Map<Long, Term>> vOpt = vars.complete();
+              final Optional<Map<Long, Term>> vOpt = vars.complete();
               if (vOpt.isEmpty()) {
                 continue;
               } else {
-                return Option.some(new Tuple2<>(currentOrigin, vOpt.get()));
+                return Optional.of(new Pair<>(currentOrigin, vOpt.get()));
               }
             } else {
               this.currentOrigin = currentOrigin;
@@ -132,20 +131,20 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
             break;
 
           } else {
-            return Option.none();
+            return Optional.empty();
           }
         }
       }
 
       if (this.currentIt == null) {
-        return Option.none();
+        return Optional.empty();
       }
 
-      Option<Tuple2<Origin, Map<Long, Term>>> opt = this.currentIt.getNext();
+      Optional<Pair<Origin, Map<Long, Term>>> opt = this.currentIt.getNext();
 
-      if (opt.isDefined()) {
-        Tuple2<Origin, Map<Long, Term>> t = opt.get();
-        return Option.some(new Tuple2<>(t._1.union(currentOrigin), t._2));
+      if (opt.isPresent()) {
+        Pair<Origin, Map<Long, Term>> t = opt.get();
+        return Optional.of(new Pair<>(t._1.union(currentOrigin), t._2));
       } else {
         currentOrigin = null;
         currentIt = null;
@@ -156,7 +155,7 @@ public final class Combinator implements Serializable, Iterator<Tuple2<Origin, M
   public Combinator(
       final MatchedVariables variables,
       final List<Predicate> predicates,
-      Supplier<Stream<Tuple2<Origin, Fact>>> allFacts,
+      Supplier<Stream<Pair<Origin, Fact>>> allFacts,
       final SymbolTable symbolTable) {
     this.variables = variables;
     this.allFacts = allFacts;

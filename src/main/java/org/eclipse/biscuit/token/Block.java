@@ -5,19 +5,15 @@
 
 package org.eclipse.biscuit.token;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.Check;
 import org.eclipse.biscuit.datalog.Fact;
@@ -28,6 +24,7 @@ import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.format.SerializedBiscuit;
 
 /** Represents a token's block with its checks */
@@ -39,7 +36,7 @@ public final class Block {
   private final List<Check> checks;
   private final List<Scope> scopes;
   private final List<PublicKey> publicKeys;
-  private Option<PublicKey> externalKey;
+  private Optional<PublicKey> externalKey;
   private long version;
 
   /**
@@ -55,7 +52,7 @@ public final class Block {
     this.checks = new ArrayList<>();
     this.scopes = new ArrayList<>();
     this.publicKeys = new ArrayList<>();
-    this.externalKey = Option.none();
+    this.externalKey = Optional.empty();
   }
 
   /**
@@ -73,7 +70,7 @@ public final class Block {
       List<Check> checks,
       List<Scope> scopes,
       List<PublicKey> publicKeys,
-      Option<PublicKey> externalKey,
+      Optional<PublicKey> externalKey,
       int version) {
     this.symbolTable = baseSymbols;
     this.context = context;
@@ -91,7 +88,7 @@ public final class Block {
   }
 
   public void setExternalKey(PublicKey externalKey) {
-    this.externalKey = Option.some(externalKey);
+    this.externalKey = Optional.of(externalKey);
   }
 
   /**
@@ -104,7 +101,7 @@ public final class Block {
     StringBuilder s = new StringBuilder();
 
     SymbolTable localSymbols;
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       localSymbols = new SymbolTable(this.symbolTable);
       for (PublicKey pk : symbolTable.getPublicKeys()) {
         localSymbols.insert(pk);
@@ -121,7 +118,7 @@ public final class Block {
     s.append(this.publicKeys);
     s.append("\n\t\tcontext: ");
     s.append(this.context);
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       s.append("\n\t\texternal key: ");
       s.append(this.externalKey.get().toString());
     }
@@ -154,7 +151,7 @@ public final class Block {
     StringBuilder s = new StringBuilder();
 
     SymbolTable localSymbols;
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       localSymbols = new SymbolTable(this.symbolTable);
       for (PublicKey pk : symbolTable.getPublicKeys()) {
         localSymbols.insert(pk);
@@ -253,7 +250,7 @@ public final class Block {
       }
     }
 
-    if (this.externalKey.isDefined()) {
+    if (this.externalKey.isPresent()) {
       return SerializedBiscuit.MAX_SCHEMA_VERSION;
 
     } else if (containsScopes || containsCheckAll || containsV4) {
@@ -285,12 +282,12 @@ public final class Block {
    * @param b
    * @return
    */
-  public static Either<Error.FormatError, Block> deserialize(
-      Schema.Block b, Option<PublicKey> externalKey) {
+  public static Result<Block, Error.FormatError> deserialize(
+      Schema.Block b, Optional<PublicKey> externalKey) {
     int version = b.getVersion();
     if (version < SerializedBiscuit.MIN_SCHEMA_VERSION
         || version > SerializedBiscuit.MAX_SCHEMA_VERSION) {
-      return Left(
+      return Result.err(
           new Error.FormatError.Version(
               SerializedBiscuit.MIN_SCHEMA_VERSION, SerializedBiscuit.MAX_SCHEMA_VERSION, version));
     }
@@ -305,43 +302,39 @@ public final class Block {
     ArrayList<Check> checks = new ArrayList<>();
 
     for (Schema.FactV2 fact : b.getFactsV2List()) {
-      Either<Error.FormatError, Fact> res = Fact.deserializeV2(fact);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Fact.deserializeV2(fact);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        facts.add(res.get());
+        facts.add(res.getOk());
       }
     }
 
     for (Schema.RuleV2 rule : b.getRulesV2List()) {
-      Either<Error.FormatError, Rule> res = Rule.deserializeV2(rule);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Rule.deserializeV2(rule);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        rules.add(res.get());
+        rules.add(res.getOk());
       }
     }
 
     for (Schema.CheckV2 check : b.getChecksV2List()) {
-      Either<Error.FormatError, Check> res = Check.deserializeV2(check);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Check.deserializeV2(check);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        checks.add(res.get());
+        checks.add(res.getOk());
       }
     }
 
     ArrayList<Scope> scopes = new ArrayList<>();
     for (Schema.Scope scope : b.getScopeList()) {
-      Either<Error.FormatError, Scope> res = Scope.deserialize(scope);
-      if (res.isLeft()) {
-        Error.FormatError e = res.getLeft();
-        return Left(e);
+      var res = Scope.deserialize(scope);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
       } else {
-        scopes.add(res.get());
+        scopes.add(res.getOk());
       }
     }
 
@@ -352,18 +345,18 @@ public final class Block {
         publicKeys.add(key);
         newSymbolTable.getPublicKeys().add(key);
       } catch (Error.FormatError e) {
-        return Left(e);
+        return Result.err(e);
       }
     }
 
     SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
-    Either<Error.FormatError, Void> res = schemaVersion.checkCompatibility(version);
-    if (res.isLeft()) {
-      Error.FormatError e = res.getLeft();
-      return Left(e);
+    var res = schemaVersion.checkCompatibility(version);
+    if (res.isErr()) {
+      Error.FormatError e = res.getErr();
+      return Result.err(e);
     }
 
-    return Right(
+    return Result.ok(
         new Block(
             newSymbolTable,
             b.getContext(),
@@ -382,25 +375,25 @@ public final class Block {
    * @param slice
    * @return
    */
-  public static Either<Error.FormatError, Block> fromBytes(
-      byte[] slice, Option<PublicKey> externalKey) {
+  public static Result<Block, Error.FormatError> fromBytes(
+      byte[] slice, Optional<PublicKey> externalKey) {
     try {
       Schema.Block data = Schema.Block.parseFrom(slice);
       return Block.deserialize(data, externalKey);
     } catch (InvalidProtocolBufferException e) {
-      return Left(new Error.FormatError.DeserializationError(e.toString()));
+      return Result.err(new Error.FormatError.DeserializationError(e.toString()));
     }
   }
 
-  public Either<Error.FormatError, byte[]> toBytes() {
+  public Result<byte[], Error.FormatError> toBytes() {
     Schema.Block b = this.serialize();
     try {
       ByteArrayOutputStream stream = new ByteArrayOutputStream();
       b.writeTo(stream);
       byte[] data = stream.toByteArray();
-      return Right(data);
+      return Result.ok(data);
     } catch (IOException e) {
-      return Left(new Error.FormatError.SerializationError(e.toString()));
+      return Result.err(new Error.FormatError.SerializationError(e.toString()));
     }
   }
 
@@ -505,7 +498,7 @@ public final class Block {
     return Collections.unmodifiableList(scopes);
   }
 
-  public Option<PublicKey> getExternalKey() {
+  public Optional<PublicKey> getExternalKey() {
     return externalKey;
   }
 

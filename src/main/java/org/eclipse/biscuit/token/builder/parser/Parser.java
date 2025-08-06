@@ -6,11 +6,6 @@
 package org.eclipse.biscuit.token.builder.parser;
 
 import biscuit.format.schema.Schema;
-import io.vavr.Tuple2;
-import io.vavr.Tuple4;
-import io.vavr.Tuple5;
-import io.vavr.collection.Stream;
-import io.vavr.control.Either;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -20,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import org.eclipse.biscuit.crypto.PublicKey;
+import org.eclipse.biscuit.datalog.Pair;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.Policy;
 import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Check;
@@ -34,6 +31,29 @@ import org.eclipse.biscuit.token.builder.Utils;
 public final class Parser {
   private Parser() {}
 
+  public static final class DatalogComponents {
+    public final List<Fact> facts = new ArrayList<>();
+    public final List<Rule> rules = new ArrayList<>();
+    public final List<Check> checks = new ArrayList<>();
+    public final List<Scope> scopes = new ArrayList<>();
+    public final List<Policy> policies = new ArrayList<>();
+  }
+
+  public static final class RuleBody {
+    public final String head;
+    public final List<Predicate> predicates;
+    public final List<Expression> expressions;
+    public final List<Scope> scopes;
+
+    public RuleBody(
+        String head, List<Predicate> predicates, List<Expression> expressions, List<Scope> scopes) {
+      this.head = head;
+      this.predicates = predicates;
+      this.expressions = expressions;
+      this.scopes = scopes;
+    }
+  }
+
   /**
    * Takes a datalog string with <code>\n</code> as datalog line separator. It tries to parse each
    * line using fact, rule, check and scope sequentially.
@@ -41,21 +61,13 @@ public final class Parser {
    * <p>If one succeeds it returns Right(Block) else it returns a Map[lineNumber, List[Error]]
    *
    * @param s datalog string to parse
-   * @return Either<Map<Integer, List<Error>>, Tuple5<List<Fact>, List<Rule>, List<Check>,
-   *     List<Scope>, List<Policy>>>
+   * @return Result<Components, Map<Integer, List<Error>>>
    */
-  public static Either<
-          Map<Integer, List<Error>>,
-          Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>>
-      datalogComponents(String s) {
-    List<Fact> facts = new ArrayList<>();
-    List<Rule> rules = new ArrayList<>();
-    List<Check> checks = new ArrayList<>();
-    List<Scope> scopes = new ArrayList<>();
-    List<Policy> policies = new ArrayList<>();
+  public static Result<DatalogComponents, Map<Integer, List<Error>>> datalogComponents(String s) {
+    var components = new DatalogComponents();
 
     if (s.isEmpty()) {
-      return Either.right(new Tuple5<>(facts, rules, checks, scopes, policies));
+      return Result.ok(components);
     }
 
     Map<Integer, List<Error>> errors = new HashMap<>();
@@ -63,97 +75,78 @@ public final class Parser {
     s = removeCommentsAndWhitespaces(s);
     String[] codeLines = s.split(";");
 
-    Stream.of(codeLines)
-        .zipWithIndex()
-        .forEach(
-            indexedLine -> {
-              String code = indexedLine._1.strip();
+    for (int i = 0; i < codeLines.length; ++i) {
+      String code = codeLines[i];
 
-              if (!code.isEmpty()) {
-                List<Error> lineErrors = new ArrayList<>();
+      if (!code.isEmpty()) {
+        List<Error> lineErrors = new ArrayList<>();
 
-                boolean parsed = false;
-                parsed =
-                    rule(code)
-                        .fold(
-                            e -> {
-                              lineErrors.add(e);
-                              return false;
-                            },
-                            r -> {
-                              rules.add(r._2);
-                              return true;
-                            });
+        boolean parsed;
+        var ruleResult = rule(code);
+        if (ruleResult.isOk()) {
+          components.rules.add(ruleResult.getOk()._2);
+          parsed = true;
+        } else {
+          lineErrors.add(ruleResult.getErr());
+          parsed = false;
+        }
 
-                if (!parsed) {
-                  parsed =
-                      fact(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                facts.add(r._2);
-                                return true;
-                              });
-                }
+        if (!parsed) {
+          var factResult = fact(code);
+          if (factResult.isOk()) {
+            components.facts.add(factResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(factResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  parsed =
-                      check(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                checks.add(r._2);
-                                return true;
-                              });
-                }
+        if (!parsed) {
+          var checkResult = check(code);
+          if (checkResult.isOk()) {
+            components.checks.add(checkResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(checkResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  parsed =
-                      scope(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                scopes.add(r._2);
-                                return true;
-                              });
-                }
+        if (!parsed) {
+          var scopeResult = scope(code);
+          if (scopeResult.isOk()) {
+            components.scopes.add(scopeResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(scopeResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  parsed =
-                      policy(code)
-                          .fold(
-                              e -> {
-                                lineErrors.add(e);
-                                return false;
-                              },
-                              r -> {
-                                policies.add(r._2);
-                                return true;
-                              });
-                }
+        if (!parsed) {
+          var policyResult = policy(code);
+          if (policyResult.isOk()) {
+            components.policies.add(policyResult.getOk()._2);
+            parsed = true;
+          } else {
+            lineErrors.add(policyResult.getErr());
+            parsed = false;
+          }
+        }
 
-                if (!parsed) {
-                  lineErrors.forEach(System.out::println);
-                  int lineNumber = indexedLine._2;
-                  errors.put(lineNumber, lineErrors);
-                }
-              }
-            });
-
-    if (!errors.isEmpty()) {
-      return Either.left(errors);
+        if (!parsed) {
+          lineErrors.forEach(System.out::println);
+          errors.put(i, lineErrors);
+        }
+      }
     }
 
-    return Either.right(new Tuple5<>(facts, rules, checks, scopes, policies));
+    if (!errors.isEmpty()) {
+      return Result.err(errors);
+    }
+
+    return Result.ok(components);
   }
 
   /**
@@ -164,96 +157,93 @@ public final class Parser {
    *
    * @param index block index
    * @param s datalog string to parse
-   * @return Either<Map<Integer, List<Error>>, Block>
+   * @return Result<Block, Map<Integer, List<Error>>>
    */
-  public static Either<Map<Integer, List<Error>>, Block> datalog(long index, String s) {
+  public static Result<Block, Map<Integer, List<Error>>> datalog(long index, String s) {
     Block blockBuilder = new Block();
 
-    Either<
-            Map<Integer, List<Error>>,
-            Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>>>
-        result = datalogComponents(s);
-
-    if (result.isLeft()) {
-      return Either.left(result.getLeft());
+    var result = datalogComponents(s);
+    if (result.isErr()) {
+      return Result.err(result.getErr());
     }
 
-    Tuple5<List<Fact>, List<Rule>, List<Check>, List<Scope>, List<Policy>> components =
-        result.get();
+    var components = result.getOk();
 
-    if (!components._5.isEmpty()) {
-      return Either.left(
+    if (!components.policies.isEmpty()) {
+      return Result.err(
           Map.of(
               -1, // we don't have a line number for policies
               List.of(
                   new Error(
                       s,
-                      "Policies must be empty but found " + components._5.size() + " policies"))));
+                      "Policies must be empty but found "
+                          + components.policies.size()
+                          + " policies"))));
     }
 
-    components._1.forEach(blockBuilder::addFact);
-    components._2.forEach(blockBuilder::addRule);
-    components._3.forEach(blockBuilder::addCheck);
-    components._4.forEach(blockBuilder::addScope);
+    components.facts.forEach(blockBuilder::addFact);
+    components.rules.forEach(blockBuilder::addRule);
+    components.checks.forEach(blockBuilder::addCheck);
+    components.scopes.forEach(blockBuilder::addScope);
 
-    return Either.right(blockBuilder);
+    return Result.ok(blockBuilder);
   }
 
-  public static Either<Error, Tuple2<String, Fact>> fact(String s) {
-    Either<Error, Tuple2<String, Predicate>> res = factPredicate(s);
-    if (res.isLeft()) {
-      return Either.left(res.getLeft());
+  public static Result<Pair<String, Fact>, Error> fact(String s) {
+    var res = factPredicate(s);
+    if (res.isErr()) {
+      return Result.err(res.getErr());
     } else {
-      Tuple2<String, Predicate> t = res.get();
+      Pair<String, Predicate> t = res.getOk();
 
       if (!t._1.isEmpty()) {
-        return Either.left(new Error(s, "the string was not entirely parsed, remaining: " + t._1));
+        return Result.err(new Error(s, "the string was not entirely parsed, remaining: " + t._1));
       }
 
-      return Either.right(new Tuple2<>(t._1, new Fact(t._2)));
+      return Result.ok(new Pair<>(t._1, new Fact(t._2)));
     }
   }
 
-  public static Either<Error, Tuple2<String, Rule>> rule(String s) {
-    Either<Error, Tuple2<String, Predicate>> res0 = predicate(s);
-    if (res0.isLeft()) {
-      return Either.left(res0.getLeft());
+  public static Result<Pair<String, Rule>, Error> rule(String s) {
+    var res0 = predicate(s);
+    if (res0.isErr()) {
+      return Result.err(res0.getErr());
     }
 
-    Tuple2<String, Predicate> t0 = res0.get();
+    Pair<String, Predicate> t0 = res0.getOk();
     s = t0._1;
 
     s = space(s);
     if (s.length() < 2 || s.charAt(0) != '<' || s.charAt(1) != '-') {
-      return Either.left(new Error(s, "rule arrow not found"));
+      return Result.err(new Error(s, "rule arrow not found"));
     }
 
     List<Predicate> predicates = new ArrayList<Predicate>();
     s = s.substring(2);
 
-    Either<Error, Tuple4<String, List<Predicate>, List<Expression>, List<Scope>>> bodyRes =
-        ruleBody(s);
-    if (bodyRes.isLeft()) {
-      return Either.left(bodyRes.getLeft());
+    var bodyRes = ruleBody(s);
+    if (bodyRes.isErr()) {
+      return Result.err(bodyRes.getErr());
     }
 
-    Tuple4<String, List<Predicate>, List<Expression>, List<Scope>> body = bodyRes.get();
+    RuleBody body = bodyRes.getOk();
 
-    if (!body._1.isEmpty()) {
-      return Either.left(new Error(s, "the string was not entirely parsed, remaining: " + body._1));
+    if (!body.head.isEmpty()) {
+      return Result.err(
+          new Error(s, "the string was not entirely parsed, remaining: " + body.head));
     }
 
     Predicate head = t0._2;
-    Rule rule = new Rule(head, body._2, body._3, body._4);
-    Either<String, Rule> valid = rule.validateVariables();
-    if (valid.isLeft()) {
-      return Either.left(new Error(s, valid.getLeft()));
+    Rule rule = new Rule(head, body.predicates, body.expressions, body.scopes);
+    var valid = rule.validateVariables();
+    if (valid.isErr()) {
+      return Result.err(new Error(s, valid.getErr()));
     }
 
-    return Either.right(new Tuple2<>(body._1, rule));
+    return Result.ok(new Pair<>(body.head, rule));
   }
 
-  public static Either<Error, Tuple2<String, Check>> check(String s) {
+  public static Result<Pair<String, Check>, Error> check(String s) {
     org.eclipse.biscuit.datalog.Check.Kind kind;
 
     if (s.startsWith("check if")) {
@@ -263,25 +253,24 @@ public final class Parser {
       kind = org.eclipse.biscuit.datalog.Check.Kind.ALL;
       s = s.substring("check all".length());
     } else {
-      return Either.left(new Error(s, "missing check prefix"));
+      return Result.err(new Error(s, "missing check prefix"));
     }
 
-    List<Rule> queries = new ArrayList<>();
-    Either<Error, Tuple2<String, List<Rule>>> bodyRes = checkBody(s);
-    if (bodyRes.isLeft()) {
-      return Either.left(bodyRes.getLeft());
+    var bodyRes = checkBody(s);
+    if (bodyRes.isErr()) {
+      return Result.err(bodyRes.getErr());
     }
 
-    Tuple2<String, List<Rule>> t = bodyRes.get();
+    Pair<String, List<Rule>> t = bodyRes.getOk();
 
     if (!t._1.isEmpty()) {
-      return Either.left(new Error(s, "the string was not entirely parsed, remaining: " + t._1));
+      return Result.err(new Error(s, "the string was not entirely parsed, remaining: " + t._1));
     }
 
-    return Either.right(new Tuple2<>(t._1, new Check(kind, t._2)));
+    return Result.ok(new Pair<>(t._1, new Check(kind, t._2)));
   }
 
-  public static Either<Error, Tuple2<String, Policy>> policy(String s) {
+  public static Result<Pair<String, Policy>, Error> policy(String s) {
     Policy.Kind p = Policy.Kind.ALLOW;
 
     String allow = "allow if";
@@ -292,41 +281,45 @@ public final class Parser {
       p = Policy.Kind.DENY;
       s = s.substring(deny.length());
     } else {
-      return Either.left(new Error(s, "missing policy prefix"));
+      return Result.err(new Error(s, "missing policy prefix"));
     }
 
     List<Rule> queries = new ArrayList<>();
-    Either<Error, Tuple2<String, List<Rule>>> bodyRes = checkBody(s);
-    if (bodyRes.isLeft()) {
-      return Either.left(bodyRes.getLeft());
+    var bodyRes = checkBody(s);
+    if (bodyRes.isErr()) {
+      return Result.err(bodyRes.getErr());
     }
 
-    Tuple2<String, List<Rule>> t = bodyRes.get();
+    Pair<String, List<Rule>> t = bodyRes.getOk();
 
     if (!t._1.isEmpty()) {
-      return Either.left(new Error(s, "the string was not entirely parsed, remaining: " + t._1));
+      return Result.err(new Error(s, "the string was not entirely parsed, remaining: " + t._1));
     }
 
-    return Either.right(new Tuple2<>(t._1, new Policy(t._2, p)));
+    return Result.ok(new Pair<>(t._1, new Policy(t._2, p)));
   }
 
-  public static Either<Error, Tuple2<String, List<Rule>>> checkBody(String s) {
+  public static Result<Pair<String, List<Rule>>, Error> checkBody(String s) {
     List<Rule> queries = new ArrayList<>();
-    Either<Error, Tuple4<String, List<Predicate>, List<Expression>, List<Scope>>> bodyRes =
-        ruleBody(s);
-    if (bodyRes.isLeft()) {
-      return Either.left(bodyRes.getLeft());
+    var bodyRes = ruleBody(s);
+    if (bodyRes.isErr()) {
+      return Result.err(bodyRes.getErr());
     }
 
-    Tuple4<String, List<Predicate>, List<Expression>, List<Scope>> body = bodyRes.get();
+    var body = bodyRes.getOk();
 
-    s = body._1;
+    s = body.head;
     // FIXME: parse scopes
-    queries.add(new Rule(new Predicate("query", new ArrayList<>()), body._2, body._3, body._4));
+    queries.add(
+        new Rule(
+            new Predicate("query", new ArrayList<>()),
+            body.predicates,
+            body.expressions,
+            body.scopes));
 
     int i = 0;
     while (true) {
-      if (s.length() == 0) {
+      if (s.isEmpty()) {
         break;
       }
 
@@ -337,39 +330,41 @@ public final class Parser {
       }
       s = s.substring(2);
 
-      Either<Error, Tuple4<String, List<Predicate>, List<Expression>, List<Scope>>> bodyRes2 =
-          ruleBody(s);
-      if (bodyRes2.isLeft()) {
-        return Either.left(bodyRes2.getLeft());
+      var bodyRes2 = ruleBody(s);
+      if (bodyRes2.isErr()) {
+        return Result.err(bodyRes2.getErr());
       }
 
-      Tuple4<String, List<Predicate>, List<Expression>, List<Scope>> body2 = bodyRes2.get();
+      var body2 = bodyRes2.getOk();
 
-      s = body2._1;
+      s = body2.head;
       queries.add(
-          new Rule(new Predicate("query", new ArrayList<>()), body2._2, body2._3, body2._4));
+          new Rule(
+              new Predicate("query", new ArrayList<>()),
+              body2.predicates,
+              body2.expressions,
+              body2.scopes));
     }
 
-    return Either.right(new Tuple2<>(s, queries));
+    return Result.ok(new Pair<>(s, queries));
   }
 
-  public static Either<Error, Tuple4<String, List<Predicate>, List<Expression>, List<Scope>>>
-      ruleBody(String s) {
+  public static Result<RuleBody, Error> ruleBody(String s) {
     List<Predicate> predicates = new ArrayList<Predicate>();
     List<Expression> expressions = new ArrayList<>();
 
     while (true) {
       s = space(s);
 
-      Either<Error, Tuple2<String, Predicate>> res = predicate(s);
-      if (res.isRight()) {
-        Tuple2<String, Predicate> t = res.get();
+      var res = predicate(s);
+      if (res.isOk()) {
+        Pair<String, Predicate> t = res.getOk();
         s = t._1;
         predicates.add(t._2);
       } else {
-        Either<Error, Tuple2<String, Expression>> res2 = expression(s);
-        if (res2.isRight()) {
-          Tuple2<String, Expression> t2 = res2.get();
+        var res2 = expression(s);
+        if (res2.isOk()) {
+          Pair<String, Expression> t2 = res2.getOk();
           s = t2._1;
           expressions.add(t2._2);
         } else {
@@ -379,24 +374,24 @@ public final class Parser {
 
       s = space(s);
 
-      if (s.length() == 0 || s.charAt(0) != ',') {
+      if (s.isEmpty() || s.charAt(0) != ',') {
         break;
       } else {
         s = s.substring(1);
       }
     }
 
-    Either<Error, Tuple2<String, List<Scope>>> res = scopes(s);
-    if (res.isLeft()) {
-      return Either.right(new Tuple4<>(s, predicates, expressions, new ArrayList<>()));
+    var res = scopes(s);
+    if (res.isErr()) {
+      return Result.ok(new RuleBody(s, predicates, expressions, new ArrayList<>()));
     } else {
-      Tuple2<String, List<Scope>> t = res.get();
-      return Either.right(new Tuple4<>(t._1, predicates, expressions, t._2));
+      Pair<String, List<Scope>> t = res.getOk();
+      return Result.ok(new RuleBody(t._1, predicates, expressions, t._2));
     }
   }
 
-  public static Either<Error, Tuple2<String, Predicate>> predicate(String s) {
-    Tuple2<String, String> tn =
+  public static Result<Pair<String, Predicate>, Error> predicate(String s) {
+    Pair<String, String> tn =
         takewhile(
             s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
     String name = tn._1;
@@ -404,7 +399,7 @@ public final class Parser {
 
     s = space(s);
     if (s.length() == 0 || s.charAt(0) != '(') {
-      return Either.left(new Error(s, "opening parens not found for predicate " + name));
+      return Result.err(new Error(s, "opening parens not found for predicate " + name));
     }
     s = s.substring(1);
 
@@ -413,18 +408,18 @@ public final class Parser {
 
       s = space(s);
 
-      Either<Error, Tuple2<String, Term>> res = term(s);
-      if (res.isLeft()) {
+      var res = term(s);
+      if (res.isErr()) {
         break;
       }
 
-      Tuple2<String, Term> t = res.get();
+      Pair<String, Term> t = res.getOk();
       s = t._1;
       terms.add(t._2);
 
       s = space(s);
 
-      if (s.length() == 0 || s.charAt(0) != ',') {
+      if (s.isEmpty() || s.charAt(0) != ',') {
         break;
       } else {
         s = s.substring(1);
@@ -432,17 +427,17 @@ public final class Parser {
     }
 
     s = space(s);
-    if (0 == s.length() || s.charAt(0) != ')') {
-      return Either.left(new Error(s, "closing parens not found"));
+    if (s.isEmpty() || s.charAt(0) != ')') {
+      return Result.err(new Error(s, "closing parens not found"));
     }
     String remaining = s.substring(1);
 
-    return Either.right(new Tuple2<String, Predicate>(remaining, new Predicate(name, terms)));
+    return Result.ok(new Pair<String, Predicate>(remaining, new Predicate(name, terms)));
   }
 
-  public static Either<Error, Tuple2<String, List<Scope>>> scopes(String s) {
+  public static Result<Pair<String, List<Scope>>, Error> scopes(String s) {
     if (!s.startsWith("trusting")) {
-      return Either.left(new Error(s, "missing scopes prefix"));
+      return Result.err(new Error(s, "missing scopes prefix"));
     }
     s = s.substring("trusting".length());
     s = space(s);
@@ -452,61 +447,61 @@ public final class Parser {
     while (true) {
       s = space(s);
 
-      Either<Error, Tuple2<String, Scope>> res = scope(s);
-      if (res.isLeft()) {
+      var res = scope(s);
+      if (res.isErr()) {
         break;
       }
 
-      Tuple2<String, Scope> t = res.get();
+      Pair<String, Scope> t = res.getOk();
       s = t._1;
       scopes.add(t._2);
 
       s = space(s);
 
-      if (s.length() == 0 || s.charAt(0) != ',') {
+      if (s.isEmpty() || s.charAt(0) != ',') {
         break;
       } else {
         s = s.substring(1);
       }
     }
 
-    return Either.right(new Tuple2<>(s, scopes));
+    return Result.ok(new Pair<>(s, scopes));
   }
 
-  public static Either<Error, Tuple2<String, Scope>> scope(String s) {
+  public static Result<Pair<String, Scope>, Error> scope(String s) {
     if (s.startsWith("authority")) {
       s = s.substring("authority".length());
-      return Either.right(new Tuple2<>(s, Scope.authority()));
+      return Result.ok(new Pair<>(s, Scope.authority()));
     }
 
     if (s.startsWith("previous")) {
       s = s.substring("previous".length());
-      return Either.right(new Tuple2<>(s, Scope.previous()));
+      return Result.ok(new Pair<>(s, Scope.previous()));
     }
 
-    if (0 < s.length() && s.charAt(0) == '{') {
+    if (!s.isEmpty() && s.charAt(0) == '{') {
       String remaining = s.substring(1);
-      Either<Error, Tuple2<String, String>> res = name(remaining);
-      if (res.isLeft()) {
-        return Either.left(new Error(s, "unrecognized parameter"));
+      var res = name(remaining);
+      if (res.isErr()) {
+        return Result.err(new Error(s, "unrecognized parameter"));
       }
-      Tuple2<String, String> t = res.get();
-      if (0 < s.length() && s.charAt(0) == '}') {
-        return Either.right(new Tuple2<>(t._1, Scope.parameter(t._2)));
+      Pair<String, String> t = res.getOk();
+      if (!s.isEmpty() && s.charAt(0) == '}') {
+        return Result.ok(new Pair<>(t._1, Scope.parameter(t._2)));
       } else {
-        return Either.left(new Error(s, "unrecognized parameter end"));
+        return Result.err(new Error(s, "unrecognized parameter end"));
       }
     }
 
-    Either<Error, Tuple2<String, PublicKey>> res2 = publicKey(s);
-    if (res2.isLeft()) {
-      return Either.left(new Error(s, "unrecognized public key"));
+    var res2 = publicKey(s);
+    if (res2.isErr()) {
+      return Result.err(new Error(s, "unrecognized public key"));
     }
-    Tuple2<String, PublicKey> t = res2.get();
-    return Either.right(new Tuple2<>(t._1, Scope.publicKey(t._2)));
+    Pair<String, PublicKey> t = res2.getOk();
+    return Result.ok(new Pair<>(t._1, Scope.publicKey(t._2)));
   }
 
-  public static Either<Error, Tuple2<String, PublicKey>> publicKey(String s) {
+  public static Result<Pair<String, PublicKey>, Error> publicKey(String s) {
     Schema.PublicKey.Algorithm algorithm;
     if (s.startsWith("ed25519/")) {
       s = s.substring("ed25519/".length());
@@ -515,7 +510,7 @@ public final class Parser {
       s = s.substring("secp256r1/".length());
       algorithm = Schema.PublicKey.Algorithm.SECP256R1;
     } else {
-      return Either.left(new Error(s, "unrecognized public key prefix"));
+      return Result.err(new Error(s, "unrecognized public key prefix"));
     }
 
     var t = hex(s);
@@ -523,13 +518,13 @@ public final class Parser {
     try {
       publicKey = PublicKey.load(algorithm, t._2);
     } catch (org.eclipse.biscuit.error.Error.FormatError e) {
-      return Either.left(new Error(s, e.getMessage()));
+      return Result.err(new Error(s, e.getMessage()));
     }
-    return Either.right(new Tuple2<>(t._1, publicKey));
+    return Result.ok(new Pair<>(t._1, publicKey));
   }
 
-  public static Either<Error, Tuple2<String, Predicate>> factPredicate(String s) {
-    Tuple2<String, String> tn =
+  public static Result<Pair<String, Predicate>, Error> factPredicate(String s) {
+    Pair<String, String> tn =
         takewhile(
             s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
     String name = tn._1;
@@ -537,7 +532,7 @@ public final class Parser {
 
     s = space(s);
     if (s.length() == 0 || s.charAt(0) != '(') {
-      return Either.left(new Error(s, "opening parens not found for fact " + name));
+      return Result.err(new Error(s, "opening parens not found for fact " + name));
     }
     s = s.substring(1);
 
@@ -546,18 +541,18 @@ public final class Parser {
 
       s = space(s);
 
-      Either<Error, Tuple2<String, Term>> res = factTerm(s);
-      if (res.isLeft()) {
+      var res = factTerm(s);
+      if (res.isErr()) {
         break;
       }
 
-      Tuple2<String, Term> t = res.get();
+      Pair<String, Term> t = res.getOk();
       s = t._1;
       terms.add(t._2);
 
       s = space(s);
 
-      if (s.length() == 0 || s.charAt(0) != ',') {
+      if (s.isEmpty() || s.charAt(0) != ',') {
         break;
       } else {
         s = s.substring(1);
@@ -565,116 +560,115 @@ public final class Parser {
     }
 
     s = space(s);
-    if (0 == s.length() || s.charAt(0) != ')') {
-      return Either.left(new Error(s, "closing parens not found"));
+    if (s.isEmpty() || s.charAt(0) != ')') {
+      return Result.err(new Error(s, "closing parens not found"));
     }
     String remaining = s.substring(1);
 
-    return Either.right(new Tuple2<String, Predicate>(remaining, new Predicate(name, terms)));
+    return Result.ok(new Pair<String, Predicate>(remaining, new Predicate(name, terms)));
   }
 
-  public static Either<Error, Tuple2<String, String>> name(String s) {
-    Tuple2<String, String> t = takewhile(s, (c) -> Character.isAlphabetic(c) || c == '_');
+  public static Result<Pair<String, String>, Error> name(String s) {
+    Pair<String, String> t = takewhile(s, (c) -> Character.isAlphabetic(c) || c == '_');
     String name = t._1;
     String remaining = t._2;
 
-    return Either.right(new Tuple2<String, String>(remaining, name));
+    return Result.ok(new Pair<String, String>(remaining, name));
   }
 
-  public static Either<Error, Tuple2<String, Term>> term(String s) {
-
-    Either<Error, Tuple2<String, Term.Variable>> res5 = variable(s);
-    if (res5.isRight()) {
-      Tuple2<String, Term.Variable> t = res5.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+  public static Result<Pair<String, Term>, Error> term(String s) {
+    var res5 = variable(s);
+    if (res5.isOk()) {
+      Pair<String, Term.Variable> t = res5.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Str>> res2 = string(s);
-    if (res2.isRight()) {
-      Tuple2<String, Term.Str> t = res2.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res2 = string(s);
+    if (res2.isOk()) {
+      Pair<String, Term.Str> t = res2.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Set>> res7 = set(s);
-    if (res7.isRight()) {
-      Tuple2<String, Term.Set> t = res7.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res7 = set(s);
+    if (res7.isOk()) {
+      Pair<String, Term.Set> t = res7.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Bool>> res6 = bool(s);
-    if (res6.isRight()) {
-      Tuple2<String, Term.Bool> t = res6.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res6 = bool(s);
+    if (res6.isOk()) {
+      Pair<String, Term.Bool> t = res6.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Date>> res4 = date(s);
-    if (res4.isRight()) {
-      Tuple2<String, Term.Date> t = res4.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res4 = date(s);
+    if (res4.isOk()) {
+      Pair<String, Term.Date> t = res4.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Integer>> res3 = integer(s);
-    if (res3.isRight()) {
-      Tuple2<String, Term.Integer> t = res3.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res3 = integer(s);
+    if (res3.isOk()) {
+      Pair<String, Term.Integer> t = res3.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Bytes>> res8 = bytes(s);
-    if (res8.isRight()) {
-      Tuple2<String, Term.Bytes> t = res8.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res8 = bytes(s);
+    if (res8.isOk()) {
+      Pair<String, Term.Bytes> t = res8.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    return Either.left(new Error(s, "unrecognized value"));
+    return Result.err(new Error(s, "unrecognized value"));
   }
 
-  public static Either<Error, Tuple2<String, Term>> factTerm(String s) {
-    if (s.length() > 0 && s.charAt(0) == '$') {
-      return Either.left(new Error(s, "variables are not allowed in facts"));
+  public static Result<Pair<String, Term>, Error> factTerm(String s) {
+    if (!s.isEmpty() && s.charAt(0) == '$') {
+      return Result.err(new Error(s, "variables are not allowed in facts"));
     }
 
-    Either<Error, Tuple2<String, Term.Str>> res2 = string(s);
-    if (res2.isRight()) {
-      Tuple2<String, Term.Str> t = res2.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res2 = string(s);
+    if (res2.isOk()) {
+      Pair<String, Term.Str> t = res2.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Set>> res7 = set(s);
-    if (res7.isRight()) {
-      Tuple2<String, Term.Set> t = res7.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res7 = set(s);
+    if (res7.isOk()) {
+      Pair<String, Term.Set> t = res7.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Bool>> res6 = bool(s);
-    if (res6.isRight()) {
-      Tuple2<String, Term.Bool> t = res6.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res6 = bool(s);
+    if (res6.isOk()) {
+      Pair<String, Term.Bool> t = res6.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Date>> res4 = date(s);
-    if (res4.isRight()) {
-      Tuple2<String, Term.Date> t = res4.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res4 = date(s);
+    if (res4.isOk()) {
+      Pair<String, Term.Date> t = res4.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Integer>> res3 = integer(s);
-    if (res3.isRight()) {
-      Tuple2<String, Term.Integer> t = res3.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res3 = integer(s);
+    if (res3.isOk()) {
+      Pair<String, Term.Integer> t = res3.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    Either<Error, Tuple2<String, Term.Bytes>> res8 = bytes(s);
-    if (res8.isRight()) {
-      Tuple2<String, Term.Bytes> t = res8.get();
-      return Either.right(new Tuple2<>(t._1, t._2));
+    var res8 = bytes(s);
+    if (res8.isOk()) {
+      Pair<String, Term.Bytes> t = res8.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
     }
 
-    return Either.left(new Error(s, "unrecognized value"));
+    return Result.err(new Error(s, "unrecognized value"));
   }
 
-  public static Either<Error, Tuple2<String, Term.Str>> string(String s) {
+  public static Result<Pair<String, Term.Str>, Error> string(String s) {
     if (s.charAt(0) != '"') {
-      return Either.left(new Error(s, "not a string"));
+      return Result.err(new Error(s, "not a string"));
     }
 
     int index = s.length();
@@ -693,20 +687,20 @@ public final class Parser {
     }
 
     if (index == s.length()) {
-      return Either.left(new Error(s, "end of string not found"));
+      return Result.err(new Error(s, "end of string not found"));
     }
 
     if (s.charAt(index + 1) != '"') {
-      return Either.left(new Error(s, "ending double quote not found"));
+      return Result.err(new Error(s, "ending double quote not found"));
     }
 
     String string = s.substring(1, index + 1);
     String remaining = s.substring(index + 2);
 
-    return Either.right(new Tuple2<String, Term.Str>(remaining, (Term.Str) Utils.string(string)));
+    return Result.ok(new Pair<String, Term.Str>(remaining, (Term.Str) Utils.string(string)));
   }
 
-  public static Either<Error, Tuple2<String, Term.Integer>> integer(String s) {
+  public static Result<Pair<String, Term.Integer>, Error> integer(String s) {
     int index = 0;
     if (s.charAt(0) == '-') {
       index += 1;
@@ -723,42 +717,40 @@ public final class Parser {
     }
 
     if (index2 == 0) {
-      return Either.left(new Error(s, "not an integer"));
+      return Result.err(new Error(s, "not an integer"));
     }
 
     long i = Long.parseLong(s.substring(0, index2));
     String remaining = s.substring(index2);
 
-    return Either.right(
-        new Tuple2<String, Term.Integer>(remaining, (Term.Integer) Utils.integer(i)));
+    return Result.ok(new Pair<String, Term.Integer>(remaining, (Term.Integer) Utils.integer(i)));
   }
 
-  public static Either<Error, Tuple2<String, Term.Date>> date(String s) {
-    Tuple2<String, String> t = takewhile(s, (c) -> c != ' ' && c != ',' && c != ')' && c != ']');
+  public static Result<Pair<String, Term.Date>, Error> date(String s) {
+    Pair<String, String> t = takewhile(s, (c) -> c != ' ' && c != ',' && c != ')' && c != ']');
 
     try {
       OffsetDateTime d = OffsetDateTime.parse(t._1);
       String remaining = t._2;
-      return Either.right(
-          new Tuple2<String, Term.Date>(remaining, new Term.Date(d.toEpochSecond())));
+      return Result.ok(new Pair<String, Term.Date>(remaining, new Term.Date(d.toEpochSecond())));
     } catch (DateTimeParseException e) {
-      return Either.left(new Error(s, "not a date"));
+      return Result.err(new Error(s, "not a date"));
     }
   }
 
-  public static Either<Error, Tuple2<String, Term.Variable>> variable(String s) {
+  public static Result<Pair<String, Term.Variable>, Error> variable(String s) {
     if (s.charAt(0) != '$') {
-      return Either.left(new Error(s, "not a variable"));
+      return Result.err(new Error(s, "not a variable"));
     }
 
-    Tuple2<String, String> t =
+    Pair<String, String> t =
         takewhile(
             s.substring(1), (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_');
 
-    return Either.right(new Tuple2<String, Term.Variable>(t._2, (Term.Variable) Utils.var(t._1)));
+    return Result.ok(new Pair<String, Term.Variable>(t._2, (Term.Variable) Utils.var(t._1)));
   }
 
-  public static Either<Error, Tuple2<String, Term.Bool>> bool(String s) {
+  public static Result<Pair<String, Term.Bool>, Error> bool(String s) {
     boolean b;
     if (s.startsWith("true")) {
       b = true;
@@ -767,15 +759,15 @@ public final class Parser {
       b = false;
       s = s.substring(5);
     } else {
-      return Either.left(new Error(s, "not a boolean"));
+      return Result.err(new Error(s, "not a boolean"));
     }
 
-    return Either.right(new Tuple2<>(s, new Term.Bool(b)));
+    return Result.ok(new Pair<>(s, new Term.Bool(b)));
   }
 
-  public static Either<Error, Tuple2<String, Term.Set>> set(String s) {
-    if (s.length() == 0 || s.charAt(0) != '[') {
-      return Either.left(new Error(s, "not a set"));
+  public static Result<Pair<String, Term.Set>, Error> set(String s) {
+    if (s.isEmpty() || s.charAt(0) != '[') {
+      return Result.err(new Error(s, "not a set"));
     }
 
     s = s.substring(1);
@@ -785,15 +777,15 @@ public final class Parser {
 
       s = space(s);
 
-      Either<Error, Tuple2<String, Term>> res = factTerm(s);
-      if (res.isLeft()) {
+      var res = factTerm(s);
+      if (res.isErr()) {
         break;
       }
 
-      Tuple2<String, Term> t = res.get();
+      Pair<String, Term> t = res.getOk();
 
       if (t._2 instanceof Term.Variable) {
-        return Either.left(new Error(s, "sets cannot contain variables"));
+        return Result.err(new Error(s, "sets cannot contain variables"));
       }
 
       s = t._1;
@@ -801,7 +793,7 @@ public final class Parser {
 
       s = space(s);
 
-      if (s.length() == 0 || s.charAt(0) != ',') {
+      if (s.isEmpty() || s.charAt(0) != ',') {
         break;
       } else {
         s = s.substring(1);
@@ -809,25 +801,25 @@ public final class Parser {
     }
 
     s = space(s);
-    if (0 == s.length() || s.charAt(0) != ']') {
-      return Either.left(new Error(s, "closing square bracket not found"));
+    if (s.isEmpty() || s.charAt(0) != ']') {
+      return Result.err(new Error(s, "closing square bracket not found"));
     }
 
     String remaining = s.substring(1);
 
-    return Either.right(new Tuple2<>(remaining, new Term.Set(terms)));
+    return Result.ok(new Pair<>(remaining, new Term.Set(terms)));
   }
 
-  public static Either<Error, Tuple2<String, Term.Bytes>> bytes(String s) {
+  public static Result<Pair<String, Term.Bytes>, Error> bytes(String s) {
     if (!s.startsWith("hex:")) {
-      return Either.left(new Error(s, "not a bytes array"));
+      return Result.err(new Error(s, "not a bytes array"));
     }
     s = s.substring(4);
-    Tuple2<String, byte[]> t = hex(s);
-    return Either.right(new Tuple2<>(t._1, new Term.Bytes(t._2)));
+    Pair<String, byte[]> t = hex(s);
+    return Result.ok(new Pair<>(t._1, new Term.Bytes(t._2)));
   }
 
-  public static Tuple2<String, byte[]> hex(String s) {
+  public static Pair<String, byte[]> hex(String s) {
     int index = 0;
     for (int i = 0; i < s.length(); i++) {
       char c = s.charAt(i);
@@ -841,10 +833,10 @@ public final class Parser {
     String hex = s.substring(0, index);
     byte[] bytes = Utils.hexStringToByteArray(hex);
     s = s.substring(index);
-    return new Tuple2<>(s, bytes);
+    return new Pair<>(s, bytes);
   }
 
-  public static Either<Error, Tuple2<String, Expression>> expression(String s) {
+  public static Result<Pair<String, Expression>, Error> expression(String s) {
     return ExpressionParser.parse(s);
   }
 
@@ -862,7 +854,7 @@ public final class Parser {
     return s.substring(index);
   }
 
-  public static Tuple2<String, String> takewhile(String s, Function<Character, Boolean> f) {
+  public static Pair<String, String> takewhile(String s, Function<Character, Boolean> f) {
     int index = s.length();
     for (int i = 0; i < s.length(); i++) {
       Character c = s.charAt(i);
@@ -873,7 +865,7 @@ public final class Parser {
       }
     }
 
-    return new Tuple2<>(s.substring(0, index), s.substring(index));
+    return new Pair<>(s.substring(0, index), s.substring(index));
   }
 
   public static String removeCommentsAndWhitespaces(String s) {
@@ -892,12 +884,12 @@ public final class Parser {
         // Find the end of the multiline comment
         remaining = remaining.substring(2); // Skip "/*"
         String finalRemaining = remaining;
-        Tuple2<String, String> split = takewhile(remaining, c -> !finalRemaining.startsWith("*/"));
+        Pair<String, String> split = takewhile(remaining, c -> !finalRemaining.startsWith("*/"));
         remaining = split._2.length() > 2 ? split._2.substring(2) : ""; // Skip "*/"
       } else if (remaining.startsWith("//")) {
         // Find the end of the single-line comment
         remaining = remaining.substring(2); // Skip "//"
-        Tuple2<String, String> split = takewhile(remaining, c -> c != '\n' && c != '\r');
+        Pair<String, String> split = takewhile(remaining, c -> c != '\n' && c != '\r');
         remaining = split._2;
         if (!remaining.isEmpty()) {
           result.append(remaining.charAt(0)); // Preserve line break
@@ -906,7 +898,7 @@ public final class Parser {
       } else {
         // Take non-comment text until the next comment or end of string
         String finalRemaining = remaining;
-        Tuple2<String, String> split =
+        Pair<String, String> split =
             takewhile(
                 remaining,
                 c -> !finalRemaining.startsWith("/*") && !finalRemaining.startsWith("//"));

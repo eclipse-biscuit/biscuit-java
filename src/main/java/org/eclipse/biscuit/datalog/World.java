@@ -5,8 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import io.vavr.Tuple2;
-import io.vavr.control.Either;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
@@ -44,26 +42,24 @@ public final class World implements Serializable {
     while (true) {
       final FactSet newFacts = new FactSet();
 
-      for (Map.Entry<TrustedOrigins, List<Tuple2<Long, Rule>>> entry :
+      for (Map.Entry<TrustedOrigins, List<Pair<Long, Rule>>> entry :
           this.rules.getRules().entrySet()) {
-        for (Tuple2<Long, Rule> t : entry.getValue()) {
-          Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier =
+        for (Pair<Long, Rule> t : entry.getValue()) {
+          Supplier<Stream<Pair<Origin, Fact>>> factsSupplier =
               () -> this.facts.stream(entry.getKey());
 
-          Stream<Either<Error, Tuple2<Origin, Fact>>> stream =
-              t._2.apply(factsSupplier, t._1, symbolTable);
-          for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator();
-              it.hasNext(); ) {
-            Either<Error, Tuple2<Origin, Fact>> res = it.next();
+          var stream = t._2.apply(factsSupplier, t._1, symbolTable);
+          for (var it = stream.iterator(); it.hasNext(); ) {
+            var res = it.next();
             if (Instant.now().compareTo(limit) >= 0) {
               throw new Error.Timeout();
             }
 
-            if (res.isRight()) {
-              Tuple2<Origin, Fact> t2 = res.get();
+            if (res.isOk()) {
+              Pair<Origin, Fact> t2 = res.getOk();
               newFacts.add(t2._1, t2._2);
             } else {
-              throw res.getLeft();
+              throw res.getErr();
             }
           }
         }
@@ -99,18 +95,17 @@ public final class World implements Serializable {
       final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbolTable) throws Error {
     final FactSet newFacts = new FactSet();
 
-    Supplier<Stream<Tuple2<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
+    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
 
-    Stream<Either<Error, Tuple2<Origin, Fact>>> stream =
-        rule.apply(factsSupplier, origin, symbolTable);
-    for (Iterator<Either<Error, Tuple2<Origin, Fact>>> it = stream.iterator(); it.hasNext(); ) {
-      Either<Error, Tuple2<Origin, Fact>> res = it.next();
+    var stream = rule.apply(factsSupplier, origin, symbolTable);
+    for (var it = stream.iterator(); it.hasNext(); ) {
+      var res = it.next();
 
-      if (res.isRight()) {
-        Tuple2<Origin, Fact> t2 = res.get();
+      if (res.isOk()) {
+        Pair<Origin, Fact> t2 = res.getOk();
         newFacts.add(t2._1, t2._2);
       } else {
-        throw res.getLeft();
+        throw res.getErr();
       }
     }
 

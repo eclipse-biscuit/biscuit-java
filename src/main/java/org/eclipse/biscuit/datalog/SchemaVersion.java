@@ -5,14 +5,11 @@
 
 package org.eclipse.biscuit.datalog;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
-import io.vavr.control.Either;
 import java.util.List;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.format.SerializedBiscuit;
 
 public final class SchemaVersion {
@@ -69,22 +66,24 @@ public final class SchemaVersion {
     }
   }
 
-  public Either<Error.FormatError, Void> checkCompatibility(int version) {
+  public Result<Void, Error.FormatError> checkCompatibility(int version) {
     if (version < 4) {
       if (containsScopes) {
-        return Left(new Error.FormatError.DeserializationError("v3 blocks must not have scopes"));
+        return Result.err(
+            new Error.FormatError.DeserializationError("v3 blocks must not have scopes"));
       }
       if (containsV4) {
-        return Left(
+        return Result.err(
             new Error.FormatError.DeserializationError(
                 "v3 blocks must not have v4 operators (bitwise operators or !="));
       }
       if (containsCheckAll) {
-        return Left(new Error.FormatError.DeserializationError("v3 blocks must not use check all"));
+        return Result.err(
+            new Error.FormatError.DeserializationError("v3 blocks must not use check all"));
       }
     }
 
-    return Right(null);
+    return Result.ok(null);
   }
 
   public static boolean containsV4Ops(List<Expression> expressions) {

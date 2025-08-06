@@ -5,22 +5,23 @@
 
 package org.eclipse.biscuit.error;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import io.vavr.control.Option;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
-public class LogicError {
-  public Option<List<FailedCheck>> getFailedChecks() {
-    return Option.none();
+public abstract class LogicError {
+  static final ObjectMapper objectMapper = new ObjectMapper();
+
+  public Optional<List<FailedCheck>> getFailedChecks() {
+    return Optional.empty();
   }
 
-  public JsonElement toJson() {
-    return new JsonObject();
-  }
+  public abstract JsonNode toJson();
 
   public static final class InvalidAuthorityFact extends LogicError {
     public final String err;
@@ -52,8 +53,8 @@ public class LogicError {
     }
 
     @Override
-    public JsonElement toJson() {
-      return new JsonPrimitive("InvalidAuthorityFact");
+    public JsonNode toJson() {
+      return TextNode.valueOf("InvalidAuthorityFact");
     }
   }
 
@@ -87,12 +88,9 @@ public class LogicError {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject child = new JsonObject();
-      child.addProperty("error", this.err);
-      JsonObject root = new JsonObject();
-      root.add("InvalidAmbientFact", child);
-      return root;
+    public JsonNode toJson() {
+      ObjectNode child = objectMapper.createObjectNode().put("error", this.err);
+      return objectMapper.createObjectNode().set("InvalidAmbientFact", child);
     }
   }
 
@@ -128,13 +126,9 @@ public class LogicError {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject child = new JsonObject();
-      child.addProperty("id", this.id);
-      child.addProperty("error", this.err);
-      JsonObject root = new JsonObject();
-      root.add("InvalidBlockFact", child);
-      return root;
+    public JsonNode toJson() {
+      ObjectNode child = objectMapper.createObjectNode().put("id", id).put("error", err);
+      return objectMapper.createObjectNode().set("InvalidBlockFact", child);
     }
   }
 
@@ -170,13 +164,11 @@ public class LogicError {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonArray child = new JsonArray();
-      child.add(this.id);
-      child.add(this.err);
-      JsonObject root = new JsonObject();
-      root.add("InvalidBlockRule", child);
-      return root;
+    public JsonNode toJson() {
+      ArrayNode child = objectMapper.createArrayNode();
+      child.add(id);
+      child.add(err);
+      return objectMapper.createObjectNode().set("InvalidBlockRule", child);
     }
   }
 
@@ -189,8 +181,8 @@ public class LogicError {
       this.policy = policy;
     }
 
-    public Option<List<FailedCheck>> getFailedChecks() {
-      return Option.some(errors);
+    public Optional<List<FailedCheck>> getFailedChecks() {
+      return Optional.of(errors);
     }
 
     @Override
@@ -224,17 +216,16 @@ public class LogicError {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject unauthorized = new JsonObject();
-      unauthorized.add("policy", this.policy.toJson());
-      JsonArray ja = new JsonArray();
+    public JsonNode toJson() {
+      ArrayNode checks = objectMapper.createArrayNode();
       for (FailedCheck t : this.errors) {
-        ja.add(t.toJson());
+        checks.add(t.toJson());
       }
-      unauthorized.add("checks", ja);
-      JsonObject jo = new JsonObject();
-      jo.add("Unauthorized", unauthorized);
-      return jo;
+
+      ObjectNode unauthorized = objectMapper.createObjectNode();
+      unauthorized.set("policy", policy.toJson());
+      unauthorized.set("checks", checks);
+      return objectMapper.createObjectNode().set("Unauthorized", unauthorized);
     }
   }
 
@@ -251,8 +242,8 @@ public class LogicError {
     }
 
     @Override
-    public Option<List<FailedCheck>> getFailedChecks() {
-      return Option.some(errors);
+    public Optional<List<FailedCheck>> getFailedChecks() {
+      return Optional.of(errors);
     }
 
     @Override
@@ -282,14 +273,12 @@ public class LogicError {
     }
 
     @Override
-    public JsonElement toJson() {
-      JsonObject jo = new JsonObject();
-      JsonArray ja = new JsonArray();
+    public JsonNode toJson() {
+      ArrayNode errors = objectMapper.createArrayNode();
       for (FailedCheck t : this.errors) {
-        ja.add(t.toJson());
+        errors.add(t.toJson());
       }
-      jo.add("NoMatchingPolicy", ja);
-      return jo;
+      return objectMapper.createObjectNode().set("NoMatchingPolicy", errors);
     }
   }
 
@@ -298,13 +287,8 @@ public class LogicError {
     public AuthorizerNotEmpty() {}
 
     @Override
-    public int hashCode() {
-      return super.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return super.equals(obj);
+    public JsonNode toJson() {
+      return TextNode.valueOf("AuthorizerNotEmpty");
     }
 
     @Override
@@ -314,7 +298,7 @@ public class LogicError {
   }
 
   public abstract static class MatchedPolicy {
-    public abstract JsonElement toJson();
+    public abstract JsonNode toJson();
 
     public static final class Allow extends MatchedPolicy {
       public final long nb;
@@ -328,10 +312,9 @@ public class LogicError {
         return "Allow(" + this.nb + ")";
       }
 
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("Allow", this.nb);
-        return jo;
+      @Override
+      public JsonNode toJson() {
+        return objectMapper.createObjectNode().put("Allow", nb);
       }
     }
 
@@ -347,10 +330,9 @@ public class LogicError {
         return "Deny(" + this.nb + ")";
       }
 
-      public JsonElement toJson() {
-        JsonObject jo = new JsonObject();
-        jo.addProperty("Deny", this.nb);
-        return jo;
+      @Override
+      public JsonNode toJson() {
+        return objectMapper.createObjectNode().put("Deny", nb);
       }
     }
   }

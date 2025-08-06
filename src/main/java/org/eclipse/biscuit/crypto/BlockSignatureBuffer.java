@@ -5,17 +5,14 @@
 
 package org.eclipse.biscuit.crypto;
 
-import static io.vavr.API.Left;
-import static io.vavr.API.Right;
-
 import biscuit.format.schema.Schema;
-import io.vavr.control.Either;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.format.ExternalSignature;
 import org.eclipse.biscuit.token.format.SerializedBiscuit;
 import org.eclipse.biscuit.token.format.SignedBlock;
@@ -59,7 +56,7 @@ public final class BlockSignatureBuffer {
     return previousSigVersions.mapToInt(Integer::intValue).max().orElse(0);
   }
 
-  public static Either<Error.FormatError, byte[]> generateBlockSignaturePayload(
+  public static Result<byte[], Error.FormatError> generateBlockSignaturePayload(
       byte[] payload,
       PublicKey nextKey,
       Optional<ExternalSignature> externalSignature,
@@ -67,13 +64,13 @@ public final class BlockSignatureBuffer {
       int version) {
     switch (version) {
       case 0:
-        return Right(generateBlockSignaturePayloadV0(payload, nextKey, externalSignature));
+        return Result.ok(generateBlockSignaturePayloadV0(payload, nextKey, externalSignature));
       case 1:
-        return Right(
+        return Result.ok(
             generateBlockSignaturePayloadV1(
                 payload, nextKey, externalSignature, previousSignature, version));
       default:
-        return Left(
+        return Result.err(
             new Error.FormatError.DeserializationError("unsupported block version " + version));
     }
   }

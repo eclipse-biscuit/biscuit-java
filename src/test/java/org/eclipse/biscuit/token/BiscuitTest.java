@@ -15,12 +15,9 @@ import static org.eclipse.biscuit.token.builder.Utils.str;
 import static org.eclipse.biscuit.token.builder.Utils.var;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import biscuit.format.schema.Schema;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -30,6 +27,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.biscuit.crypto.KeyDelegate;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.crypto.PublicKey;
@@ -38,6 +36,7 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.token.builder.Block;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class BiscuitTest {
@@ -332,17 +331,15 @@ public class BiscuitTest {
     v3.addFact("resource(\"/folder2/file3\")");
     v3.addFact("operation(\"read\")");
 
-    Try<Long> res = Try.of(() -> v3.authorize());
+    Assertions.assertThrows(Error.class, v3::authorize);
     System.out.println(v3.formatWorld());
-
-    assertTrue(res.isFailure());
 
     Authorizer v4 = v1.clone();
 
     v4.addFact("resource(\"/folder2/file1\")");
     v4.addFact("operation(\"write\")");
 
-    Error e = (Error) Try.of(() -> v4.authorize()).getCause();
+    var e = Assertions.assertThrows(Error.class, v4::authorize);
 
     System.out.println(v4.formatWorld());
     for (FailedCheck f : e.getFailedChecks().get()) {
@@ -402,7 +399,7 @@ public class BiscuitTest {
     v1.addFact("resource(\"/folder2/file1\")");
     v1.addFact("operation(\"write\")");
 
-    assertTrue(Try.of(() -> v1.authorize()).isFailure());
+    assertThrows(Error.class, v1::authorize);
   }
 
   @Test
@@ -702,8 +699,8 @@ public class BiscuitTest {
                   data,
                   new KeyDelegate() {
                     @Override
-                    public Option<PublicKey> getRootKey(Option<Integer> keyId) {
-                      return Option.none();
+                    public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
+                      return Optional.empty();
                     }
                   });
         });
@@ -716,10 +713,10 @@ public class BiscuitTest {
                   data,
                   new KeyDelegate() {
                     @Override
-                    public Option<PublicKey> getRootKey(Option<Integer> keyId) {
+                    public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
 
                       KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
-                      return Option.some(root.getPublicKey());
+                      return Optional.of(root.getPublicKey());
                     }
                   });
         });
@@ -729,11 +726,11 @@ public class BiscuitTest {
             data,
             new KeyDelegate() {
               @Override
-              public Option<PublicKey> getRootKey(Option<Integer> keyId) {
+              public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
                 if (keyId.get() == 1) {
-                  return Option.some(root.getPublicKey());
+                  return Optional.of(root.getPublicKey());
                 } else {
-                  return Option.none();
+                  return Optional.empty();
                 }
               }
             });
