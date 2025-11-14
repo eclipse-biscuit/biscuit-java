@@ -782,4 +782,79 @@ public class BiscuitTest {
 
     authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
   }
+
+  @Test
+  public void testBase64NoPadding()
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    byte[] seed = {0, 0, 0, 0};
+    SecureRandom rng = new SecureRandom(seed);
+
+    KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    Block authorityBuilder = new Block();
+    authorityBuilder.addFact(fact("right", Arrays.asList(str("file1"), str("read"))));
+
+    Biscuit b = Biscuit.make(rng, root, authorityBuilder.build());
+
+    // Test serialization without padding
+    String noPadding = b.serializeBase64UrlNoPadding();
+    String withPadding = b.serializeBase64Url();
+
+    System.out.println("With padding: " + withPadding);
+    System.out.println("Without padding: " + noPadding);
+
+    // Verify no padding character in unpadded version
+    assertEquals(false, noPadding.contains("="));
+
+    // Verify both can be deserialized correctly
+    Biscuit deserWithPadding = Biscuit.fromBase64Url(withPadding, root.getPublicKey());
+    Biscuit deserNoPadding = Biscuit.fromBase64Url(noPadding, root.getPublicKey());
+
+    // Both should have the same authority block
+    assertEquals(1, deserWithPadding.blockCount());
+    assertEquals(1, deserNoPadding.blockCount());
+
+    // Test with UnverifiedBiscuit
+    String noPaddingUnverified = b.serializeBase64UrlNoPadding();
+    UnverifiedBiscuit unverifiedDeser = UnverifiedBiscuit.fromBase64Url(noPaddingUnverified);
+    assertEquals(1, unverifiedDeser.blockCount());
+  }
+
+  @Test
+  public void testBase64NoPaddingUrlUsage()
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    SecureRandom rng = new SecureRandom();
+    KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    Block authorityBuilder = new Block();
+    authorityBuilder.addFact(fact("right", Arrays.asList(str("file1"), str("read"))));
+
+    Biscuit biscuit = Biscuit.make(rng, root, authorityBuilder.build());
+
+    // Serialize without padding - safe for URL parameters
+    String tokenNoPadding = biscuit.serializeBase64UrlNoPadding();
+
+    // Verify no padding characters
+    assertEquals(false, tokenNoPadding.contains("="));
+
+    // Simulate URL usage - this is the typical use case
+    String url = "https://example.com/api?token=" + tokenNoPadding;
+    System.out.println("URL with token: " + url);
+
+    // Extract token from URL (simulating server-side parsing)
+    String extractedToken = url.substring(url.indexOf("token=") + 6);
+
+    // Deserialize the extracted token
+    Biscuit decoded = Biscuit.fromBase64Url(extractedToken, root.getPublicKey());
+
+    // Verify the token is valid and contains the expected data
+    assertEquals(1, decoded.blockCount());
+
+    // Verify authorization works
+    Authorizer authorizer = decoded.authorizer();
+    authorizer.addFact("resource(\"file1\")");
+    authorizer.addFact("operation(\"read\")");
+    authorizer.addPolicy("allow if true");
+    authorizer.authorize();
+  }
 }

@@ -143,6 +143,8 @@ public final class Biscuit extends UnverifiedBiscuit {
    *
    * <p>This method uses the default symbol table
    *
+   * <p>Note: This method accepts both padded and unpadded base64 strings
+   *
    * @param data
    * @return Biscuit
    */
@@ -160,6 +162,8 @@ public final class Biscuit extends UnverifiedBiscuit {
    * <p>The root key check is performed in the verify method
    *
    * <p>This method uses the default symbol table
+   *
+   * <p>Note: This method accepts both padded and unpadded base64 strings
    *
    * @param data
    * @return Biscuit
@@ -288,6 +292,18 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public String serializeBase64Url() throws Error.FormatError.SerializationError {
     return Base64.getUrlEncoder().encodeToString(serialize());
+  }
+
+  /**
+   * Serializes a token to base 64 url String using RFC4648_URLSAFE without padding
+   *
+   * <p>This is useful for embedding tokens in URLs where padding characters (=) may cause issues
+   *
+   * @return String
+   * @throws Error.FormatError.SerializationError
+   */
+  public String serializeBase64UrlNoPadding() throws Error.FormatError.SerializationError {
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(serialize());
   }
 
   /**
