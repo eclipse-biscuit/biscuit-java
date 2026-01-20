@@ -31,16 +31,12 @@ final class SECP256R1KeyPair extends KeyPair {
 
   private final BCECPrivateKey privateKey;
   private final BCECPublicKey publicKey;
-  private final boolean deterministicNonce;
 
   static final String ALGORITHM = "ECDSA";
   static final String CURVE = "secp256r1";
   static final ECNamedCurveParameterSpec SECP256R1 = ECNamedCurveTable.getParameterSpec(CURVE);
 
-  SECP256R1KeyPair(byte[] bytes, boolean deterministicNonce)
-      throws Error.FormatError.InvalidKeySize {
-    this.deterministicNonce = deterministicNonce;
-
+  SECP256R1KeyPair(byte[] bytes) throws Error.FormatError.InvalidKeySize {
     if (bytes.length != BUFFER_SIZE) {
       throw new Error.FormatError.InvalidKeySize(bytes.length);
     }
@@ -56,9 +52,7 @@ final class SECP256R1KeyPair extends KeyPair {
     this.publicKey = publicKey;
   }
 
-  SECP256R1KeyPair(SecureRandom rng, boolean deterministicNonce) {
-    this.deterministicNonce = deterministicNonce;
-
+  SECP256R1KeyPair(SecureRandom rng) {
     byte[] bytes = new byte[BUFFER_SIZE];
     rng.nextBytes(bytes);
 
@@ -89,13 +83,7 @@ final class SECP256R1KeyPair extends KeyPair {
     var hash = new byte[digest.getDigestSize()];
     digest.doFinal(hash, 0);
 
-    ECDSASigner signer;
-    if (deterministicNonce) {
-      signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
-    } else {
-      signer = new ECDSASigner();
-    }
-
+    var signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
     signer.init(true, privateKey.engineGetKeyParameters());
     var sig = signer.generateSignature(hash);
 

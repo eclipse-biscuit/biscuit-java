@@ -13,52 +13,12 @@ import org.eclipse.biscuit.token.builder.Utils;
 /** Private and public key. */
 public abstract class KeyPair implements Signer {
   public interface Factory {
-    KeyPair generate(byte[] bytes) throws Error.FormatError.InvalidKeySize;
+    KeyPair generate(Algorithm algorithm, byte[] bytes) throws Error.FormatError.InvalidKeySize;
 
-    KeyPair generate(SecureRandom rng);
+    KeyPair generate(Algorithm algorithm, SecureRandom rng);
   }
 
-  public static final Factory DEFAULT_ED25519_FACTORY =
-      new Factory() {
-        @Override
-        public KeyPair generate(byte[] bytes) throws Error.FormatError.InvalidKeySize {
-          return new Ed25519KeyPair(bytes);
-        }
-
-        @Override
-        public KeyPair generate(SecureRandom rng) {
-          return new Ed25519KeyPair(rng);
-        }
-      };
-
-  public static final Factory DEFAULT_SECP256R1_FACTORY =
-      new Factory() {
-        @Override
-        public KeyPair generate(byte[] bytes) throws Error.FormatError.InvalidKeySize {
-          return new SECP256R1KeyPair(bytes, true);
-        }
-
-        @Override
-        public KeyPair generate(SecureRandom rng) {
-          return new SECP256R1KeyPair(rng, true);
-        }
-      };
-
-  public static final Factory DEFAULT_NONDETERMINISTIC_SECP256R1_FACTORY =
-      new Factory() {
-        @Override
-        public KeyPair generate(byte[] bytes) throws Error.FormatError.InvalidKeySize {
-          return new SECP256R1KeyPair(bytes, false);
-        }
-
-        @Override
-        public KeyPair generate(SecureRandom rng) {
-          return new SECP256R1KeyPair(rng, false);
-        }
-      };
-
-  private static volatile Factory ed25519Factory = DEFAULT_ED25519_FACTORY;
-  private static volatile Factory secp256r1Factory = DEFAULT_SECP256R1_FACTORY;
+  private static volatile Factory factory = new DefaultKeyPairFactory();
 
   public static KeyPair generate(Algorithm algorithm) {
     return generate(algorithm, new SecureRandom());
@@ -71,31 +31,15 @@ public abstract class KeyPair implements Signer {
 
   public static KeyPair generate(Algorithm algorithm, byte[] bytes)
       throws Error.FormatError.InvalidKeySize {
-    if (algorithm == Algorithm.Ed25519) {
-      return ed25519Factory.generate(bytes);
-    } else if (algorithm == Algorithm.SECP256R1) {
-      return secp256r1Factory.generate(bytes);
-    } else {
-      throw new IllegalArgumentException("Unsupported algorithm");
-    }
+    return factory.generate(algorithm, bytes);
   }
 
   public static KeyPair generate(Algorithm algorithm, SecureRandom rng) {
-    if (algorithm == Algorithm.Ed25519) {
-      return ed25519Factory.generate(rng);
-    } else if (algorithm == Algorithm.SECP256R1) {
-      return secp256r1Factory.generate(rng);
-    } else {
-      throw new IllegalArgumentException("Unsupported algorithm");
-    }
+    return factory.generate(algorithm, rng);
   }
 
-  public static void setEd25519Factory(Factory factory) {
-    ed25519Factory = factory;
-  }
-
-  public static void setSECP256R1Factory(Factory factory) {
-    secp256r1Factory = factory;
+  public static void setFactory(Factory factory) {
+    KeyPair.factory = factory;
   }
 
   public abstract byte[] toBytes();
