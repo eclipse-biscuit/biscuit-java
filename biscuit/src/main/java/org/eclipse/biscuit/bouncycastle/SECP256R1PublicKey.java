@@ -3,9 +3,9 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-package org.eclipse.biscuit.crypto;
+package org.eclipse.biscuit.bouncycastle;
 
-import static org.eclipse.biscuit.crypto.SECP256R1KeyPair.CURVE;
+import static org.eclipse.biscuit.bouncycastle.SECP256R1KeyPair.CURVE;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import java.io.IOException;
@@ -25,6 +25,7 @@ import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
+import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.error.Error;
 
 @SuppressWarnings("checkstyle:AbbreviationAsWordInName")

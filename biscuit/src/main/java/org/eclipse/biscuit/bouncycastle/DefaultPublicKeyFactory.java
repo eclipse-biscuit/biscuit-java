@@ -1,6 +1,7 @@
-package org.eclipse.biscuit.crypto;
+package org.eclipse.biscuit.bouncycastle;
 
 import biscuit.format.schema.Schema;
+import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.error.Error;
 
 public final class DefaultPublicKeyFactory implements PublicKey.Factory {

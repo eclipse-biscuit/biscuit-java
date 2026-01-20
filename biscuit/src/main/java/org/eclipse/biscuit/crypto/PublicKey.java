@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Optional;
 import java.util.Set;
+import org.eclipse.biscuit.bouncycastle.DefaultPublicKeyFactory;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Utils;
 

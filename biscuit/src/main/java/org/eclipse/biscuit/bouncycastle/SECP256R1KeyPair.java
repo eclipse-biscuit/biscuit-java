@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-package org.eclipse.biscuit.crypto;
+package org.eclipse.biscuit.bouncycastle;
 
 import java.io.IOException;
 import java.security.SecureRandom;
@@ -19,6 +19,8 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.util.BigIntegers;
+import org.eclipse.biscuit.crypto.KeyPair;
+import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Utils;
 

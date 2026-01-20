@@ -7,6 +7,7 @@ package org.eclipse.biscuit.crypto;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import java.security.SecureRandom;
+import org.eclipse.biscuit.bouncycastle.DefaultKeyPairFactory;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Utils;
 

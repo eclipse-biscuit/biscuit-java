@@ -3,13 +3,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-package org.eclipse.biscuit.crypto;
+package org.eclipse.biscuit.bouncycastle;
 
 import biscuit.format.schema.Schema.PublicKey.Algorithm;
 import java.util.Arrays;
 import java.util.Optional;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.error.Error;
 
 class Ed25519PublicKey extends PublicKey {

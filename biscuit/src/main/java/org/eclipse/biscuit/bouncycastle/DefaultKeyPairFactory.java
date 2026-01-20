@@ -1,7 +1,8 @@
-package org.eclipse.biscuit.crypto;
+package org.eclipse.biscuit.bouncycastle;
 
 import biscuit.format.schema.Schema;
 import java.security.SecureRandom;
+import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.error.Error;
 
 public final class DefaultKeyPairFactory implements KeyPair.Factory {
