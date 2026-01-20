@@ -18,28 +18,16 @@ import org.eclipse.biscuit.token.builder.Utils;
 
 public abstract class PublicKey {
   public interface Factory {
-    PublicKey load(byte[] bytes) throws Error.FormatError.InvalidKey;
+    PublicKey load(Algorithm algorithm, byte[] bytes) throws Error.FormatError.InvalidKey;
   }
 
-  public static final Factory DEFAULT_ED25519_FACTORY =
-      bytes -> Ed25519PublicKey.loadEd25519(bytes);
-  public static final Factory DEFAULT_SECP256R1_FACTORY =
-      bytes -> SECP256R1PublicKey.loadSECP256R1(bytes);
-
-  private static volatile Factory ed25519Factory = DEFAULT_ED25519_FACTORY;
-  private static volatile Factory secp256r1Factory = DEFAULT_SECP256R1_FACTORY;
+  private static volatile Factory factory = new DefaultPublicKeyFactory();
 
   private static final Set<Algorithm> SUPPORTED_ALGORITHMS =
       Set.of(Algorithm.Ed25519, Algorithm.SECP256R1);
 
   public static PublicKey load(Algorithm algorithm, byte[] data) throws Error.FormatError {
-    if (algorithm == Algorithm.Ed25519) {
-      return ed25519Factory.load(data);
-    } else if (algorithm == Algorithm.SECP256R1) {
-      return secp256r1Factory.load(data);
-    } else {
-      throw new IllegalArgumentException("Unsupported algorithm");
-    }
+    return factory.load(algorithm, data);
   }
 
   public static PublicKey load(Algorithm algorithm, String hex) throws Error.FormatError {
@@ -66,12 +54,8 @@ public abstract class PublicKey {
     return PublicKey.load(pk.getAlgorithm(), pk.getKey().toByteArray());
   }
 
-  public static void setEd25519Factory(Factory factory) {
-    ed25519Factory = factory;
-  }
-
-  public static void setSECP256R1Factory(Factory factory) {
-    secp256r1Factory = factory;
+  public static void setFactory(Factory factory) {
+    PublicKey.factory = factory;
   }
 
   public abstract Algorithm getAlgorithm();
