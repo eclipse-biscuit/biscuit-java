@@ -6,8 +6,6 @@
 package org.eclipse.biscuit.datalog.expressions;
 
 import biscuit.format.schema.Schema;
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -24,9 +22,13 @@ import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.regex.DefaultPatternMatcherFactory;
+import org.eclipse.biscuit.regex.PatternMatcher;
 import org.eclipse.biscuit.token.builder.Expression;
 
 public abstract class Op {
+  PatternMatcher.Factory patternMatcherFactory = new DefaultPatternMatcherFactory();
+
   public abstract void evaluate(
       Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
       throws Error.Execution;
@@ -455,9 +457,8 @@ public abstract class Op {
                   "cannot find string in symbols for index " + ((Term.Str) right).value());
             }
 
-            Pattern p = Pattern.compile(rightS.get());
-            Matcher m = p.matcher(leftS.get());
-            stack.push(new Term.Bool(m.find()));
+            stack.push(
+                new Term.Bool(patternMatcherFactory.create(rightS.get()).match(leftS.get())));
           }
           break;
         case Add:
