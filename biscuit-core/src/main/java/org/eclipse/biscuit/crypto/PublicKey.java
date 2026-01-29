@@ -12,8 +12,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
-import org.eclipse.biscuit.bouncycastle.DefaultPublicKeyFactory;
+import java.util.stream.Collectors;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.token.builder.Utils;
 
@@ -22,7 +23,17 @@ public abstract class PublicKey {
     PublicKey load(Algorithm algorithm, byte[] bytes) throws Error.FormatError.InvalidKey;
   }
 
-  private static volatile Factory factory = new DefaultPublicKeyFactory();
+  private static final Factory factory;
+
+  static {
+    var factories =
+        ServiceLoader.load(PublicKey.Factory.class).stream().collect(Collectors.toList());
+    if (factories.size() != 1) {
+      throw new IllegalStateException(
+          "A single PublicKey implementation expected; found " + factories.size());
+    }
+    factory = factories.get(0).get();
+  }
 
   private static final Set<Algorithm> SUPPORTED_ALGORITHMS =
       Set.of(Algorithm.Ed25519, Algorithm.SECP256R1);
@@ -53,10 +64,6 @@ public abstract class PublicKey {
       throw new Error.FormatError.DeserializationError("Invalid public key");
     }
     return PublicKey.load(pk.getAlgorithm(), pk.getKey().toByteArray());
-  }
-
-  public static void setFactory(Factory factory) {
-    PublicKey.factory = factory;
   }
 
   public abstract Algorithm getAlgorithm();

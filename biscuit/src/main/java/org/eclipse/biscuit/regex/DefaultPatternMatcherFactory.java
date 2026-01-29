@@ -6,6 +6,11 @@ public final class DefaultPatternMatcherFactory implements PatternMatcher.Factor
   @Override
   public PatternMatcher create(String regex) {
     var p = Pattern.compile(regex);
-    return input -> p.matcher(input).find();
+    return new PatternMatcher() {
+      @Override
+      public boolean match(CharSequence input) {
+        return p.matcher(input).find();
+      }
+    };
   }
 }

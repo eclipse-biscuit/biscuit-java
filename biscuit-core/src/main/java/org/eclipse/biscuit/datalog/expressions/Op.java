@@ -22,13 +22,10 @@ import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
-import org.eclipse.biscuit.regex.DefaultPatternMatcherFactory;
 import org.eclipse.biscuit.regex.PatternMatcher;
 import org.eclipse.biscuit.token.builder.Expression;
 
 public abstract class Op {
-  PatternMatcher.Factory patternMatcherFactory = new DefaultPatternMatcherFactory();
-
   public abstract void evaluate(
       Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
       throws Error.Execution;
@@ -457,8 +454,7 @@ public abstract class Op {
                   "cannot find string in symbols for index " + ((Term.Str) right).value());
             }
 
-            stack.push(
-                new Term.Bool(patternMatcherFactory.create(rightS.get()).match(leftS.get())));
+            stack.push(new Term.Bool(PatternMatcher.create(rightS.get()).match(leftS.get())));
           }
           break;
         case Add:

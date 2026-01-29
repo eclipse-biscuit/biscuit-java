@@ -17,6 +17,7 @@
 
     <modules>
         <module>biscuit</module>
+        <module>biscuit-core</module>
     </modules>
 
     <properties>
