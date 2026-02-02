@@ -37,15 +37,23 @@ import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.token.builder.Block;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class BiscuitTest {
 
+  private SecureRandom rng;
+
+  @BeforeEach
+  public void setUp() throws NoSuchAlgorithmException {
+    byte[] seed = {0, 0, 0, 0};
+    rng = SecureRandom.getInstance("SHA1PRNG");
+    rng.setSeed(seed);
+  }
+
   @Test
   public void testBasic()
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
 
     System.out.println("preparing the authority block");
 
@@ -177,9 +185,6 @@ public class BiscuitTest {
 
   @Test
   public void testFolders() throws NoSuchAlgorithmException, Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -288,10 +293,7 @@ public class BiscuitTest {
   }
 
   @Test
-  public void testReset() throws Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
+  public void testReset() throws Error, NoSuchAlgorithmException {
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -361,10 +363,7 @@ public class BiscuitTest {
   }
 
   @Test
-  public void testEmptyAuthorizer() throws Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
+  public void testEmptyAuthorizer() throws Error, NoSuchAlgorithmException {
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -405,9 +404,6 @@ public class BiscuitTest {
   @Test
   public void testBasicWithNamespaces()
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -535,9 +531,6 @@ public class BiscuitTest {
   @Test
   public void testBasicWithNamespacesWithAddAuthorityFact()
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -664,9 +657,6 @@ public class BiscuitTest {
   @Test
   public void testRootKeyId()
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -739,9 +729,6 @@ public class BiscuitTest {
   @Test
   public void testCheckAll()
       throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     System.out.println("preparing the authority block");
 
     KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);

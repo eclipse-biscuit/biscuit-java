@@ -22,10 +22,19 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Error.Parser;
 import org.eclipse.biscuit.token.builder.Expression;
 import org.eclipse.biscuit.token.builder.Term;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class AuthorizerTest {
   final RunLimits runLimits = new RunLimits(500, 100, Duration.ofMillis(500));
+  private SecureRandom rng;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    byte[] seed = {0, 0, 0, 0};
+    rng = SecureRandom.getInstance("SHA1PRNG");
+    rng.setSeed(seed);
+  }
 
   @Test
   public void testAuthorizerPolicy() throws Parser {
@@ -51,8 +60,7 @@ public class AuthorizerTest {
 
   @Test
   public void testPuttingSomeFactsInBiscuitAndGettingThemBackOutAgain() throws Exception {
-
-    KeyPair keypair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, new SecureRandom());
+    KeyPair keypair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
 
     Biscuit token =
         Biscuit.builder(keypair)
@@ -84,7 +92,7 @@ public class AuthorizerTest {
 
   @Test
   public void testDatalogAuthorizer() throws Exception {
-    KeyPair keypair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, new SecureRandom());
+    KeyPair keypair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
 
     Biscuit token =
         Biscuit.builder(keypair)

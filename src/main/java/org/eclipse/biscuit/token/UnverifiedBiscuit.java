@@ -272,6 +272,12 @@ public class UnverifiedBiscuit {
   public UnverifiedBiscuit appendThirdPartyBlock(
       PublicKey externalKey, ThirdPartyBlockContents blockResponse)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    return appendThirdPartyBlock(externalKey, blockResponse, new SecureRandom());
+  }
+
+  public UnverifiedBiscuit appendThirdPartyBlock(
+      PublicKey externalKey, ThirdPartyBlockContents blockResponse, SecureRandom rng)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
     SignedBlock previousBlock;
     if (this.serializedBiscuit.getBlocks().isEmpty()) {
       previousBlock = this.serializedBiscuit.getAuthority();
@@ -279,7 +285,7 @@ public class UnverifiedBiscuit {
       previousBlock =
           this.serializedBiscuit.getBlocks().get(this.serializedBiscuit.getBlocks().size() - 1);
     }
-    KeyPair nextKeyPair = KeyPair.generate(previousBlock.getKey().getAlgorithm());
+    KeyPair nextKeyPair = KeyPair.generate(previousBlock.getKey().getAlgorithm(), rng);
     byte[] payload =
         BlockSignatureBuffer.generateExternalBlockSignaturePayloadV1(
             blockResponse.getPayload(),

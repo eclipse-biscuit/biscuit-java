@@ -353,7 +353,13 @@ public final class Biscuit extends UnverifiedBiscuit {
   /** Generates a third party block request from a token */
   public Biscuit appendThirdPartyBlock(PublicKey externalKey, ThirdPartyBlockContents blockResponse)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    UnverifiedBiscuit b = super.appendThirdPartyBlock(externalKey, blockResponse);
+    return appendThirdPartyBlock(externalKey, blockResponse, new SecureRandom());
+  }
+
+  public Biscuit appendThirdPartyBlock(
+      PublicKey externalKey, ThirdPartyBlockContents blockResponse, SecureRandom rng)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    UnverifiedBiscuit b = super.appendThirdPartyBlock(externalKey, blockResponse, rng);
 
     // no need to verify again, we are already working from a verified token
     return Biscuit.fromSerializedBiscuit(b.serializedBiscuit, b.symbolTable);

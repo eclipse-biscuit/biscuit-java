@@ -18,14 +18,24 @@ import java.security.SignatureException;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.Biscuit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @serial exclude
  */
 public class SignatureTest {
+  private SecureRandom rng;
+
+  @BeforeEach
+  public void setUp() throws NoSuchAlgorithmException {
+    byte[] seed = {0, 0, 0, 0};
+    rng = SecureRandom.getInstance("SHA1PRNG");
+    rng.setSeed(seed);
+  }
+
   @Test
-  public void testSerialize() throws Error.FormatError {
+  public void testSerialize() throws Error.FormatError, NoSuchAlgorithmException {
     prTestSerialize(Schema.PublicKey.Algorithm.Ed25519, 32);
     prTestSerialize(
         // compressed - 0x02 or 0x03 prefix byte, 32 bytes for X coordinate
@@ -86,11 +96,8 @@ public class SignatureTest {
         () -> PublicKey.load(Schema.PublicKey.Algorithm.Ed25519, "badkey".getBytes()));
   }
 
-  private static void prTestSerialize(
-      Schema.PublicKey.Algorithm algorithm, int expectedPublicKeyLength) throws Error.FormatError {
-    byte[] seed = {1, 2, 3, 4};
-    SecureRandom rng = new SecureRandom(seed);
-
+  private void prTestSerialize(Schema.PublicKey.Algorithm algorithm, int expectedPublicKeyLength)
+      throws Error.FormatError, NoSuchAlgorithmException {
     KeyPair keypair = KeyPair.generate(algorithm, rng);
     PublicKey pubkey = keypair.getPublicKey();
 
@@ -112,11 +119,8 @@ public class SignatureTest {
     assertEquals(pubkey.toHex(), deserializedPublicKey.toHex());
   }
 
-  private static void prTestThreeMessages(Schema.PublicKey.Algorithm algorithm)
+  private void prTestThreeMessages(Schema.PublicKey.Algorithm algorithm)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     String message1 = "hello";
     KeyPair root = KeyPair.generate(algorithm, rng);
     KeyPair keypair2 = KeyPair.generate(algorithm, rng);

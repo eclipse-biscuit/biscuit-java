@@ -23,15 +23,22 @@ import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Utils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class UnverifiedBiscuitTest {
+  private SecureRandom rng;
+
+  @BeforeEach
+  public void setUp() throws NoSuchAlgorithmException {
+    byte[] seed = {0, 0, 0, 0};
+    rng = SecureRandom.getInstance("SHA1PRNG");
+    rng.setSeed(seed);
+  }
 
   @Test
   public void testBasic()
       throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
 
     System.out.println("preparing the authority block, block0");
 

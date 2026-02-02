@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.signers.ECDSASigner;
+import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
 import org.bouncycastle.crypto.signers.StandardDSAEncoding;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
@@ -30,12 +31,16 @@ final class SECP256R1KeyPair extends KeyPair {
 
   private final BCECPrivateKey privateKey;
   private final BCECPublicKey publicKey;
+  private final boolean deterministicNonce;
 
   static final String ALGORITHM = "ECDSA";
   static final String CURVE = "secp256r1";
   static final ECNamedCurveParameterSpec SECP256R1 = ECNamedCurveTable.getParameterSpec(CURVE);
 
-  SECP256R1KeyPair(byte[] bytes) throws Error.FormatError.InvalidKeySize {
+  SECP256R1KeyPair(byte[] bytes, boolean deterministicNonce)
+      throws Error.FormatError.InvalidKeySize {
+    this.deterministicNonce = deterministicNonce;
+
     if (bytes.length != BUFFER_SIZE) {
       throw new Error.FormatError.InvalidKeySize(bytes.length);
     }
@@ -51,7 +56,9 @@ final class SECP256R1KeyPair extends KeyPair {
     this.publicKey = publicKey;
   }
 
-  SECP256R1KeyPair(SecureRandom rng) {
+  SECP256R1KeyPair(SecureRandom rng, boolean deterministicNonce) {
+    this.deterministicNonce = deterministicNonce;
+
     byte[] bytes = new byte[BUFFER_SIZE];
     rng.nextBytes(bytes);
 
@@ -67,6 +74,14 @@ final class SECP256R1KeyPair extends KeyPair {
     this.publicKey = publicKey;
   }
 
+  /// By default sign message digests with a deterministic k
+  /// computed using the algorithm described in [RFC6979 § 3.2].
+  ///
+  /// [RFC6979 § 3.2]: https://tools.ietf.org/html/rfc6979#section-3
+  ///
+  /// Although deterministic ECDSA signing is typically slower than
+  /// signing with an RNG, it prevents accidental nonce-reuse due to
+  /// a weak RNG.
   @Override
   public byte[] sign(byte[] data) {
     var digest = new SHA256Digest();
@@ -74,7 +89,13 @@ final class SECP256R1KeyPair extends KeyPair {
     var hash = new byte[digest.getDigestSize()];
     digest.doFinal(hash, 0);
 
-    var signer = new ECDSASigner();
+    ECDSASigner signer;
+    if (deterministicNonce) {
+      signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
+    } else {
+      signer = new ECDSASigner();
+    }
+
     signer.init(true, privateKey.engineGetKeyParameters());
     var sig = signer.generateSignature(hash);
 

@@ -23,9 +23,19 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.token.builder.Block;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ThirdPartyTest {
+  private SecureRandom rng;
+
+  @BeforeEach
+  public void setUp() throws NoSuchAlgorithmException {
+    byte[] seed = {0, 0, 0, 0};
+    rng = SecureRandom.getInstance("SHA1PRNG");
+    rng.setSeed(seed);
+  }
+
   @Test
   public void testRoundTrip()
       throws NoSuchAlgorithmException,
@@ -34,8 +44,6 @@ public class ThirdPartyTest {
           CloneNotSupportedException,
           Error,
           IOException {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
 
     System.out.println("preparing the authority block");
 
@@ -105,11 +113,6 @@ public class ThirdPartyTest {
           InvalidKeyException,
           CloneNotSupportedException,
           Error {
-    // this makes a deterministic RNG
-    SecureRandom rng = SecureRandom.getInstance("SHA1PRNG");
-    byte[] seed = {0, 0, 0, 0};
-    rng.setSeed(seed);
-
     System.out.println("preparing the authority block");
 
     final KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -200,9 +203,6 @@ public class ThirdPartyTest {
           InvalidKeyException,
           CloneNotSupportedException,
           Error {
-    byte[] seed = {0, 0, 0, 0};
-    SecureRandom rng = new SecureRandom(seed);
-
     System.out.println("preparing the authority block");
 
     final KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
@@ -253,5 +253,57 @@ public class ThirdPartyTest {
                       new FailedCheck.FailedBlock(1, 0, "check if resource(\"file1\")")))),
           e);
     }
+  }
+
+  private org.eclipse.biscuit.token.Biscuit generateDeterministicBiscuit(SecureRandom rng)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    final KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.SECP256R1, rng);
+    final KeyPair external = KeyPair.generate(Schema.PublicKey.Algorithm.SECP256R1, rng);
+
+    Block authorityBuilder = new Block();
+    Biscuit b1 = Biscuit.make(rng, root, authorityBuilder.build());
+
+    ThirdPartyBlockRequest request = b1.thirdPartyRequest();
+    Block builder = new Block();
+    ThirdPartyBlockContents blockResponse = request.createBlock(external, builder).getOk();
+    Biscuit b2 = b1.appendThirdPartyBlock(external.getPublicKey(), blockResponse, rng);
+
+    return b2;
+  }
+
+  @Test
+  public void testDeterministicECDSA()
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    // Generate the same set of root and 3rd-party keys and confirm that they result in the same
+    // ECDSA signatures.
+
+    // Create fresh RNG with same seed for first biscuit
+    byte[] seed = {0, 0, 0, 0};
+    SecureRandom rng1 = SecureRandom.getInstance("SHA1PRNG");
+    rng1.setSeed(seed);
+    Biscuit b1 = generateDeterministicBiscuit(rng1);
+
+    // Create fresh RNG with same seed for second biscuit to get identical signatures
+    SecureRandom rng2 = SecureRandom.getInstance("SHA1PRNG");
+    rng2.setSeed(seed);
+    Biscuit b2 = generateDeterministicBiscuit(rng2);
+
+    assert (Arrays.equals(
+        b1.serializedBiscuit.getAuthority().getSignature(),
+        b2.serializedBiscuit.getAuthority().getSignature()));
+
+    assert (Arrays.equals(
+        b1.serializedBiscuit.getBlocks().get(0).getSignature(),
+        b2.serializedBiscuit.getBlocks().get(0).getSignature()));
+
+    byte[] data1 = b1.serialize();
+    byte[] data2 = b2.serialize();
+    assert (Arrays.equals(data1, data2));
+    assertEquals(b1.print(), b2.print());
+
+    // Make sure that the token is still valid
+    Authorizer authorizer = b1.authorizer();
+    authorizer.addPolicy("allow if true");
+    authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
   }
 }

@@ -35,12 +35,25 @@ public abstract class KeyPair implements Signer {
       new Factory() {
         @Override
         public KeyPair generate(byte[] bytes) throws Error.FormatError.InvalidKeySize {
-          return new SECP256R1KeyPair(bytes);
+          return new SECP256R1KeyPair(bytes, true);
         }
 
         @Override
         public KeyPair generate(SecureRandom rng) {
-          return new SECP256R1KeyPair(rng);
+          return new SECP256R1KeyPair(rng, true);
+        }
+      };
+
+  public static final Factory DEFAULT_NONDETERMINISTIC_SECP256R1_FACTORY =
+      new Factory() {
+        @Override
+        public KeyPair generate(byte[] bytes) throws Error.FormatError.InvalidKeySize {
+          return new SECP256R1KeyPair(bytes, false);
+        }
+
+        @Override
+        public KeyPair generate(SecureRandom rng) {
+          return new SECP256R1KeyPair(rng, false);
         }
       };
 
@@ -69,9 +82,9 @@ public abstract class KeyPair implements Signer {
 
   public static KeyPair generate(Algorithm algorithm, SecureRandom rng) {
     if (algorithm == Algorithm.Ed25519) {
-      return ed25519Factory != null ? ed25519Factory.generate(rng) : new Ed25519KeyPair(rng);
+      return ed25519Factory.generate(rng);
     } else if (algorithm == Algorithm.SECP256R1) {
-      return secp256r1Factory != null ? secp256r1Factory.generate(rng) : new SECP256R1KeyPair(rng);
+      return secp256r1Factory.generate(rng);
     } else {
       throw new IllegalArgumentException("Unsupported algorithm");
     }
