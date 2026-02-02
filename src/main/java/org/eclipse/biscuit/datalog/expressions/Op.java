@@ -9,21 +9,26 @@ import biscuit.format.schema.Schema;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.eclipse.biscuit.datalog.MapKey;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.builder.Expression;
 
 public abstract class Op {
   public abstract void evaluate(
-      Deque<Term> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
+      Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
       throws Error.Execution;
 
   public abstract String print(Deque<String> stack, SymbolTable symbols);
@@ -33,82 +38,15 @@ public abstract class Op {
   public static Result<Op, Error.FormatError> deserializeV2(Schema.Op op) {
     if (op.hasValue()) {
       var res = Term.deserializeEnumV2(op.getValue());
-      return res.isOk() ? Result.ok(new Op.Value(res.getOk())) : Result.err(res.getErr());
+      return res.isOk() ? Result.ok(res.getOk()) : Result.err(res.getErr());
     } else if (op.hasUnary()) {
       return Op.Unary.deserializeV2(op.getUnary());
     } else if (op.hasBinary()) {
       return Op.Binary.deserializeV1(op.getBinary());
+    } else if (op.hasClosure()) {
+      return Op.Closure.deserializeV1(op.getClosure());
     } else {
       return Result.err(new Error.FormatError.DeserializationError("invalid unary operation"));
-    }
-  }
-
-  public static final class Value extends Op {
-    private final Term value;
-
-    public Value(Term value) {
-      this.value = value;
-    }
-
-    public Term getValue() {
-      return value;
-    }
-
-    @Override
-    public void evaluate(
-        Deque<Term> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-        throws Error.Execution {
-      if (value instanceof Term.Variable) {
-        Term.Variable var = (Term.Variable) value;
-        Term valueVar = variables.get(var.value());
-        if (valueVar != null) {
-          stack.push(valueVar);
-        } else {
-          throw new Error.Execution("cannot find a variable for index " + value);
-        }
-      } else {
-        stack.push(value);
-      }
-    }
-
-    @Override
-    public String print(Deque<String> stack, SymbolTable symbolTable) {
-      String s = symbolTable.formatTerm(value);
-      stack.push(s);
-      return s;
-    }
-
-    @Override
-    public Schema.Op serialize() {
-      Schema.Op.Builder b = Schema.Op.newBuilder();
-
-      b.setValue(this.value.serialize());
-
-      return b.build();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      Value value1 = (Value) o;
-
-      return value.equals(value1.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "Value(" + value + ')';
     }
   }
 
@@ -116,6 +54,7 @@ public abstract class Op {
     Negate,
     Parens,
     Length,
+    TypeOf,
   }
 
   public static final class Unary extends Op {
@@ -131,9 +70,9 @@ public abstract class Op {
 
     @Override
     public void evaluate(
-        Deque<Term> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
+        Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
         throws Error.Execution {
-      Term value = stack.pop();
+      Op value = stack.pop();
       switch (this.op) {
         case Negate:
           if (value instanceof Term.Bool) {
@@ -162,12 +101,20 @@ public abstract class Op {
             stack.push(new Term.Integer(((Term.Bytes) value).value().length));
           } else if (value instanceof Term.Set) {
             stack.push(new Term.Integer(((Term.Set) value).value().size()));
+          } else if (value instanceof Term.Array) {
+            stack.push(new Term.Integer(((Term.Array) value).value().size()));
+          } else if (value instanceof Term.Map) {
+            stack.push(new Term.Integer(((Term.Map) value).value().size()));
           } else {
             throw new Error.Execution("invalid type for length op");
           }
           break;
+        case TypeOf:
+          Term term = (Term) value;
+          stack.push(new Term.Str(temporarySymbolTable.insert(term.typeOf())));
+          break;
         default:
-          throw new Error.Execution("invalid type for length op");
+          throw new Error.Execution("invalid type for op " + this.op);
       }
     }
 
@@ -186,6 +133,10 @@ public abstract class Op {
           break;
         case Length:
           s = prec + ".length()";
+          stack.push(s);
+          break;
+        case TypeOf:
+          s = prec + ".type()";
           stack.push(s);
           break;
         default:
@@ -209,6 +160,9 @@ public abstract class Op {
         case Length:
           b1.setKind(Schema.OpUnary.Kind.Length);
           break;
+        case TypeOf:
+          b1.setKind(Schema.OpUnary.Kind.TypeOf);
+          break;
         default:
       }
 
@@ -225,6 +179,8 @@ public abstract class Op {
           return Result.ok(new Op.Unary(UnaryOp.Parens));
         case Length:
           return Result.ok(new Op.Unary(UnaryOp.Length));
+        case TypeOf:
+          return Result.ok(new Op.Unary(UnaryOp.TypeOf));
         default:
       }
 
@@ -263,6 +219,8 @@ public abstract class Op {
     GreaterOrEqual,
     Equal,
     NotEqual,
+    HeterogeneousEqual,
+    HeterogeneousNotEqual,
     Contains,
     Prefix,
     Suffix,
@@ -273,11 +231,17 @@ public abstract class Op {
     Div,
     And,
     Or,
+    LazyAnd,
+    LazyOr,
     Intersection,
     Union,
     BitwiseAnd,
     BitwiseOr,
     BitwiseXor,
+    Get,
+    Any,
+    All,
+    TryOr,
   }
 
   public static final class Binary extends Op {
@@ -293,10 +257,10 @@ public abstract class Op {
 
     @Override
     public void evaluate(
-        Deque<Term> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
+        Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
         throws Error.Execution {
-      Term right = stack.pop();
-      Term left = stack.pop();
+      Op right = stack.pop();
+      Op left = stack.pop();
 
       switch (this.op) {
         case LessThan:
@@ -336,55 +300,41 @@ public abstract class Op {
           }
           break;
         case Equal:
-          if (right instanceof Term.Bool && left instanceof Term.Bool) {
-            stack.push(new Term.Bool(((Term.Bool) left).value() == ((Term.Bool) right).value()));
-          }
-          if (right instanceof Term.Integer && left instanceof Term.Integer) {
-            stack.push(
-                new Term.Bool(((Term.Integer) left).value() == ((Term.Integer) right).value()));
-          }
-          if (right instanceof Term.Str && left instanceof Term.Str) {
-            stack.push(new Term.Bool(((Term.Str) left).value() == ((Term.Str) right).value()));
-          }
-          if (right instanceof Term.Bytes && left instanceof Term.Bytes) {
-            stack.push(
-                new Term.Bool(
-                    Arrays.equals(((Term.Bytes) left).value(), (((Term.Bytes) right).value()))));
-          }
-          if (right instanceof Term.Date && left instanceof Term.Date) {
-            stack.push(new Term.Bool(((Term.Date) left).value() == ((Term.Date) right).value()));
-          }
-          if (right instanceof Term.Set && left instanceof Term.Set) {
-            Set<Term> leftSet = ((Term.Set) left).value();
-            Set<Term> rightSet = ((Term.Set) right).value();
-            stack.push(
-                new Term.Bool(leftSet.size() == rightSet.size() && leftSet.containsAll(rightSet)));
+          if (left instanceof Term && right instanceof Term) {
+            if (left.getClass() == right.getClass()) {
+              stack.push(new Term.Bool(left.equals(right)));
+            } else {
+              throw new Error.Execution(
+                  Error.Execution.Kind.InvalidType, "cannot compare disparate types");
+            }
+          } else {
+            throw new Error.Execution(Error.Execution.Kind.InvalidType, "cannot compare closures");
           }
           break;
         case NotEqual:
-          if (right instanceof Term.Bool && left instanceof Term.Bool) {
-            stack.push(new Term.Bool(((Term.Bool) left).value() != ((Term.Bool) right).value()));
+          if (left instanceof Term && right instanceof Term) {
+            if (left.getClass() == right.getClass()) {
+              stack.push(new Term.Bool(!left.equals(right)));
+            } else {
+              throw new Error.Execution(
+                  Error.Execution.Kind.InvalidType, "cannot compare disparate types");
+            }
+          } else {
+            throw new Error.Execution(Error.Execution.Kind.InvalidType, "cannot compare closures");
           }
-          if (right instanceof Term.Integer && left instanceof Term.Integer) {
-            stack.push(
-                new Term.Bool(((Term.Integer) left).value() != ((Term.Integer) right).value()));
+          break;
+        case HeterogeneousEqual:
+          if (left instanceof Term && right instanceof Term) {
+            stack.push(new Term.Bool(left.equals(right)));
+          } else {
+            throw new Error.Execution(Error.Execution.Kind.InvalidType, "cannot compare closures");
           }
-          if (right instanceof Term.Str && left instanceof Term.Str) {
-            stack.push(new Term.Bool(((Term.Str) left).value() != ((Term.Str) right).value()));
-          }
-          if (right instanceof Term.Bytes && left instanceof Term.Bytes) {
-            stack.push(
-                new Term.Bool(
-                    !Arrays.equals(((Term.Bytes) left).value(), (((Term.Bytes) right).value()))));
-          }
-          if (right instanceof Term.Date && left instanceof Term.Date) {
-            stack.push(new Term.Bool(((Term.Date) left).value() != ((Term.Date) right).value()));
-          }
-          if (right instanceof Term.Set && left instanceof Term.Set) {
-            Set<Term> leftSet = ((Term.Set) left).value();
-            Set<Term> rightSet = ((Term.Set) right).value();
-            stack.push(
-                new Term.Bool(leftSet.size() != rightSet.size() || !leftSet.containsAll(rightSet)));
+          break;
+        case HeterogeneousNotEqual:
+          if (left instanceof Term && right instanceof Term) {
+            stack.push(new Term.Bool(!left.equals(right)));
+          } else {
+            throw new Error.Execution(Error.Execution.Kind.InvalidType, "cannot compare closures");
           }
           break;
         case Contains:
@@ -419,6 +369,19 @@ public abstract class Op {
 
             stack.push(new Term.Bool(leftS.get().contains(rightS.get())));
           }
+          if (left instanceof Term.Array) {
+            List<Term> array = ((Term.Array) left).value();
+            stack.push(new Term.Bool(array.contains(right)));
+          }
+          if (left instanceof Term.Map) {
+            HashMap<MapKey, Term> map = ((Term.Map) left).value();
+            if (right instanceof MapKey) {
+              MapKey key = (MapKey) right;
+              stack.push(new Term.Bool(map.containsKey(key)));
+            } else {
+              stack.push(new Term.Bool(false));
+            }
+          }
           break;
         case Prefix:
           if (right instanceof Term.Str && left instanceof Term.Str) {
@@ -437,6 +400,15 @@ public abstract class Op {
 
             stack.push(new Term.Bool(leftS.get().startsWith(rightS.get())));
           }
+          if (left instanceof Term.Array && right instanceof Term.Array) {
+            List<Term> leftArray = ((Term.Array) left).value();
+            List<Term> rightArray = ((Term.Array) right).value();
+            if (leftArray.size() < rightArray.size()) {
+              stack.push(new Term.Bool(false));
+            } else {
+              stack.push(new Term.Bool(leftArray.subList(0, rightArray.size()).equals(rightArray)));
+            }
+          }
           break;
         case Suffix:
           if (right instanceof Term.Str && left instanceof Term.Str) {
@@ -453,6 +425,19 @@ public abstract class Op {
                   "cannot find string in symbols for index " + ((Term.Str) right).value());
             }
             stack.push(new Term.Bool(leftS.get().endsWith(rightS.get())));
+          }
+          if (left instanceof Term.Array && right instanceof Term.Array) {
+            List<Term> leftArray = ((Term.Array) left).value();
+            List<Term> rightArray = ((Term.Array) right).value();
+            if (leftArray.size() < rightArray.size()) {
+              stack.push(new Term.Bool(false));
+            } else {
+              stack.push(
+                  new Term.Bool(
+                      leftArray
+                          .subList(leftArray.size() - rightArray.size(), leftArray.size())
+                          .equals(rightArray)));
+            }
           }
           break;
         case Regex:
@@ -548,6 +533,32 @@ public abstract class Op {
             stack.push(new Term.Bool(((Term.Bool) left).value() || ((Term.Bool) right).value()));
           }
           break;
+        case LazyAnd:
+          if (left instanceof Term.Bool && right instanceof Closure) {
+            if (((Term.Bool) left).value()) {
+              Closure closure = (Closure) right;
+              Term result = closure.call(variables, temporarySymbolTable);
+              if (result instanceof Term.Bool) {
+                stack.push((Term.Bool) result);
+              }
+            } else {
+              stack.push(new Term.Bool(false));
+            }
+          }
+          break;
+        case LazyOr:
+          if (left instanceof Term.Bool && right instanceof Closure) {
+            if (((Term.Bool) left).value()) {
+              stack.push(new Term.Bool(true));
+            } else {
+              Closure closure = (Closure) right;
+              Term result = closure.call(variables, temporarySymbolTable);
+              if (result instanceof Term.Bool) {
+                stack.push((Term.Bool) result);
+              }
+            }
+          }
+          break;
         case Intersection:
           if (right instanceof Term.Set && left instanceof Term.Set) {
             HashSet<Term> intersec = new HashSet<Term>();
@@ -592,6 +603,143 @@ public abstract class Op {
             stack.push(new Term.Integer(r ^ l));
           }
           break;
+        case Get:
+          if (right instanceof Term.Integer && left instanceof Term.Array) {
+            int index = (int) ((Term.Integer) right).value();
+            List<Term> array = ((Term.Array) left).value();
+            if (index >= array.size() || index < 0) {
+              stack.push(new Term.Null());
+            } else {
+              Term element = array.get(index);
+              if (element != null) {
+                stack.push(element);
+              } else {
+                stack.push(new Term.Null());
+              }
+            }
+          }
+          if (right instanceof MapKey && left instanceof Term.Map) {
+            MapKey key = (MapKey) right;
+            HashMap<MapKey, Term> map = ((Term.Map) left).value();
+            Term value = map.get(key);
+            if (value != null) {
+              stack.push(value);
+            } else {
+              stack.push(new Term.Null());
+            }
+          }
+          break;
+        case Any:
+          if (right instanceof Closure) {
+            Closure closure = (Closure) right;
+            boolean result = false;
+            if (left instanceof Term.Array) {
+              List<Term> array = ((Term.Array) left).value();
+              for (Term elem : array) {
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                if (!(returnValue instanceof Term.Bool)) {
+                  throw new Error.Execution("any op did not evaluate to a boolean");
+                }
+                result = ((Term.Bool) returnValue).value();
+                if (result) {
+                  break;
+                }
+              }
+            } else if (left instanceof Term.Set) {
+              HashSet<Term> set = ((Term.Set) left).value();
+              for (Term elem : set) {
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                if (!(returnValue instanceof Term.Bool)) {
+                  throw new Error.Execution("any op did not evaluate to a boolean");
+                }
+                result = ((Term.Bool) returnValue).value();
+                if (result) {
+                  break;
+                }
+              }
+            } else if (left instanceof Term.Map) {
+              HashMap<MapKey, Term> map = ((Term.Map) left).value();
+              for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
+                List<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
+                Term returnValue =
+                    closure.call(new Term.Array(params), variables, temporarySymbolTable);
+                if (!(returnValue instanceof Term.Bool)) {
+                  throw new Error.Execution("any op did not evaluate to a boolean");
+                }
+                result = ((Term.Bool) returnValue).value();
+                if (result) {
+                  break;
+                }
+              }
+            } else {
+              throw new Error.Execution("left operand of any op is not a collection");
+            }
+            stack.push(new Term.Bool(result));
+          } else {
+            throw new Error.Execution("right operand of any op is not a closure");
+          }
+          break;
+        case All:
+          if (right instanceof Closure) {
+            Closure closure = (Closure) right;
+            boolean result = true;
+            if (left instanceof Term.Array) {
+              List<Term> array = ((Term.Array) left).value();
+              for (Term elem : array) {
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                if (!(returnValue instanceof Term.Bool)) {
+                  throw new Error.Execution("all op did not evaluate to a boolean");
+                }
+                result = ((Term.Bool) returnValue).value();
+                if (!result) {
+                  break;
+                }
+              }
+            } else if (left instanceof Term.Set) {
+              HashSet<Term> set = ((Term.Set) left).value();
+              for (Term elem : set) {
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                if (!(returnValue instanceof Term.Bool)) {
+                  throw new Error.Execution("all op did not evaluate to a boolean");
+                }
+                result = ((Term.Bool) returnValue).value();
+                if (!result) {
+                  break;
+                }
+              }
+            } else if (left instanceof Term.Map) {
+              HashMap<MapKey, Term> map = ((Term.Map) left).value();
+              for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
+                ArrayList<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
+                Term returnValue =
+                    closure.call(new Term.Array(params), variables, temporarySymbolTable);
+                if (!(returnValue instanceof Term.Bool)) {
+                  throw new Error.Execution("all op did not evaluate to a boolean");
+                }
+                result = ((Term.Bool) returnValue).value();
+                if (!result) {
+                  break;
+                }
+              }
+            } else {
+              throw new Error.Execution("left operand of all op is not a collection");
+            }
+            stack.push(new Term.Bool(result));
+          } else {
+            throw new Error.Execution("right operand of all op is not a closure");
+          }
+          break;
+        case TryOr:
+          if (left instanceof Closure) {
+            Closure closure = (Closure) left;
+            try {
+              Term leftValue = closure.call(variables, temporarySymbolTable);
+              stack.push(leftValue);
+            } catch (Error e) {
+              stack.push(right);
+            }
+          }
+          break;
         default:
           throw new Error.Execution("binary exec error for op" + this);
       }
@@ -619,12 +767,20 @@ public abstract class Op {
           s = left + " >= " + right;
           stack.push(s);
           break;
-        case Equal:
+        case HeterogeneousEqual:
           s = left + " == " + right;
           stack.push(s);
           break;
-        case NotEqual:
+        case HeterogeneousNotEqual:
           s = left + " != " + right;
+          stack.push(s);
+          break;
+        case Equal:
+          s = left + " === " + right;
+          stack.push(s);
+          break;
+        case NotEqual:
+          s = left + " !== " + right;
           stack.push(s);
           break;
         case Contains:
@@ -667,6 +823,14 @@ public abstract class Op {
           s = left + " || " + right;
           stack.push(s);
           break;
+        case LazyAnd:
+          s = left + " && " + right;
+          stack.push(s);
+          break;
+        case LazyOr:
+          s = left + " || " + right;
+          stack.push(s);
+          break;
         case Intersection:
           s = left + ".intersection(" + right + ")";
           stack.push(s);
@@ -685,6 +849,22 @@ public abstract class Op {
           break;
         case BitwiseXor:
           s = left + " ^ " + right;
+          stack.push(s);
+          break;
+        case Get:
+          s = left + ".get(" + right + ")";
+          stack.push(s);
+          break;
+        case Any:
+          s = left + ".any(" + right + ")";
+          stack.push(s);
+          break;
+        case All:
+          s = left + ".any(" + right + ")";
+          stack.push(s);
+          break;
+        case TryOr:
+          s = left + ".try_or(" + right + ")";
           stack.push(s);
           break;
         default:
@@ -718,6 +898,12 @@ public abstract class Op {
         case NotEqual:
           b1.setKind(Schema.OpBinary.Kind.NotEqual);
           break;
+        case HeterogeneousEqual:
+          b1.setKind(Schema.OpBinary.Kind.HeterogeneousEqual);
+          break;
+        case HeterogeneousNotEqual:
+          b1.setKind(Schema.OpBinary.Kind.HeterogeneousNotEqual);
+          break;
         case Contains:
           b1.setKind(Schema.OpBinary.Kind.Contains);
           break;
@@ -748,6 +934,12 @@ public abstract class Op {
         case Or:
           b1.setKind(Schema.OpBinary.Kind.Or);
           break;
+        case LazyAnd:
+          b1.setKind(Schema.OpBinary.Kind.LazyAnd);
+          break;
+        case LazyOr:
+          b1.setKind(Schema.OpBinary.Kind.LazyOr);
+          break;
         case Intersection:
           b1.setKind(Schema.OpBinary.Kind.Intersection);
           break;
@@ -762,6 +954,18 @@ public abstract class Op {
           break;
         case BitwiseXor:
           b1.setKind(Schema.OpBinary.Kind.BitwiseXor);
+          break;
+        case Get:
+          b1.setKind(Schema.OpBinary.Kind.Get);
+          break;
+        case Any:
+          b1.setKind(Schema.OpBinary.Kind.Any);
+          break;
+        case All:
+          b1.setKind(Schema.OpBinary.Kind.All);
+          break;
+        case TryOr:
+          b1.setKind(Schema.OpBinary.Kind.Try);
           break;
         default:
       }
@@ -785,6 +989,10 @@ public abstract class Op {
           return Result.ok(new Op.Binary(BinaryOp.Equal));
         case NotEqual:
           return Result.ok(new Op.Binary(BinaryOp.NotEqual));
+        case HeterogeneousEqual:
+          return Result.ok(new Op.Binary(BinaryOp.HeterogeneousEqual));
+        case HeterogeneousNotEqual:
+          return Result.ok(new Op.Binary(BinaryOp.HeterogeneousNotEqual));
         case Contains:
           return Result.ok(new Op.Binary(BinaryOp.Contains));
         case Prefix:
@@ -805,6 +1013,10 @@ public abstract class Op {
           return Result.ok(new Op.Binary(BinaryOp.And));
         case Or:
           return Result.ok(new Op.Binary(BinaryOp.Or));
+        case LazyAnd:
+          return Result.ok(new Op.Binary(BinaryOp.LazyAnd));
+        case LazyOr:
+          return Result.ok(new Op.Binary(BinaryOp.LazyOr));
         case Intersection:
           return Result.ok(new Op.Binary(BinaryOp.Intersection));
         case Union:
@@ -815,6 +1027,14 @@ public abstract class Op {
           return Result.ok(new Op.Binary(BinaryOp.BitwiseOr));
         case BitwiseXor:
           return Result.ok(new Op.Binary(BinaryOp.BitwiseXor));
+        case Get:
+          return Result.ok(new Op.Binary(BinaryOp.Get));
+        case Any:
+          return Result.ok(new Op.Binary(BinaryOp.Any));
+        case All:
+          return Result.ok(new Op.Binary(BinaryOp.All));
+        case Try:
+          return Result.ok(new Op.Binary(BinaryOp.TryOr));
         default:
           return Result.err(
               new Error.FormatError.DeserializationError(
@@ -844,6 +1064,132 @@ public abstract class Op {
     @Override
     public int hashCode() {
       return op.hashCode();
+    }
+  }
+
+  public static final class Closure extends Op {
+    private final ArrayList<Long> params;
+    private final ArrayList<Op> ops;
+
+    public Closure(ArrayList<Long> params, ArrayList<Op> ops) {
+      this.params = params;
+      this.ops = ops;
+    }
+
+    public void evaluate(
+        Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
+        throws Error.Execution {
+      stack.push(this);
+    }
+
+    int arity() {
+      return params.size();
+    }
+
+    Term call(Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
+        throws Error.Execution {
+      if (arity() != 0) {
+        throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
+      }
+      Deque<Op> stack = new ArrayDeque<Op>(16); // Default value
+      for (Op op : ops) {
+        op.evaluate(stack, variables, temporarySymbolTable);
+      }
+      if (stack.size() != 1) {
+        throw new Error.Execution("invalid closure expression");
+      }
+      return (Term) stack.pop();
+    }
+
+    Term call(Term arg, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
+        throws Error.Execution {
+      if (arity() != 1) {
+        throw new Error.Execution("called closure with arity " + arity() + "with 1 argument");
+      }
+      if (variables.putIfAbsent(params.get(0), arg) != null) {
+        throw new Error.Execution(
+            Error.Execution.Kind.ShadowedVariable, "closure parameter shadows variable");
+      }
+      Deque<Op> stack = new ArrayDeque<Op>(16); // Default value
+      for (Op op : ops) {
+        op.evaluate(stack, variables, temporarySymbolTable);
+      }
+      variables.remove(params.get(0));
+      if (stack.size() != 1) {
+        throw new Error.Execution("invalid closure expression");
+      }
+      return (Term) stack.pop();
+    }
+
+    public String print(Deque<String> stack, SymbolTable symbols) {
+      String paramNames = null;
+      for (Long param : params) {
+        String paramName = symbols.getSymbol(param.intValue()).get();
+        if (paramNames == null) {
+          paramNames = "$" + paramName;
+        } else {
+          paramNames = paramNames + ", $" + paramName;
+        }
+      }
+
+      String s;
+      Deque<String> bodyStack = new ArrayDeque<>();
+      for (Op op : ops) {
+        op.print(bodyStack, symbols);
+      }
+      if (paramNames == null) {
+        s = bodyStack.remove();
+      } else {
+        s = paramNames + " -> " + bodyStack.remove();
+      }
+      stack.push(s);
+      return s;
+    }
+
+    public Schema.Op serialize() {
+      Schema.Op.Builder b = Schema.Op.newBuilder();
+      Schema.OpClosure.Builder b1 = Schema.OpClosure.newBuilder();
+
+      for (Long param : params) {
+        b1.addParams(param.intValue());
+      }
+
+      for (Op op : this.ops) {
+        b1.addOps(op.serialize());
+      }
+
+      b.setClosure(b1.build());
+
+      return b.build();
+    }
+
+    public static Result<Op, Error.FormatError> deserializeV1(Schema.OpClosure closure) {
+      ArrayList<Long> params = new ArrayList<>();
+      ArrayList<Op> ops = new ArrayList<>();
+
+      for (long param : closure.getParamsList()) {
+        params.add(new Long(param));
+      }
+
+      for (Schema.Op op : closure.getOpsList()) {
+        var res = Op.deserializeV2(op);
+        if (res.isErr()) {
+          return Result.err(res.getErr());
+        } else {
+          ops.add(res.getOk());
+        }
+      }
+
+      return Result.ok(new Op.Closure(params, ops));
+    }
+
+    public Expression toExpression(SymbolTable symbols) {
+      ArrayList<String> paramNames = new ArrayList<>();
+      for (Long param : params) {
+        paramNames.add(symbols.getSymbol(param.intValue()).get());
+      }
+      Expression body = Expression.convertFrom(ops, symbols);
+      return new Expression.Closure(paramNames, body);
     }
   }
 }

@@ -148,7 +148,7 @@ public final class Biscuit {
     for (Scope s : this.scopes) {
       scopes.add(s.convert(symbolTable));
     }
-    SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
+    var version = new SchemaVersion(facts, rules, checks, scopes, Optional.empty()).version();
 
     SymbolTable blockSymbols = new SymbolTable();
 
@@ -171,7 +171,7 @@ public final class Biscuit {
             scopes,
             publicKeys,
             Optional.empty(),
-            schemaVersion.version());
+            version);
 
     if (this.rootKeyId.isPresent()) {
       return org.eclipse.biscuit.token.Biscuit.make(

@@ -705,7 +705,9 @@ public abstract class Error extends Exception {
   public static final class Execution extends Error {
     public enum Kind {
       Execution,
-      Overflow
+      Overflow,
+      ShadowedVariable,
+      InvalidType
     }
 
     Expression expr;
@@ -762,6 +764,21 @@ public abstract class Error extends Exception {
     @Override
     public JsonNode toJson() {
       return TextNode.valueOf("InvalidType");
+    }
+  }
+
+  public static final class Shadowing extends Error {
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      return o != null && getClass() == o.getClass();
+    }
+
+    @Override
+    public JsonNode toJson() {
+      return TextNode.valueOf("Shadowing");
     }
   }
 

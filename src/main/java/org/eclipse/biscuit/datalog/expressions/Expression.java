@@ -32,12 +32,17 @@ public final class Expression {
   // FIXME: should return a Result<Term, error::Expression>
   public Term evaluate(Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
       throws Error.Execution {
-    Deque<Term> stack = new ArrayDeque<Term>(16); // Default value
+    Deque<Op> stack = new ArrayDeque<Op>(16); // Default value
     for (Op op : ops) {
       op.evaluate(stack, variables, temporarySymbolTable);
     }
     if (stack.size() == 1) {
-      return stack.pop();
+      Op op = stack.pop();
+      if (op instanceof Term) {
+        return (Term) op;
+      } else {
+        throw new Error.Execution(this, "expression evaluated to closure");
+      }
     } else {
       throw new Error.Execution(this, "execution");
     }

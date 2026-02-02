@@ -334,8 +334,8 @@ public class WorldTest {
                     new Expression(
                         new ArrayList<Op>(
                             Arrays.asList(
-                                new Op.Value(new Term.Variable(syms.insert("id"))),
-                                new Op.Value(new Term.Integer(1)),
+                                new Term.Variable(syms.insert("id")),
+                                new Term.Integer(1),
                                 new Op.Binary(Op.BinaryOp.LessThan)))))),
             (long) 0,
             new TrustedOrigins(0),
@@ -375,8 +375,8 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(new Term.Variable(syms.insert("domain"))),
-                            new Op.Value(syms.add(suffix)),
+                            new Term.Variable(syms.insert("domain")),
+                            syms.add(suffix),
                             new Op.Binary(Op.BinaryOp.Suffix)))))),
         (long) 0,
         new TrustedOrigins(0),
@@ -492,14 +492,14 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(new Term.Variable(syms.insert("date"))),
-                            new Op.Value(new Term.Date(t2_timestamp)),
+                            new Term.Variable(syms.insert("date")),
+                            new Term.Date(t2_timestamp),
                             new Op.Binary(Op.BinaryOp.LessOrEqual)))),
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(new Term.Variable(syms.insert("date"))),
-                            new Op.Value(new Term.Date(0)),
+                            new Term.Variable(syms.insert("date")),
+                            new Term.Date(0),
                             new Op.Binary(Op.BinaryOp.GreaterOrEqual))))));
 
     System.out.println("testing r1: " + syms.formatRule(r1));
@@ -534,14 +534,14 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(new Term.Variable(syms.insert("date"))),
-                            new Op.Value(new Term.Date(t2_timestamp)),
+                            new Term.Variable(syms.insert("date")),
+                            new Term.Date(t2_timestamp),
                             new Op.Binary(Op.BinaryOp.GreaterOrEqual)))),
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(new Term.Variable(syms.insert("date"))),
-                            new Op.Value(new Term.Date(0)),
+                            new Term.Variable(syms.insert("date")),
+                            new Term.Date(0),
                             new Op.Binary(Op.BinaryOp.GreaterOrEqual))))));
 
     System.out.println("testing r2: " + syms.formatRule(r2));
@@ -597,12 +597,10 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(
-                                new Term.Set(
-                                    new HashSet<>(
-                                        Arrays.asList(
-                                            new Term.Integer(0L), new Term.Integer(1L))))),
-                            new Op.Value(new Term.Variable(syms.insert("int"))),
+                            new Term.Set(
+                                new HashSet<>(
+                                    Arrays.asList(new Term.Integer(0L), new Term.Integer(1L)))),
+                            new Term.Variable(syms.insert("int")),
                             new Op.Binary(Op.BinaryOp.Contains))))));
     System.out.println("testing r1: " + syms.formatRule(r1));
     FactSet res = w.queryRule(r1, (long) 0, new TrustedOrigins(0), syms);
@@ -640,12 +638,10 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(
-                                new Term.Set(
-                                    new HashSet<>(
-                                        Arrays.asList(
-                                            new Term.Str(abcSymId), new Term.Str(ghiSymId))))),
-                            new Op.Value(new Term.Variable(syms.insert("sym"))),
+                            new Term.Set(
+                                new HashSet<>(
+                                    Arrays.asList(new Term.Str(abcSymId), new Term.Str(ghiSymId)))),
+                            new Term.Variable(syms.insert("sym")),
                             new Op.Binary(Op.BinaryOp.Contains),
                             new Op.Unary(Op.UnaryOp.Negate))))));
 
@@ -685,11 +681,9 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<Op>(
                         Arrays.asList(
-                            new Op.Value(
-                                new Term.Set(
-                                    new HashSet<>(
-                                        Arrays.asList(syms.add("test"), syms.add("aaa"))))),
-                            new Op.Value(new Term.Variable(syms.insert("str"))),
+                            new Term.Set(
+                                new HashSet<>(Arrays.asList(syms.add("test"), syms.add("aaa")))),
+                            new Term.Variable(syms.insert("str")),
                             new Op.Binary(Op.BinaryOp.Contains))))));
     System.out.println("testing r3: " + syms.formatRule(r3));
     res = w.queryRule(r3, (long) 0, new TrustedOrigins(0), syms);

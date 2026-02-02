@@ -90,7 +90,7 @@ public final class Predicate implements Serializable {
     Schema.PredicateV2.Builder builder = Schema.PredicateV2.newBuilder().setName(this.name);
 
     for (int i = 0; i < this.terms.size(); i++) {
-      builder.addTerms(this.terms.get(i).serialize());
+      builder.addTerms(this.terms.get(i).serializeTerm());
     }
 
     return builder.build();

@@ -22,6 +22,7 @@ import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.Expression;
 import org.eclipse.biscuit.token.builder.Fact;
+import org.eclipse.biscuit.token.builder.MapKey;
 import org.eclipse.biscuit.token.builder.Predicate;
 import org.eclipse.biscuit.token.builder.Rule;
 import org.eclipse.biscuit.token.builder.Scope;
@@ -252,6 +253,9 @@ public final class Parser {
     } else if (s.startsWith("check all")) {
       kind = org.eclipse.biscuit.datalog.Check.Kind.ALL;
       s = s.substring("check all".length());
+    } else if (s.startsWith("reject if")) {
+      kind = org.eclipse.biscuit.datalog.Check.Kind.REJECT;
+      s = s.substring("reject if".length());
     } else {
       return Result.err(new Error(s, "missing check prefix"));
     }
@@ -309,13 +313,18 @@ public final class Parser {
     var body = bodyRes.getOk();
 
     s = body.head;
-    // FIXME: parse scopes
-    queries.add(
+
+    Rule rule =
         new Rule(
             new Predicate("query", new ArrayList<>()),
             body.predicates,
             body.expressions,
-            body.scopes));
+            body.scopes);
+    var valid = rule.validateVariables();
+    if (valid.isErr()) {
+      return Result.err(new Error(s, valid.getErr()));
+    }
+    queries.add(valid.getOk());
 
     int i = 0;
     while (true) {
@@ -396,6 +405,10 @@ public final class Parser {
             s, (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_' || c == ':');
     String name = tn._1;
     s = tn._2;
+
+    if (name.length() == 0) {
+      return Result.err(new Error(s, "no predicate name"));
+    }
 
     s = space(s);
     if (s.length() == 0 || s.charAt(0) != '(') {
@@ -589,9 +602,27 @@ public final class Parser {
       return Result.ok(new Pair<>(t._1, t._2));
     }
 
+    var res9 = array(s);
+    if (res9.isOk()) {
+      Pair<String, Term.Array> t = res9.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
+    var res10 = map(s);
+    if (res10.isOk()) {
+      Pair<String, Term.Map> t = res10.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
     var res7 = set(s);
     if (res7.isOk()) {
       Pair<String, Term.Set> t = res7.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
+    var res11 = nullTerm(s);
+    if (res11.isOk()) {
+      Pair<String, Term.Null> t = res11.getOk();
       return Result.ok(new Pair<>(t._1, t._2));
     }
 
@@ -633,9 +664,27 @@ public final class Parser {
       return Result.ok(new Pair<>(t._1, t._2));
     }
 
+    var res9 = array(s);
+    if (res9.isOk()) {
+      Pair<String, Term.Array> t = res9.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
+    var res10 = map(s);
+    if (res10.isOk()) {
+      Pair<String, Term.Map> t = res10.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
     var res7 = set(s);
     if (res7.isOk()) {
       Pair<String, Term.Set> t = res7.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
+    var res11 = nullTerm(s);
+    if (res11.isOk()) {
+      Pair<String, Term.Null> t = res11.getOk();
       return Result.ok(new Pair<>(t._1, t._2));
     }
 
@@ -660,6 +709,22 @@ public final class Parser {
     var res8 = bytes(s);
     if (res8.isOk()) {
       Pair<String, Term.Bytes> t = res8.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
+    return Result.err(new Error(s, "unrecognized value"));
+  }
+
+  public static Result<Pair<String, MapKey>, Error> mapKey(String s) {
+    var res1 = string(s);
+    if (res1.isOk()) {
+      Pair<String, Term.Str> t = res1.getOk();
+      return Result.ok(new Pair<>(t._1, t._2));
+    }
+
+    var res2 = integer(s);
+    if (res2.isOk()) {
+      Pair<String, Term.Integer> t = res2.getOk();
       return Result.ok(new Pair<>(t._1, t._2));
     }
 
@@ -727,7 +792,8 @@ public final class Parser {
   }
 
   public static Result<Pair<String, Term.Date>, Error> date(String s) {
-    Pair<String, String> t = takewhile(s, (c) -> c != ' ' && c != ',' && c != ')' && c != ']');
+    Pair<String, String> t =
+        takewhile(s, (c) -> c != ' ' && c != ',' && c != ')' && c != '}' && c != ']');
 
     try {
       OffsetDateTime d = OffsetDateTime.parse(t._1);
@@ -750,6 +816,15 @@ public final class Parser {
     return Result.ok(new Pair<String, Term.Variable>(t._2, (Term.Variable) Utils.var(t._1)));
   }
 
+  public static Result<Pair<String, Term.Null>, Error> nullTerm(String s) {
+    if (s.startsWith("null")) {
+      s = s.substring(4);
+      return Result.ok(new Pair<>(s, new Term.Null()));
+    } else {
+      return Result.err(new Error(s, "not a null"));
+    }
+  }
+
   public static Result<Pair<String, Term.Bool>, Error> bool(String s) {
     boolean b;
     if (s.startsWith("true")) {
@@ -765,12 +840,124 @@ public final class Parser {
     return Result.ok(new Pair<>(s, new Term.Bool(b)));
   }
 
-  public static Result<Pair<String, Term.Set>, Error> set(String s) {
+  public static Result<Pair<String, Term.Array>, Error> array(String s) {
     if (s.isEmpty() || s.charAt(0) != '[') {
+      return Result.err(new Error(s, "not an array"));
+    }
+    s = s.substring(1);
+
+    ArrayList<Term> terms = new ArrayList<Term>();
+    while (true) {
+
+      s = space(s);
+
+      var res = factTerm(s);
+      if (res.isErr()) {
+        break;
+      }
+
+      Pair<String, Term> t = res.getOk();
+
+      if (t._2 instanceof Term.Variable) {
+        return Result.err(new Error(s, "arrays cannot contain variables"));
+      }
+
+      s = t._1;
+      terms.add(t._2);
+
+      s = space(s);
+
+      if (s.isEmpty() || s.charAt(0) != ',') {
+        break;
+      } else {
+        s = s.substring(1);
+      }
+    }
+
+    s = space(s);
+    if (s.isEmpty() || s.charAt(0) != ']') {
+      return Result.err(new Error(s, "closing bracket not found"));
+    }
+
+    String remaining = s.substring(1);
+
+    return Result.ok(new Pair<>(remaining, new Term.Array(terms)));
+  }
+
+  public static Result<Pair<String, Term.Map>, Error> map(String s) {
+    if (s.isEmpty() || s.charAt(0) != '{') {
+      return Result.err(new Error(s, "not a map"));
+    }
+    s = s.substring(1);
+
+    HashMap<MapKey, Term> v = new HashMap<MapKey, Term>();
+    while (true) {
+      s = space(s);
+
+      var resKey = mapKey(s);
+      if (resKey.isErr()) {
+        break;
+      }
+
+      Pair<String, MapKey> t1 = resKey.getOk();
+      s = space(t1._1);
+      MapKey key = t1._2;
+
+      if (s.isEmpty() || s.charAt(0) != ':') {
+        return Result.err(new Error(s, "colon not found in map"));
+      }
+
+      s = s.substring(1);
+      s = space(s);
+
+      var resVal = factTerm(s);
+      if (resVal.isErr()) {
+        break;
+      }
+
+      Pair<String, Term> t2 = resVal.getOk();
+      s = space(t2._1);
+
+      if (t2._2 instanceof Term.Variable) {
+        return Result.err(new Error(s, "maps cannot contain variables"));
+      }
+      Term value = t2._2;
+      v.put(key, value);
+
+      if (s.isEmpty() || s.charAt(0) != ',') {
+        break;
+      } else {
+        s = s.substring(1);
+      }
+    }
+
+    s = space(s);
+    if (s.isEmpty() || s.charAt(0) != '}') {
+      return Result.err(new Error(s, "closing brace not found"));
+    }
+
+    String remaining = s.substring(1);
+
+    return Result.ok(new Pair<>(remaining, new Term.Map(v)));
+  }
+
+  public static Result<Pair<String, Term.Set>, Error> set(String s) {
+
+    if (s.isEmpty() || s.charAt(0) != '{') {
       return Result.err(new Error(s, "not a set"));
     }
 
-    s = s.substring(1);
+    s = space(s.substring(1));
+
+    if (s.charAt(0) == ',') {
+      s = space(s.substring(1));
+      if (s.charAt(0) == '}') {
+        s = s.substring(1);
+        return Result.ok(new Pair<>(s, new Term.Set(new HashSet<Term>())));
+      } else {
+        return Result.err(new Error(s, "closing brace not found"));
+      }
+    }
 
     HashSet<Term> terms = new HashSet<Term>();
     while (true) {
@@ -801,8 +988,8 @@ public final class Parser {
     }
 
     s = space(s);
-    if (s.isEmpty() || s.charAt(0) != ']') {
-      return Result.err(new Error(s, "closing square bracket not found"));
+    if (s.isEmpty() || s.charAt(0) != '}') {
+      return Result.err(new Error(s, "closing brace not found"));
     }
 
     String remaining = s.substring(1);

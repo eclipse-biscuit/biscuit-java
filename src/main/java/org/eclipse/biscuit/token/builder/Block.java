@@ -142,7 +142,7 @@ public final class Block {
     for (Scope s : this.scopes) {
       scopes.add(s.convert(symbolTable));
     }
-    SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
+    var version = new SchemaVersion(facts, rules, checks, scopes, externalKey).version();
 
     SymbolTable blockSymbols = new SymbolTable();
 
@@ -156,15 +156,7 @@ public final class Block {
     }
 
     return new org.eclipse.biscuit.token.Block(
-        blockSymbols,
-        this.context,
-        facts,
-        rules,
-        checks,
-        scopes,
-        publicKeys,
-        externalKey,
-        schemaVersion.version());
+        blockSymbols, this.context, facts, rules, checks, scopes, publicKeys, externalKey, version);
   }
 
   @Override
@@ -225,10 +217,7 @@ public final class Block {
             Arrays.asList(var("resource")),
             Arrays.asList(pred("resource", Arrays.asList(var("resource")))),
             Arrays.asList(
-                new Expression.Binary(
-                    Expression.Op.Prefix,
-                    new Expression.Value(var("resource")),
-                    new Expression.Value(string(prefix))))));
+                new Expression.Binary(Expression.OpCode.Prefix, var("resource"), string(prefix)))));
     return this.addCheck(new Check(ONE, queries));
   }
 
@@ -241,10 +230,7 @@ public final class Block {
             Arrays.asList(var("resource")),
             Arrays.asList(pred("resource", Arrays.asList(var("resource")))),
             Arrays.asList(
-                new Expression.Binary(
-                    Expression.Op.Suffix,
-                    new Expression.Value(var("resource")),
-                    new Expression.Value(string(suffix))))));
+                new Expression.Binary(Expression.OpCode.Suffix, var("resource"), string(suffix)))));
     return this.addCheck(new Check(ONE, queries));
   }
 
@@ -257,10 +243,7 @@ public final class Block {
             Arrays.asList(var("date")),
             Arrays.asList(pred("time", Arrays.asList(var("date")))),
             Arrays.asList(
-                new Expression.Binary(
-                    Expression.Op.LessOrEqual,
-                    new Expression.Value(var("date")),
-                    new Expression.Value(date(d))))));
+                new Expression.Binary(Expression.OpCode.LessOrEqual, var("date"), date(d)))));
     return this.addCheck(new Check(ONE, queries));
   }
 

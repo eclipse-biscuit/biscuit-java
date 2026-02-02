@@ -38,7 +38,7 @@ public final class SerializedBiscuit {
   // minimum supported version of the serialization format
   public static final int MIN_SCHEMA_VERSION = 3;
   // maximum supported version of the serialization format
-  public static final int MAX_SCHEMA_VERSION = 5;
+  public static final int MAX_SCHEMA_VERSION = 6;
   // starting version for datalog 3.1 features (check all, bitwise operators, !=, …)
   public static final int DATALOG_3_1 = 4;
   // starting version for 3rd party blocks (datalog 3.2)

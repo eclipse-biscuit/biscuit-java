@@ -5,6 +5,8 @@
 
 package org.eclipse.biscuit.token;
 
+import static org.eclipse.biscuit.datalog.Check.Kind.REJECT;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,7 +34,6 @@ import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Check;
-import org.eclipse.biscuit.token.builder.Expression;
 import org.eclipse.biscuit.token.builder.Fact;
 import org.eclipse.biscuit.token.builder.Rule;
 import org.eclipse.biscuit.token.builder.Term;
@@ -261,7 +262,7 @@ public final class Authorizer {
     if (res.isErr()) {
       throw new Error.Parser(res.getErr());
     }
-    return addRule(res.getOk()._2);
+    return addRule(res.getOk()._1);
   }
 
   public TrustedOrigins authorizerTrustedOrigins() {
@@ -318,10 +319,7 @@ public final class Authorizer {
 
     q.add(
         Utils.constrainedRule(
-            "allow",
-            new ArrayList<>(),
-            new ArrayList<>(),
-            List.of(new Expression.Value(new Term.Bool(true)))));
+            "allow", new ArrayList<>(), new ArrayList<>(), List.of(new Term.Bool(true))));
 
     this.policies.add(new Policy(q, Policy.Kind.ALLOW));
     return this;
@@ -332,10 +330,7 @@ public final class Authorizer {
 
     q.add(
         Utils.constrainedRule(
-            "deny",
-            new ArrayList<>(),
-            new ArrayList<>(),
-            List.of(new Expression.Value(new Term.Bool(true)))));
+            "deny", new ArrayList<>(), new ArrayList<>(), List.of(new Term.Bool(true))));
 
     this.policies.add(new Policy(q, Policy.Kind.DENY));
     return this;
@@ -421,17 +416,19 @@ public final class Authorizer {
       boolean successful = false;
 
       for (int j = 0; j < c.queries().size(); j++) {
-        boolean res = false;
         org.eclipse.biscuit.datalog.Rule query = c.queries().get(j);
         TrustedOrigins ruleTrustedOrigins =
             TrustedOrigins.fromScopes(
                 query.scopes(), authorizerTrustedOrigins, Long.MAX_VALUE, this.publicKeyToBlockId);
         switch (c.kind()) {
           case ONE:
-            res = world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable);
+            successful = world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable);
             break;
           case ALL:
-            res = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+            successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+            break;
+          case REJECT:
+            successful = world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable);
             break;
           default:
             throw new RuntimeException("unmapped kind");
@@ -441,13 +438,12 @@ public final class Authorizer {
           throw new Error.Timeout();
         }
 
-        if (res) {
-          successful = true;
+        if (successful) {
           break;
         }
       }
 
-      if (!successful) {
+      if (successful == (c.kind() == REJECT)) {
         errors.add(new FailedCheck.FailedAuthorizer(i, symbolTable.formatCheck(c)));
       }
     }
@@ -467,17 +463,19 @@ public final class Authorizer {
         org.eclipse.biscuit.datalog.Check check = c.convert(symbolTable);
 
         for (int k = 0; k < check.queries().size(); k++) {
-          boolean res = false;
           org.eclipse.biscuit.datalog.Rule query = check.queries().get(k);
           TrustedOrigins ruleTrustedOrigins =
               TrustedOrigins.fromScopes(
                   query.scopes(), authorityTrustedOrigins, 0, this.publicKeyToBlockId);
           switch (check.kind()) {
             case ONE:
-              res = world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable);
+              successful = world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable);
               break;
             case ALL:
-              res = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+              successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+              break;
+            case REJECT:
+              successful = world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable);
               break;
             default:
               throw new RuntimeException("unmapped kind");
@@ -487,13 +485,12 @@ public final class Authorizer {
             throw new Error.Timeout();
           }
 
-          if (res) {
-            successful = true;
+          if (successful) {
             break;
           }
         }
 
-        if (!successful) {
+        if (successful == (c.kind() == REJECT)) {
           errors.add(new FailedCheck.FailedBlock(0, j, symbolTable.formatCheck(check)));
         }
       }
@@ -544,17 +541,19 @@ public final class Authorizer {
           org.eclipse.biscuit.datalog.Check check = c.convert(symbolTable);
 
           for (int k = 0; k < check.queries().size(); k++) {
-            boolean res = false;
             org.eclipse.biscuit.datalog.Rule query = check.queries().get(k);
             TrustedOrigins ruleTrustedOrigins =
                 TrustedOrigins.fromScopes(
                     query.scopes(), blockTrustedOrigins, i + 1, this.publicKeyToBlockId);
             switch (check.kind()) {
               case ONE:
-                res = world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable);
+                successful = world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable);
                 break;
               case ALL:
-                res = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+                successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+                break;
+              case REJECT:
+                successful = world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable);
                 break;
               default:
                 throw new RuntimeException("unmapped kind");
@@ -564,13 +563,12 @@ public final class Authorizer {
               throw new Error.Timeout();
             }
 
-            if (res) {
-              successful = true;
+            if (successful) {
               break;
             }
           }
 
-          if (!successful) {
+          if (successful == (check.kind() == REJECT)) {
             errors.add(new FailedCheck.FailedBlock(i + 1, j, symbolTable.formatCheck(check)));
           }
         }

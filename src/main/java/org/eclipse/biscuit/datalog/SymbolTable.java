@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.crypto.PublicKey;
@@ -228,7 +229,26 @@ public final class SymbolTable implements Serializable {
       final List<String> values =
           ((Term.Set) i)
               .value().stream().map((v) -> this.formatTerm(v)).collect(Collectors.toList());
+      if (values.isEmpty()) {
+        return "{,}";
+      } else {
+        Collections.sort(values);
+        return "{" + String.join(", ", values) + "}";
+      }
+    } else if (i instanceof Term.Null) {
+      return "null";
+    } else if (i instanceof Term.Array) {
+      final List<String> values =
+          ((Term.Array) i)
+              .value().stream().map((v) -> this.formatTerm(v)).collect(Collectors.toList());
       return "[" + String.join(", ", values) + "]";
+    } else if (i instanceof Term.Map) {
+      ArrayList<String> entries = new ArrayList();
+      for (Map.Entry<MapKey, Term> entry : ((Term.Map) i).value().entrySet()) {
+        entries.add(formatTerm(entry.getKey()) + ": " + formatTerm(entry.getValue()));
+      }
+      Collections.sort(entries);
+      return "{" + String.join(", ", entries) + "}";
     } else {
       return "???";
     }
@@ -246,6 +266,9 @@ public final class SymbolTable implements Serializable {
         break;
       case ALL:
         prefix = "check all ";
+        break;
+      case REJECT:
+        prefix = "reject if ";
         break;
       default:
         prefix = "check if ";

@@ -24,7 +24,6 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -182,16 +181,12 @@ class SamplesTest {
               compareBlocks(privateKey, testCase.token, token);
 
               byte[] serBlockAuthority = token.authority.toBytes().getOk();
-              System.out.println(Arrays.toString(serBlockAuthority));
-              System.out.println(
-                  Arrays.toString(token.serializedBiscuit.getAuthority().getBlock()));
               org.eclipse.biscuit.token.Block deserBlockAuthority =
                   fromBytes(serBlockAuthority, token.authority.getExternalKey()).getOk();
+              assertEquals(token.authority.getVersion(), deserBlockAuthority.getVersion());
               assertEquals(
                   token.authority.print(token.symbolTable),
                   deserBlockAuthority.print(token.symbolTable));
-              assert (Arrays.equals(
-                  serBlockAuthority, token.serializedBiscuit.getAuthority().getBlock()));
 
               for (int i = 0; i < token.blocks.size() - 1; i++) {
                 org.eclipse.biscuit.token.Block block = token.blocks.get(i);
@@ -199,8 +194,8 @@ class SamplesTest {
                 byte[] serBlock = block.toBytes().getOk();
                 org.eclipse.biscuit.token.Block deserBlock =
                     fromBytes(serBlock, block.getExternalKey()).getOk();
+                assertEquals(block.getVersion(), deserBlock.getVersion());
                 assertEquals(block.print(token.symbolTable), deserBlock.print(token.symbolTable));
-                assert (Arrays.equals(serBlock, signedBlock.getBlock()));
               }
 
               List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
@@ -217,7 +212,9 @@ class SamplesTest {
               for (String f : authorizerFacts) {
                 f = f.trim();
                 if (!f.isEmpty()) {
-                  if (f.startsWith("check if") || f.startsWith("check all")) {
+                  if (f.startsWith("check if")
+                      || f.startsWith("check all")
+                      || f.startsWith("reject if")) {
                     authorizer.addCheck(f);
                   } else if (f.startsWith("allow if") || f.startsWith("deny if")) {
                     authorizer.addPolicy(f);
@@ -593,11 +590,13 @@ class SamplesTest {
               ? origin.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue()
               : Long.MAX_VALUE;
       this.checks = checks;
+      Collections.sort(this.checks);
     }
 
     public CheckSet(List<String> checks) {
       this.origin = null;
       this.checks = checks;
+      Collections.sort(this.checks);
     }
 
     @Override

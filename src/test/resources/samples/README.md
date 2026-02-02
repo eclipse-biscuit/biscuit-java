@@ -132,6 +132,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -142,6 +144,8 @@ right("file1", "write");
 symbols: ["0"]
 
 public keys: []
+
+block version: 3
 
 ```
 check if resource($0), operation("read"), right($0, "read");
@@ -859,6 +863,8 @@ symbols: ["file1", "file2"]
 
 public keys: []
 
+block version: 3
+
 ```
 right("file1", "read");
 right("file2", "read");
@@ -869,9 +875,11 @@ symbols: ["valid_date", "0", "1"]
 
 public keys: []
 
+block version: 3
+
 ```
 valid_date("file1") <- time($0), resource("file1"), $0 <= 2030-12-31T12:59:59Z;
-valid_date($1) <- time($0), resource($1), $0 <= 1999-12-31T12:59:59Z, !["file1"].contains($1);
+valid_date($1) <- time($0), resource($1), $0 <= 1999-12-31T12:59:59Z, !{"file1"}.contains($1);
 check if valid_date($0), resource($0);
 ```
 
@@ -893,7 +901,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -902,7 +910,7 @@ World {
             "time(2020-12-21T09:23:12Z)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
             Some(
@@ -913,7 +921,7 @@ World {
             "valid_date(\"file1\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -926,18 +934,18 @@ World {
     },
 ]
   rules: [
-    AuthorizerRuleSet {
+    Rules {
         origin: Some(
             1,
         ),
         rules: [
             "valid_date(\"file1\") <- time($0), resource(\"file1\"), $0 <= 2030-12-31T12:59:59Z",
-            "valid_date($1) <- time($0), resource($1), $0 <= 1999-12-31T12:59:59Z, ![\"file1\"].contains($1)",
+            "valid_date($1) <- time($0), resource($1), $0 <= 1999-12-31T12:59:59Z, !{\"file1\"}.contains($1)",
         ],
     },
 ]
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -971,7 +979,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -980,7 +988,7 @@ World {
             "time(2020-12-21T09:23:12Z)",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
@@ -993,18 +1001,18 @@ World {
     },
 ]
   rules: [
-    AuthorizerRuleSet {
+    Rules {
         origin: Some(
             1,
         ),
         rules: [
             "valid_date(\"file1\") <- time($0), resource(\"file1\"), $0 <= 2030-12-31T12:59:59Z",
-            "valid_date($1) <- time($0), resource($1), $0 <= 1999-12-31T12:59:59Z, ![\"file1\"].contains($1)",
+            "valid_date($1) <- time($0), resource($1), $0 <= 1999-12-31T12:59:59Z, !{\"file1\"}.contains($1)",
         ],
     },
 ]
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             1,
         ),
@@ -1272,48 +1280,48 @@ symbols: ["hello world", "hello", "world", "aaabde", "a*c?.e", "abd", "aaa", "b"
 
 public keys: []
 
+block version: 3
+
 ```
 check if true;
 check if !false;
-check if !false && true;
-check if false || true;
-check if (true || false) && true;
-check if true == true;
-check if false == false;
+check if true === true;
+check if false === false;
 check if 1 < 2;
 check if 2 > 1;
 check if 1 <= 2;
 check if 1 <= 1;
 check if 2 >= 1;
 check if 2 >= 2;
-check if 3 == 3;
-check if 1 + 2 * 3 - 4 / 2 == 5;
-check if "hello world".starts_with("hello") && "hello world".ends_with("world");
+check if 3 === 3;
+check if 1 + 2 * 3 - 4 / 2 === 5;
+check if "hello world".starts_with("hello"), "hello world".ends_with("world");
 check if "aaabde".matches("a*c?.e");
 check if "aaabde".contains("abd");
-check if "aaabde" == "aaa" + "b" + "de";
-check if "abcD12" == "abcD12";
-check if "abcD12".length() == 6;
-check if "é".length() == 2;
+check if "aaabde" === "aaa" + "b" + "de";
+check if "abcD12" === "abcD12";
+check if "abcD12".length() === 6;
+check if "é".length() === 2;
 check if 2019-12-04T09:46:41Z < 2020-12-04T09:46:41Z;
 check if 2020-12-04T09:46:41Z > 2019-12-04T09:46:41Z;
 check if 2019-12-04T09:46:41Z <= 2020-12-04T09:46:41Z;
 check if 2020-12-04T09:46:41Z >= 2020-12-04T09:46:41Z;
 check if 2020-12-04T09:46:41Z >= 2019-12-04T09:46:41Z;
 check if 2020-12-04T09:46:41Z >= 2020-12-04T09:46:41Z;
-check if 2020-12-04T09:46:41Z == 2020-12-04T09:46:41Z;
-check if hex:12ab == hex:12ab;
-check if [1, 2].contains(2);
-check if [2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z].contains(2020-12-04T09:46:41Z);
-check if [false, true].contains(true);
-check if ["abc", "def"].contains("abc");
-check if [hex:12ab, hex:34de].contains(hex:34de);
-check if [1, 2].contains([2]);
-check if [1, 2] == [1, 2];
-check if [1, 2].intersection([2, 3]) == [2];
-check if [1, 2].union([2, 3]) == [1, 2, 3];
-check if [1, 2, 3].intersection([1, 2]).contains(1);
-check if [1, 2, 3].intersection([1, 2]).length() == 2;
+check if 2020-12-04T09:46:41Z === 2020-12-04T09:46:41Z;
+check if hex:12ab === hex:12ab;
+check if {1, 2}.contains(2);
+check if {2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z}.contains(2020-12-04T09:46:41Z);
+check if {false, true}.contains(true);
+check if {"abc", "def"}.contains("abc");
+check if {hex:12ab, hex:34de}.contains(hex:34de);
+check if {1, 2}.contains({2});
+check if {1, 2} === {1, 2};
+check if {1, 2}.intersection({2, 3}) === {2};
+check if {1, 2}.union({2, 3}) === {1, 2, 3};
+check if {1, 2, 3}.intersection({1, 2}).contains(1);
+check if {1, 2, 3}.intersection({1, 2}).length() === 2;
+check if {,}.length() === 0;
 ```
 
 ### validation
@@ -1324,7 +1332,7 @@ allow if true;
 ```
 
 revocation ids:
-- `3d5b23b502b3dd920bfb68b9039164d1563bb8927210166fa5c17f41b76b31bb957bc2ed3318452958f658baa2d398fe4cf25c58a27e6c8bc42c9702c8aa1b0c`
+- `fa358e4e3bea896415b1859e6cd347e64e1918fb86e31ae3fe208628321576a47f7a269760357e291c827ec9cbe322074f6860a546207a64e133c83a214bb505`
 
 authorizer world:
 ```
@@ -1332,22 +1340,20 @@ World {
   facts: []
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
         checks: [
             "check if !false",
-            "check if !false && true",
-            "check if \"aaabde\" == \"aaa\" + \"b\" + \"de\"",
+            "check if \"aaabde\" === \"aaa\" + \"b\" + \"de\"",
             "check if \"aaabde\".contains(\"abd\")",
             "check if \"aaabde\".matches(\"a*c?.e\")",
-            "check if \"abcD12\" == \"abcD12\"",
-            "check if \"abcD12\".length() == 6",
-            "check if \"hello world\".starts_with(\"hello\") && \"hello world\".ends_with(\"world\")",
-            "check if \"é\".length() == 2",
-            "check if (true || false) && true",
-            "check if 1 + 2 * 3 - 4 / 2 == 5",
+            "check if \"abcD12\" === \"abcD12\"",
+            "check if \"abcD12\".length() === 6",
+            "check if \"hello world\".starts_with(\"hello\"), \"hello world\".ends_with(\"world\")",
+            "check if \"é\".length() === 2",
+            "check if 1 + 2 * 3 - 4 / 2 === 5",
             "check if 1 < 2",
             "check if 1 <= 1",
             "check if 1 <= 2",
@@ -1356,28 +1362,28 @@ World {
             "check if 2 >= 2",
             "check if 2019-12-04T09:46:41Z < 2020-12-04T09:46:41Z",
             "check if 2019-12-04T09:46:41Z <= 2020-12-04T09:46:41Z",
-            "check if 2020-12-04T09:46:41Z == 2020-12-04T09:46:41Z",
+            "check if 2020-12-04T09:46:41Z === 2020-12-04T09:46:41Z",
             "check if 2020-12-04T09:46:41Z > 2019-12-04T09:46:41Z",
             "check if 2020-12-04T09:46:41Z >= 2019-12-04T09:46:41Z",
             "check if 2020-12-04T09:46:41Z >= 2020-12-04T09:46:41Z",
             "check if 2020-12-04T09:46:41Z >= 2020-12-04T09:46:41Z",
-            "check if 3 == 3",
-            "check if [\"abc\", \"def\"].contains(\"abc\")",
-            "check if [1, 2, 3].intersection([1, 2]).contains(1)",
-            "check if [1, 2, 3].intersection([1, 2]).length() == 2",
-            "check if [1, 2] == [1, 2]",
-            "check if [1, 2].contains(2)",
-            "check if [1, 2].contains([2])",
-            "check if [1, 2].intersection([2, 3]) == [2]",
-            "check if [1, 2].union([2, 3]) == [1, 2, 3]",
-            "check if [2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z].contains(2020-12-04T09:46:41Z)",
-            "check if [false, true].contains(true)",
-            "check if [hex:12ab, hex:34de].contains(hex:34de)",
-            "check if false == false",
-            "check if false || true",
-            "check if hex:12ab == hex:12ab",
+            "check if 3 === 3",
+            "check if false === false",
+            "check if hex:12ab === hex:12ab",
             "check if true",
-            "check if true == true",
+            "check if true === true",
+            "check if {\"abc\", \"def\"}.contains(\"abc\")",
+            "check if {,}.length() === 0",
+            "check if {1, 2, 3}.intersection({1, 2}).contains(1)",
+            "check if {1, 2, 3}.intersection({1, 2}).length() === 2",
+            "check if {1, 2} === {1, 2}",
+            "check if {1, 2}.contains(2)",
+            "check if {1, 2}.contains({2})",
+            "check if {1, 2}.intersection({2, 3}) === {2}",
+            "check if {1, 2}.union({2, 3}) === {1, 2, 3}",
+            "check if {2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z}.contains(2020-12-04T09:46:41Z)",
+            "check if {false, true}.contains(true)",
+            "check if {hex:12ab, hex:34de}.contains(hex:34de)",
         ],
     },
 ]
@@ -1979,7 +1985,6 @@ result: `Ok(0)`
 ------------------------------
 
 ## block rules: test025_check_all.bc
-## block rules: test025_check_all.bc
 ### token
 
 authority:
@@ -1987,8 +1992,10 @@ symbols: ["allowed_operations", "A", "B", "op", "allowed"]
 
 public keys: []
 
+block version: 4
+
 ```
-allowed_operations(["A", "B"]);
+allowed_operations({"A", "B"});
 check all operation($op), allowed_operations($allowed), $allowed.contains($op);
 ```
 
@@ -2009,7 +2016,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -2018,20 +2025,20 @@ World {
             "operation(\"B\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
             ),
         },
         facts: [
-            "allowed_operations([\"A\", \"B\"])",
+            "allowed_operations({\"A\", \"B\"})",
         ],
     },
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
         origin: Some(
             0,
         ),
@@ -2064,7 +2071,7 @@ authorizer world:
 ```
 World {
   facts: [
-    AuthorizerFactSet {
+    Facts {
         origin: {
             None,
         },
@@ -2073,20 +2080,63 @@ World {
             "operation(\"invalid\")",
         ],
     },
-    AuthorizerFactSet {
+    Facts {
         origin: {
             Some(
                 0,
             ),
         },
         facts: [
-            "allowed_operations([\"A\", \"B\"])",
+            "allowed_operations({\"A\", \"B\"})",
         ],
     },
 ]
   rules: []
   checks: [
-    AuthorizerCheckSet {
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check all operation($op), allowed_operations($allowed), $allowed.contains($op)",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(FailedLogic(Unauthorized { policy: Allow(0), checks: [Block(FailedBlockCheck { block_id: 0, check_id: 0, rule: "check all operation($op), allowed_operations($allowed), $allowed.contains($op)" })] }))`
+### validation for "no matches"
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `c456817012e1d523c6d145b6d6a3475d9f7dd4383c535454ff3f745ecf4234984ce09b9dec0551f3d783abe850f826ce43b12f1fd91999a4753a56ecf4c56d0d`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            Some(
+                0,
+            ),
+        },
+        facts: [
+            "allowed_operations({\"A\", \"B\"})",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
         origin: Some(
             0,
         ),
@@ -2345,6 +2395,917 @@ result: `Ok(3)`
 
 ------------------------------
 
+## integer wraparound: test027_integer_wraparound.bc
+### token
+
+authority:
+symbols: []
+
+public keys: []
+
+block version: 4
+
+```
+check if 10000000000 * 10000000000 !== 0;
+check if 9223372036854775807 + 1 !== 0;
+check if -9223372036854775808 - 1 !== 0;
+```
+
+### validation
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `fb5e7ac2bb892f5cf2fb59677cfad1f96deabbc8e158e3fd1b5ee7c4b6949c999e2169187cbee53b943eebdadaaf68832747baa8cffa2ff9f78025a1f55f440c`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if -9223372036854775808 - 1 !== 0",
+            "check if 10000000000 * 10000000000 !== 0",
+            "check if 9223372036854775807 + 1 !== 0",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(Execution(Overflow))`
+
+
+------------------------------
+
+## test expression syntax and all available operations (v4 blocks): test028_expressions_v4.bc
+### token
+
+authority:
+symbols: ["abcD12x", "abcD12"]
+
+public keys: []
+
+block version: 4
+
+```
+check if true !== false;
+check if 1 !== 3;
+check if 1 | 2 ^ 3 === 0;
+check if "abcD12x" !== "abcD12";
+check if 2022-12-04T09:46:41Z !== 2020-12-04T09:46:41Z;
+check if hex:12abcd !== hex:12ab;
+check if {1, 4} !== {1, 2};
+```
+
+### validation
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `9402c07923aa33bc911de80e61f388f5c4533e6b36e45317dc1db1e6bcc7664ed0c1c504d0ca8925208008961d95bbdbc36f6e3d91b3173369cc19ed625e9a0c`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if \"abcD12x\" !== \"abcD12\"",
+            "check if 1 !== 3",
+            "check if 1 | 2 ^ 3 === 0",
+            "check if 2022-12-04T09:46:41Z !== 2020-12-04T09:46:41Z",
+            "check if hex:12abcd !== hex:12ab",
+            "check if true !== false",
+            "check if {1, 4} !== {1, 2}",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+
+
+------------------------------
+
+## test reject if: test029_reject_if.bc
+### token
+
+authority:
+symbols: ["test"]
+
+public keys: []
+
+block version: 6
+
+```
+reject if test($test), $test;
+```
+
+### validation
+
+authorizer code:
+```
+test(false);
+
+allow if true;
+```
+
+revocation ids:
+- `8d175329f7cf161f3cb5badc52f0e22e520956cdb565edbed963e9b047b20a314a7de1c9eba6b7bbf622636516ab3cc7f91572ae9461d3152825e0ece5127a0a`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "test(false)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "reject if test($test), $test",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+### validation for "rejection"
+
+authorizer code:
+```
+test(true);
+
+allow if true;
+```
+
+revocation ids:
+- `8d175329f7cf161f3cb5badc52f0e22e520956cdb565edbed963e9b047b20a314a7de1c9eba6b7bbf622636516ab3cc7f91572ae9461d3152825e0ece5127a0a`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "test(true)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "reject if test($test), $test",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(FailedLogic(Unauthorized { policy: Allow(0), checks: [Block(FailedBlockCheck { block_id: 0, check_id: 0, rule: "reject if test($test), $test" })] }))`
+
+
+------------------------------
+
+## test null: test030_null.bc
+### token
+
+authority:
+symbols: ["fact", "value"]
+
+public keys: []
+
+block version: 6
+
+```
+check if fact(null, $value), $value == null;
+reject if fact(null, $value), $value != null;
+```
+
+### validation
+
+authorizer code:
+```
+fact(null, null);
+
+allow if true;
+```
+
+revocation ids:
+- `fe50d65706a5945c76569d1ff2be8ece24276857631e96efa05959f73bb4ea8c772945738a01da77a1661aef2b8233b4f4e49ae220f2c81fd0b8da59c212750b`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "fact(null, null)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if fact(null, $value), $value == null",
+            "reject if fact(null, $value), $value != null",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+### validation for "rejection1"
+
+authorizer code:
+```
+fact(null, 1);
+
+allow if true;
+```
+
+revocation ids:
+- `fe50d65706a5945c76569d1ff2be8ece24276857631e96efa05959f73bb4ea8c772945738a01da77a1661aef2b8233b4f4e49ae220f2c81fd0b8da59c212750b`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "fact(null, 1)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if fact(null, $value), $value == null",
+            "reject if fact(null, $value), $value != null",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(FailedLogic(Unauthorized { policy: Allow(0), checks: [Block(FailedBlockCheck { block_id: 0, check_id: 0, rule: "check if fact(null, $value), $value == null" }), Block(FailedBlockCheck { block_id: 0, check_id: 1, rule: "reject if fact(null, $value), $value != null" })] }))`
+### validation for "rejection2"
+
+authorizer code:
+```
+fact(null, true);
+
+allow if true;
+```
+
+revocation ids:
+- `fe50d65706a5945c76569d1ff2be8ece24276857631e96efa05959f73bb4ea8c772945738a01da77a1661aef2b8233b4f4e49ae220f2c81fd0b8da59c212750b`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "fact(null, true)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if fact(null, $value), $value == null",
+            "reject if fact(null, $value), $value != null",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(FailedLogic(Unauthorized { policy: Allow(0), checks: [Block(FailedBlockCheck { block_id: 0, check_id: 0, rule: "check if fact(null, $value), $value == null" }), Block(FailedBlockCheck { block_id: 0, check_id: 1, rule: "reject if fact(null, $value), $value != null" })] }))`
+### validation for "rejection3"
+
+authorizer code:
+```
+fact(null, "abcd");
+
+allow if true;
+```
+
+revocation ids:
+- `fe50d65706a5945c76569d1ff2be8ece24276857631e96efa05959f73bb4ea8c772945738a01da77a1661aef2b8233b4f4e49ae220f2c81fd0b8da59c212750b`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "fact(null, \"abcd\")",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if fact(null, $value), $value == null",
+            "reject if fact(null, $value), $value != null",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(FailedLogic(Unauthorized { policy: Allow(0), checks: [Block(FailedBlockCheck { block_id: 0, check_id: 0, rule: "check if fact(null, $value), $value == null" }), Block(FailedBlockCheck { block_id: 0, check_id: 1, rule: "reject if fact(null, $value), $value != null" })] }))`
+
+
+------------------------------
+
+## test heterogeneous equal: test031_heterogeneous_equal.bc
+### token
+
+authority:
+symbols: ["abcD12", "abcD12x", "fact", "value", "fact2"]
+
+public keys: []
+
+block version: 6
+
+```
+check if true == true;
+check if false == false;
+check if false != true;
+check if 1 != true;
+check if 1 == 1;
+check if 1 != 3;
+check if 1 != true;
+check if "abcD12" == "abcD12";
+check if "abcD12x" != "abcD12";
+check if "abcD12x" != true;
+check if 2022-12-04T09:46:41Z == 2022-12-04T09:46:41Z;
+check if 2022-12-04T09:46:41Z != 2020-12-04T09:46:41Z;
+check if 2022-12-04T09:46:41Z != true;
+check if hex:12abcd == hex:12abcd;
+check if hex:12abcd != hex:12ab;
+check if hex:12abcd != true;
+check if {1, 2} == {1, 2};
+check if {1, 4} != {1, 2};
+check if {1, 4} != true;
+check if fact(1, $value), 1 == $value;
+check if fact2(1, $value), 1 != $value;
+```
+
+### validation
+
+authorizer code:
+```
+fact(1, 1);
+fact2(1, 2);
+
+allow if true;
+```
+
+revocation ids:
+- `be50b2040f4b5fe278b87815910d249eeb9ca5238cae4ea538e22afda11f576e868cbfe7e6b0a03b02ae0f22239ec908947d4bad5a878e4b9f7bd7de73e5c90a`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "fact(1, 1)",
+            "fact2(1, 2)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if \"abcD12\" == \"abcD12\"",
+            "check if \"abcD12x\" != \"abcD12\"",
+            "check if \"abcD12x\" != true",
+            "check if 1 != 3",
+            "check if 1 != true",
+            "check if 1 != true",
+            "check if 1 == 1",
+            "check if 2022-12-04T09:46:41Z != 2020-12-04T09:46:41Z",
+            "check if 2022-12-04T09:46:41Z != true",
+            "check if 2022-12-04T09:46:41Z == 2022-12-04T09:46:41Z",
+            "check if fact(1, $value), 1 == $value",
+            "check if fact2(1, $value), 1 != $value",
+            "check if false != true",
+            "check if false == false",
+            "check if hex:12abcd != hex:12ab",
+            "check if hex:12abcd != true",
+            "check if hex:12abcd == hex:12abcd",
+            "check if true == true",
+            "check if {1, 2} == {1, 2}",
+            "check if {1, 4} != true",
+            "check if {1, 4} != {1, 2}",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+### validation for "evaluate to false"
+
+authorizer code:
+```
+fact(1, 2);
+fact2(1, 1);
+
+check if false != false;
+
+allow if true;
+```
+
+revocation ids:
+- `be50b2040f4b5fe278b87815910d249eeb9ca5238cae4ea538e22afda11f576e868cbfe7e6b0a03b02ae0f22239ec908947d4bad5a878e4b9f7bd7de73e5c90a`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            None,
+        },
+        facts: [
+            "fact(1, 2)",
+            "fact2(1, 1)",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if \"abcD12\" == \"abcD12\"",
+            "check if \"abcD12x\" != \"abcD12\"",
+            "check if \"abcD12x\" != true",
+            "check if 1 != 3",
+            "check if 1 != true",
+            "check if 1 != true",
+            "check if 1 == 1",
+            "check if 2022-12-04T09:46:41Z != 2020-12-04T09:46:41Z",
+            "check if 2022-12-04T09:46:41Z != true",
+            "check if 2022-12-04T09:46:41Z == 2022-12-04T09:46:41Z",
+            "check if fact(1, $value), 1 == $value",
+            "check if fact2(1, $value), 1 != $value",
+            "check if false != true",
+            "check if false == false",
+            "check if hex:12abcd != hex:12ab",
+            "check if hex:12abcd != true",
+            "check if hex:12abcd == hex:12abcd",
+            "check if true == true",
+            "check if {1, 2} == {1, 2}",
+            "check if {1, 4} != true",
+            "check if {1, 4} != {1, 2}",
+        ],
+    },
+    Checks {
+        origin: Some(
+            18446744073709551615,
+        ),
+        checks: [
+            "check if false != false",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(FailedLogic(Unauthorized { policy: Allow(0), checks: [Authorizer(FailedAuthorizerCheck { check_id: 0, rule: "check if false != false" }), Block(FailedBlockCheck { block_id: 0, check_id: 19, rule: "check if fact(1, $value), 1 == $value" }), Block(FailedBlockCheck { block_id: 0, check_id: 20, rule: "check if fact2(1, $value), 1 != $value" })] }))`
+
+
+------------------------------
+
+## test laziness and closures: test032_laziness_closures.bc
+### token
+
+authority:
+symbols: ["x", "p", "q"]
+
+public keys: []
+
+block version: 6
+
+```
+check if !false && true;
+check if false || true;
+check if (true || false) && true;
+check if !(false && "x".intersection("x"));
+check if true || "x".intersection("x");
+check if {1, 2, 3}.all($p -> $p > 0);
+check if !{1, 2, 3}.all($p -> $p == 2);
+check if {1, 2, 3}.any($p -> $p > 2);
+check if !{1, 2, 3}.any($p -> $p > 3);
+check if {1, 2, 3}.any($p -> $p > 1 && {3, 4, 5}.any($q -> $p == $q));
+```
+
+### validation
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `2cd348b6df5f08b900903fd8d3fbea0bb89b665c331a2aa2131e0b8ecb38b3550275d4ccd8db35da6c4433eed1d456cfb761e3fcc7845894d891e986ca044b02`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if !(false && \"x\".intersection(\"x\"))",
+            "check if !false && true",
+            "check if !{1, 2, 3}.all($p -> $p == 2)",
+            "check if !{1, 2, 3}.any($p -> $p > 3)",
+            "check if (true || false) && true",
+            "check if false || true",
+            "check if true || \"x\".intersection(\"x\")",
+            "check if {1, 2, 3}.all($p -> $p > 0)",
+            "check if {1, 2, 3}.any($p -> $p > 1 && {3, 4, 5}.any($q -> $p == $q))",
+            "check if {1, 2, 3}.any($p -> $p > 2)",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+### validation for "shadowing"
+
+authorizer code:
+```
+allow if {"true"}.any($p -> {"true"}.all($p -> $p));
+```
+
+revocation ids:
+- `2cd348b6df5f08b900903fd8d3fbea0bb89b665c331a2aa2131e0b8ecb38b3550275d4ccd8db35da6c4433eed1d456cfb761e3fcc7845894d891e986ca044b02`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if !(false && \"x\".intersection(\"x\"))",
+            "check if !false && true",
+            "check if !{1, 2, 3}.all($p -> $p == 2)",
+            "check if !{1, 2, 3}.any($p -> $p > 3)",
+            "check if (true || false) && true",
+            "check if false || true",
+            "check if true || \"x\".intersection(\"x\")",
+            "check if {1, 2, 3}.all($p -> $p > 0)",
+            "check if {1, 2, 3}.any($p -> $p > 1 && {3, 4, 5}.any($q -> $p == $q))",
+            "check if {1, 2, 3}.any($p -> $p > 2)",
+        ],
+    },
+]
+  policies: [
+    "allow if {\"true\"}.any($p -> {\"true\"}.all($p -> $p))",
+]
+}
+```
+
+result: `Err(Execution(ShadowedVariable))`
+
+
+------------------------------
+
+## test .type(): test033_typeof.bc
+### token
+
+authority:
+symbols: ["integer", "string", "test", "date", "bytes", "bool", "set", "null", "array", "map", "a", "t"]
+
+public keys: []
+
+block version: 6
+
+```
+integer(1);
+string("test");
+date(2023-12-28T00:00:00Z);
+bytes(hex:aa);
+bool(true);
+set({false, true});
+null(null);
+array([1, 2, 3]);
+map({"a": true});
+check if 1.type() == "integer";
+check if integer($t), $t.type() == "integer";
+check if "test".type() == "string";
+check if string($t), $t.type() == "string";
+check if (2023-12-28T00:00:00Z).type() == "date";
+check if date($t), $t.type() == "date";
+check if hex:aa.type() == "bytes";
+check if bytes($t), $t.type() == "bytes";
+check if true.type() == "bool";
+check if bool($t), $t.type() == "bool";
+check if {false, true}.type() == "set";
+check if set($t), $t.type() == "set";
+check if null.type() == "null";
+check if null($t), $t.type() == "null";
+check if array($t), $t.type() == "array";
+check if map($t), $t.type() == "map";
+```
+
+### validation
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `e60875c6ef7917c227a5e4b2cabfe250a85fa0598eb3cf7987ded0da2b69a559a1665bd312aeecde78e76aeb28ea1c1a03ec9b7dec8aeb519e7867ef8ff9b402`
+
+authorizer world:
+```
+World {
+  facts: [
+    Facts {
+        origin: {
+            Some(
+                0,
+            ),
+        },
+        facts: [
+            "array([1, 2, 3])",
+            "bool(true)",
+            "bytes(hex:aa)",
+            "date(2023-12-28T00:00:00Z)",
+            "integer(1)",
+            "map({\"a\": true})",
+            "null(null)",
+            "set({false, true})",
+            "string(\"test\")",
+        ],
+    },
+]
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if \"test\".type() == \"string\"",
+            "check if (2023-12-28T00:00:00Z).type() == \"date\"",
+            "check if 1.type() == \"integer\"",
+            "check if array($t), $t.type() == \"array\"",
+            "check if bool($t), $t.type() == \"bool\"",
+            "check if bytes($t), $t.type() == \"bytes\"",
+            "check if date($t), $t.type() == \"date\"",
+            "check if hex:aa.type() == \"bytes\"",
+            "check if integer($t), $t.type() == \"integer\"",
+            "check if map($t), $t.type() == \"map\"",
+            "check if null($t), $t.type() == \"null\"",
+            "check if null.type() == \"null\"",
+            "check if set($t), $t.type() == \"set\"",
+            "check if string($t), $t.type() == \"string\"",
+            "check if true.type() == \"bool\"",
+            "check if {false, true}.type() == \"set\"",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+
+
+------------------------------
+
+## test array and map operations: test034_array_map.bc
+### token
+
+authority:
+symbols: ["a", "b", "c", "p", "d", "A", "kv", "id", "roles"]
+
+public keys: []
+
+block version: 6
+
+```
+check if [1, 2, 1].length() == 3;
+check if ["a", "b"] != true;
+check if ["a", "b"] != [1, 2, 3];
+check if ["a", "b"] == ["a", "b"];
+check if ["a", "b"] === ["a", "b"];
+check if ["a", "b"] !== ["a", "c"];
+check if ["a", "b", "c"].contains("c");
+check if [1, 2, 3].starts_with([1, 2]);
+check if [4, 5, 6].ends_with([6]);
+check if [1, 2, "a"].get(2) == "a";
+check if [1, 2].get(3) == null;
+check if [1, 2, 3].all($p -> $p > 0);
+check if [1, 2, 3].any($p -> $p > 2);
+check if {"a": 1, "b": 2, "c": 3, "d": 4}.length() == 4;
+check if {1: "a", 2: "b"} != true;
+check if {1: "a", 2: "b"} != {"a": 1, "b": 2};
+check if {1: "a", 2: "b"} == {1: "a", 2: "b"};
+check if {1: "a", 2: "b"} !== {"a": 1, "b": 2};
+check if {1: "a", 2: "b"} === {1: "a", 2: "b"};
+check if {"a": 1, "b": 2, "c": 3, "d": 4}.contains("d");
+check if {1: "A", "a": 1, "b": 2}.get("a") == 1;
+check if {1: "A", "a": 1, "b": 2}.get(1) == "A";
+check if {1: "A", "a": 1, "b": 2}.get("c") == null;
+check if {1: "A", "a": 1, "b": 2}.get(2) == null;
+check if {"a": 1, "b": 2}.all($kv -> $kv.get(0) != "c" && $kv.get(1) < 3);
+check if {1: "A", "a": 1, "b": 2}.any($kv -> $kv.get(0) == 1 && $kv.get(1) == "A");
+check if {"user": {"id": 1, "roles": ["admin"]}}.get("user").get("roles").contains("admin");
+```
+
+### validation
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `b22238a06ca9c015d3c49d4ebaa7e8ab6e0d69119b3264033618e726d62fc6f4757a7bebc25f255444aba39994554a62a53ecc13b68802efab8da85ace62390d`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if [\"a\", \"b\", \"c\"].contains(\"c\")",
+            "check if [\"a\", \"b\"] != [1, 2, 3]",
+            "check if [\"a\", \"b\"] != true",
+            "check if [\"a\", \"b\"] !== [\"a\", \"c\"]",
+            "check if [\"a\", \"b\"] == [\"a\", \"b\"]",
+            "check if [\"a\", \"b\"] === [\"a\", \"b\"]",
+            "check if [1, 2, \"a\"].get(2) == \"a\"",
+            "check if [1, 2, 1].length() == 3",
+            "check if [1, 2, 3].all($p -> $p > 0)",
+            "check if [1, 2, 3].any($p -> $p > 2)",
+            "check if [1, 2, 3].starts_with([1, 2])",
+            "check if [1, 2].get(3) == null",
+            "check if [4, 5, 6].ends_with([6])",
+            "check if {\"a\": 1, \"b\": 2, \"c\": 3, \"d\": 4}.contains(\"d\")",
+            "check if {\"a\": 1, \"b\": 2, \"c\": 3, \"d\": 4}.length() == 4",
+            "check if {\"a\": 1, \"b\": 2}.all($kv -> $kv.get(0) != \"c\" && $kv.get(1) < 3)",
+            "check if {\"user\": {\"id\": 1, \"roles\": [\"admin\"]}}.get(\"user\").get(\"roles\").contains(\"admin\")",
+            "check if {1: \"A\", \"a\": 1, \"b\": 2}.any($kv -> $kv.get(0) == 1 && $kv.get(1) == \"A\")",
+            "check if {1: \"A\", \"a\": 1, \"b\": 2}.get(\"a\") == 1",
+            "check if {1: \"A\", \"a\": 1, \"b\": 2}.get(\"c\") == null",
+            "check if {1: \"A\", \"a\": 1, \"b\": 2}.get(1) == \"A\"",
+            "check if {1: \"A\", \"a\": 1, \"b\": 2}.get(2) == null",
+            "check if {1: \"a\", 2: \"b\"} != true",
+            "check if {1: \"a\", 2: \"b\"} != {\"a\": 1, \"b\": 2}",
+            "check if {1: \"a\", 2: \"b\"} !== {\"a\": 1, \"b\": 2}",
+            "check if {1: \"a\", 2: \"b\"} == {1: \"a\", 2: \"b\"}",
+            "check if {1: \"a\", 2: \"b\"} === {1: \"a\", 2: \"b\"}",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+
+------------------------------
+
 ## ECDSA secp256r1 signatures: test036_secp256r1.bc
 ### token
 
@@ -2541,4 +3502,102 @@ World {
 ```
 
 result: `Ok(0)`
+
+
+------------------------------
+
+## test try operation: test038_try_op.bc
+### token
+
+authority:
+symbols: []
+
+public keys: []
+
+block version: 6
+
+```
+check if (true === 12).try_or(true);
+check if ((true === 12).try_or(true === 12)).try_or(true);
+reject if (true == 12).try_or(true);
+```
+
+### validation
+
+authorizer code:
+```
+allow if true;
+```
+
+revocation ids:
+- `79674155cd5349604e89b00792aeaebfa0a512bd45edc289305ebec107f627d3d8c09847646a0d06c2390a4354771b2ebdc2cc66971f2d74ef744e4e81197600`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if ((true === 12).try_or(true === 12)).try_or(true)",
+            "check if (true === 12).try_or(true)",
+            "reject if (true == 12).try_or(true)",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Ok(0)`
+### validation for "right-hand side does not catch errors"
+
+authorizer code:
+```
+check if true.try_or(true === 12);
+
+allow if true;
+```
+
+revocation ids:
+- `79674155cd5349604e89b00792aeaebfa0a512bd45edc289305ebec107f627d3d8c09847646a0d06c2390a4354771b2ebdc2cc66971f2d74ef744e4e81197600`
+
+authorizer world:
+```
+World {
+  facts: []
+  rules: []
+  checks: [
+    Checks {
+        origin: Some(
+            0,
+        ),
+        checks: [
+            "check if ((true === 12).try_or(true === 12)).try_or(true)",
+            "check if (true === 12).try_or(true)",
+            "reject if (true == 12).try_or(true)",
+        ],
+    },
+    Checks {
+        origin: Some(
+            18446744073709551615,
+        ),
+        checks: [
+            "check if true.try_or(true === 12)",
+        ],
+    },
+]
+  policies: [
+    "allow if true",
+]
+}
+```
+
+result: `Err(Execution(InvalidType))`
 

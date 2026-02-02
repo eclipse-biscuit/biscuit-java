@@ -6,6 +6,7 @@
 package org.eclipse.biscuit.datalog;
 
 import static biscuit.format.schema.Schema.CheckV2.Kind.All;
+import static biscuit.format.schema.Schema.CheckV2.Kind.Reject;
 
 import biscuit.format.schema.Schema;
 import java.util.ArrayList;
@@ -17,7 +18,8 @@ import org.eclipse.biscuit.error.Result;
 public final class Check {
   public enum Kind {
     ONE,
-    ALL
+    ALL,
+    REJECT
   }
 
   private static final int HASH_CODE_SEED = 31;
@@ -47,6 +49,9 @@ public final class Check {
       case ALL:
         b.setKind(All);
         break;
+      case REJECT:
+        b.setKind(Reject);
+        break;
       default:
     }
 
@@ -67,6 +72,9 @@ public final class Check {
         break;
       case All:
         kind = Kind.ALL;
+        break;
+      case Reject:
+        kind = Kind.REJECT;
         break;
       default:
         kind = Kind.ONE;

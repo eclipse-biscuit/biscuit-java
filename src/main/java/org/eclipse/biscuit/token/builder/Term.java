@@ -10,18 +10,31 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.eclipse.biscuit.datalog.SymbolTable;
+import org.eclipse.biscuit.datalog.expressions.Op;
 
-public abstract class Term {
+public abstract class Term extends Expression {
   public abstract org.eclipse.biscuit.datalog.Term convert(SymbolTable symbolTable);
 
   public static Term convertFrom(org.eclipse.biscuit.datalog.Term id, SymbolTable symbols) {
     return id.toTerm(symbols);
   }
 
-  public static final class Str extends Term {
+  public void toOpcodes(SymbolTable symbolTable, java.util.List<Op> ops) {
+    ops.add(this.convert(symbolTable));
+  }
+
+  public void gatherVariables(java.util.Set<String> variables) {
+    if (this instanceof Term.Variable) {
+      variables.add(((Term.Variable) this).value);
+    }
+  }
+
+  public static final class Str extends MapKey {
     final String value;
 
     public Str(String value) {
@@ -30,6 +43,10 @@ public abstract class Term {
 
     @Override
     public org.eclipse.biscuit.datalog.Term convert(SymbolTable symbolTable) {
+      return new org.eclipse.biscuit.datalog.Term.Str(symbolTable.insert(this.value));
+    }
+
+    public org.eclipse.biscuit.datalog.MapKey convertMapKey(SymbolTable symbolTable) {
       return new org.eclipse.biscuit.datalog.Term.Str(symbolTable.insert(this.value));
     }
 
@@ -101,7 +118,7 @@ public abstract class Term {
     }
   }
 
-  public static final class Integer extends Term {
+  public static final class Integer extends MapKey {
     final long value;
 
     public Integer(long value) {
@@ -114,6 +131,10 @@ public abstract class Term {
 
     @Override
     public org.eclipse.biscuit.datalog.Term convert(SymbolTable symbolTable) {
+      return new org.eclipse.biscuit.datalog.Term.Integer(this.value);
+    }
+
+    public org.eclipse.biscuit.datalog.MapKey convertMapKey(SymbolTable symbolTable) {
       return new org.eclipse.biscuit.datalog.Term.Integer(this.value);
     }
 
@@ -180,6 +201,36 @@ public abstract class Term {
     @Override
     public int hashCode() {
       return Arrays.hashCode(value);
+    }
+  }
+
+  public static final class Null extends Term {
+    public Null() {}
+
+    public org.eclipse.biscuit.datalog.Term convert(SymbolTable symbolTable) {
+      return new org.eclipse.biscuit.datalog.Term.Null();
+    }
+
+    @Override
+    public String toString() {
+      return "null";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
     }
   }
 
@@ -272,6 +323,99 @@ public abstract class Term {
     }
   }
 
+  public static final class Array extends Term {
+    final java.util.List<Term> value;
+
+    public Array(java.util.List<Term> value) {
+      this.value = value;
+    }
+
+    @Override
+    public org.eclipse.biscuit.datalog.Term convert(SymbolTable symbolTable) {
+      return new org.eclipse.biscuit.datalog.Term.Array(
+          value.stream().map(t -> t.convert(symbolTable)).collect(Collectors.toList()));
+    }
+
+    public java.util.List<Term> getValue() {
+      return Collections.unmodifiableList(value);
+    }
+
+    @Override
+    public String toString() {
+      return value.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Array array = (Array) o;
+
+      return Objects.equals(value, array.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value != null ? value.hashCode() : 0;
+    }
+  }
+
+  public static final class Map extends Term {
+    final HashMap<MapKey, Term> value;
+
+    public Map(HashMap<MapKey, Term> value) {
+      this.value = value;
+    }
+
+    @Override
+    public org.eclipse.biscuit.datalog.Term convert(SymbolTable symbolTable) {
+      HashMap<org.eclipse.biscuit.datalog.MapKey, org.eclipse.biscuit.datalog.Term> s =
+          new HashMap<>();
+
+      for (java.util.Map.Entry<MapKey, Term> i : this.value.entrySet()) {
+        s.put(i.getKey().convertMapKey(symbolTable), i.getValue().convert(symbolTable));
+      }
+
+      return new org.eclipse.biscuit.datalog.Term.Map(s);
+    }
+
+    public java.util.Map<MapKey, Term> getValue() {
+      return Collections.unmodifiableMap(value);
+    }
+
+    @Override
+    public String toString() {
+      return value.entrySet().stream()
+          .map(entry -> entry.getKey() + ": " + entry.getValue())
+          .sorted()
+          .collect(Collectors.joining(", ", "{", "}"));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Map map = (Map) o;
+
+      return Objects.equals(value, map.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value != null ? value.hashCode() : 0;
+    }
+  }
+
   public static final class Set extends Term {
     final java.util.Set<Term> value;
 
@@ -296,7 +440,19 @@ public abstract class Term {
 
     @Override
     public String toString() {
-      return value.toString();
+      if (value.size() == 0) {
+        return "{,}";
+      }
+      String s = "{";
+      int count = 0;
+      for (Term elem : value) {
+        s += elem;
+        count += 1;
+        if (count < value.size()) {
+          s += ", ";
+        }
+      }
+      return s + "}";
     }
 
     @Override

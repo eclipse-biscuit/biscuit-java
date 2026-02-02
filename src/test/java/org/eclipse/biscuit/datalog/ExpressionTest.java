@@ -29,8 +29,8 @@ public class ExpressionTest {
         new Expression(
             new ArrayList<Op>(
                 Arrays.asList(
-                    new Op.Value(new Term.Integer(1)),
-                    new Op.Value(new Term.Variable(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2)),
+                    new Term.Integer(1),
+                    new Term.Variable(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2),
                     new Op.Binary(Op.BinaryOp.LessThan),
                     new Op.Unary(Op.UnaryOp.Negate))));
 
@@ -53,8 +53,8 @@ public class ExpressionTest {
         new Expression(
             new ArrayList<Op>(
                 Arrays.asList(
-                    new Op.Value(new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET)),
-                    new Op.Value(new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1)),
+                    new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET),
+                    new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1),
                     new Op.Binary(Op.BinaryOp.Add))));
 
     assertEquals("\"a\" + \"b\"", e.print(symbolTable).get());
@@ -74,8 +74,8 @@ public class ExpressionTest {
         new Expression(
             new ArrayList<Op>(
                 Arrays.asList(
-                    new Op.Value(new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET)),
-                    new Op.Value(new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1)),
+                    new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET),
+                    new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1),
                     new Op.Binary(Op.BinaryOp.Contains))));
 
     assertEquals("\"ab\".contains(\"b\")", e.print(symbolTable).get());
@@ -94,8 +94,8 @@ public class ExpressionTest {
         new Expression(
             new ArrayList<Op>(
                 Arrays.asList(
-                    new Op.Value(new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET)),
-                    new Op.Value(new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1)),
+                    new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET),
+                    new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1),
                     new Op.Binary(Op.BinaryOp.Contains),
                     new Op.Unary(Op.UnaryOp.Negate))));
 
@@ -113,22 +113,17 @@ public class ExpressionTest {
         new Expression(
             new ArrayList<Op>(
                 Arrays.asList(
-                    new Op.Value(
-                        new Term.Set(
-                            new HashSet<>(
-                                Arrays.asList(
-                                    new Term.Integer(1),
-                                    new Term.Integer(2),
-                                    new Term.Integer(3))))),
-                    new Op.Value(
-                        new Term.Set(
-                            new HashSet<>(
-                                Arrays.asList(new Term.Integer(1), new Term.Integer(2))))),
+                    new Term.Set(
+                        new HashSet<>(
+                            Arrays.asList(
+                                new Term.Integer(1), new Term.Integer(2), new Term.Integer(3)))),
+                    new Term.Set(
+                        new HashSet<>(Arrays.asList(new Term.Integer(1), new Term.Integer(2)))),
                     new Op.Binary(Op.BinaryOp.Intersection),
-                    new Op.Value(new Term.Integer(1)),
+                    new Term.Integer(1),
                     new Op.Binary(Op.BinaryOp.Contains))));
 
-    assertEquals("[1, 2, 3].intersection([1, 2]).contains(1)", e.print(symbolTable).get());
+    assertEquals("{1, 2, 3}.intersection({1, 2}).contains(1)", e.print(symbolTable).get());
 
     assertEquals(
         new Term.Bool(true), e.evaluate(new HashMap<>(), new TemporarySymbolTable(symbolTable)));

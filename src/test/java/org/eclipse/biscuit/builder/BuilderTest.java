@@ -63,15 +63,14 @@ public class BuilderTest {
                         Utils.var("operation")))),
             Arrays.asList(
                 new Expression.Binary(
-                    Expression.Op.Contains,
-                    new Expression.Value(Utils.var("operation")),
-                    new Expression.Value(
-                        new Term.Set(
-                            new HashSet<>(
-                                Arrays.asList(
-                                    Utils.str("create_topic"),
-                                    Utils.str("get_topic"),
-                                    Utils.str("get_topics")))))))));
+                    Expression.OpCode.Contains,
+                    Utils.var("operation"),
+                    new Term.Set(
+                        new HashSet<>(
+                            Arrays.asList(
+                                Utils.str("create_topic"),
+                                Utils.str("get_topic"),
+                                Utils.str("get_topics"))))))));
     authorityBuilder.addRule(
         Utils.constrainedRule(
             "right",
@@ -92,10 +91,9 @@ public class BuilderTest {
                         Utils.var("operation")))),
             Arrays.asList(
                 new Expression.Binary(
-                    Expression.Op.Contains,
-                    new Expression.Value(Utils.var("operation")),
-                    new Expression.Value(
-                        new Term.Set(new HashSet<>(Arrays.asList(Utils.str("lookup")))))))));
+                    Expression.OpCode.Contains,
+                    Utils.var("operation"),
+                    new Term.Set(new HashSet<>(Arrays.asList(Utils.str("lookup"))))))));
 
     org.eclipse.biscuit.token.Block authority = authorityBuilder.build(symbolTable);
     Biscuit rootBiscuit = Biscuit.make(rng, root, authority);
@@ -125,11 +123,13 @@ public class BuilderTest {
     String actual =
         new Term.Set(Set.of(new Term.Str("a"), new Term.Str("b"), new Term.Integer((3))))
             .toString();
-    assertTrue(actual.startsWith("["), "starts with [");
-    assertTrue(actual.endsWith("]"), "ends with ]");
+    assertTrue(actual.startsWith("{"), "starts with {");
+    assertTrue(actual.endsWith("}"), "ends with }");
     assertTrue(actual.contains("\"a\""), "contains a");
     assertTrue(actual.contains("\"b\""), "contains b");
     assertTrue(actual.contains("3"), "contains 3");
+    String empty = new Term.Set(new java.util.HashSet()).toString();
+    assertEquals("{,}", empty);
   }
 
   @Test
@@ -159,10 +159,7 @@ public class BuilderTest {
             Utils.pred("nbf", List.of(Utils.var("1"))));
     List<Expression> expressions =
         List.of(
-            new Expression.Binary(
-                Expression.Op.LessOrEqual,
-                new Expression.Value(Utils.var("1")),
-                new Expression.Value(Utils.var("0"))));
+            new Expression.Binary(Expression.OpCode.LessOrEqual, Utils.var("1"), Utils.var("0")));
     List<org.eclipse.biscuit.token.builder.Scope> scopes = new ArrayList<>();
     var nbfRule = new Rule(head, body, expressions, scopes);
     Check builtCheck = Utils.check(nbfRule);
@@ -183,10 +180,7 @@ public class BuilderTest {
             Utils.pred("nbf", List.of(Utils.var("1"))));
     List<Expression> expressions =
         List.of(
-            new Expression.Binary(
-                Expression.Op.LessOrEqual,
-                new Expression.Value(Utils.var("1")),
-                new Expression.Value(Utils.var("0"))));
+            new Expression.Binary(Expression.OpCode.LessOrEqual, Utils.var("1"), Utils.var("0")));
     List<org.eclipse.biscuit.token.builder.Scope> scopes = new ArrayList<>();
     var nbfRule = new Rule(head, body, expressions, scopes);
     Block authorityBuilder = new Block();

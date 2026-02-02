@@ -754,7 +754,7 @@ public class BiscuitTest {
     Authorizer authorizer = biscuit.verify(root.getPublicKey()).authorizer();
     authorizer.addFact("operation(\"read\")");
     authorizer.addFact("operation(\"write\")");
-    authorizer.addFact("allowed_operations([\"write\"])");
+    authorizer.addFact("allowed_operations({\"write\"})");
     authorizer.addPolicy("allow if true");
 
     try {
@@ -777,7 +777,7 @@ public class BiscuitTest {
     Authorizer authorizer2 = biscuit.verify(root.getPublicKey()).authorizer();
     authorizer2.addFact("operation(\"read\")");
     authorizer2.addFact("operation(\"write\")");
-    authorizer2.addFact("allowed_operations([\"read\", \"write\"])");
+    authorizer2.addFact("allowed_operations({\"read\", \"write\"})");
     authorizer2.addPolicy("allow if true");
 
     authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));

@@ -20,7 +20,6 @@ import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Error.Parser;
-import org.eclipse.biscuit.token.builder.Expression;
 import org.eclipse.biscuit.token.builder.Term;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +40,7 @@ public class AuthorizerTest {
                     "deny",
                     new ArrayList<>(),
                     new ArrayList<>(),
-                    Arrays.asList(new Expression.Value(new Term.Bool(true))))),
+                    Arrays.asList(new Term.Bool(true)))),
             Policy.Kind.DENY));
     assertEquals(2, policies.size());
 
@@ -59,7 +58,7 @@ public class AuthorizerTest {
             .addAuthorityFact("email(\"bob@example.com\")")
             .addAuthorityFact("id(123)")
             .addAuthorityFact("enabled(true)")
-            .addAuthorityFact("perms([1,2,3])")
+            .addAuthorityFact("perms({1,2,3})")
             .build();
 
     Authorizer authorizer =
@@ -91,7 +90,7 @@ public class AuthorizerTest {
             .addAuthorityFact("email(\"bob@example.com\")")
             .addAuthorityFact("id(123)")
             .addAuthorityFact("enabled(true)")
-            .addAuthorityFact("perms([1,2,3])")
+            .addAuthorityFact("perms({1,2,3})")
             .build();
 
     Authorizer authorizer =

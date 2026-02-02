@@ -21,8 +21,6 @@ import org.eclipse.biscuit.datalog.Rule;
 import org.eclipse.biscuit.datalog.SchemaVersion;
 import org.eclipse.biscuit.datalog.Scope;
 import org.eclipse.biscuit.datalog.SymbolTable;
-import org.eclipse.biscuit.datalog.expressions.Expression;
-import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.format.SerializedBiscuit;
@@ -37,7 +35,7 @@ public final class Block {
   private final List<Scope> scopes;
   private final List<PublicKey> publicKeys;
   private Optional<PublicKey> externalKey;
-  private long version;
+  private int version;
 
   /**
    * creates a new block
@@ -224,56 +222,8 @@ public final class Block {
       b.addPublicKeys(pk.serialize());
     }
 
-    b.setVersion(getSchemaVersion());
+    b.setVersion(version);
     return b.build();
-  }
-
-  int getSchemaVersion() {
-    boolean containsScopes = !this.scopes.isEmpty();
-    boolean containsCheckAll = false;
-    boolean containsV4 = false;
-
-    for (Rule r : this.rules) {
-      containsScopes |= !r.scopes().isEmpty();
-      for (Expression e : r.expressions()) {
-        containsV4 |= containsV4Op(e);
-      }
-    }
-    for (Check c : this.checks) {
-      containsCheckAll |= c.kind() == Check.Kind.ALL;
-
-      for (Rule q : c.queries()) {
-        containsScopes |= !q.scopes().isEmpty();
-        for (Expression e : q.expressions()) {
-          containsV4 |= containsV4Op(e);
-        }
-      }
-    }
-
-    if (this.externalKey.isPresent()) {
-      return SerializedBiscuit.MAX_SCHEMA_VERSION;
-
-    } else if (containsScopes || containsCheckAll || containsV4) {
-      return 4;
-    } else {
-      return SerializedBiscuit.MIN_SCHEMA_VERSION;
-    }
-  }
-
-  boolean containsV4Op(Expression e) {
-    for (Op op : e.getOps()) {
-      if (op instanceof Op.Binary) {
-        Op.BinaryOp o = ((Op.Binary) op).getOp();
-        if (o == Op.BinaryOp.BitwiseAnd
-            || o == Op.BinaryOp.BitwiseOr
-            || o == Op.BinaryOp.BitwiseXor
-            || o == Op.BinaryOp.NotEqual) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   /**
@@ -349,7 +299,7 @@ public final class Block {
       }
     }
 
-    SchemaVersion schemaVersion = new SchemaVersion(facts, rules, checks, scopes);
+    var schemaVersion = new SchemaVersion(facts, rules, checks, scopes, externalKey);
     var res = schemaVersion.checkCompatibility(version);
     if (res.isErr()) {
       Error.FormatError e = res.getErr();

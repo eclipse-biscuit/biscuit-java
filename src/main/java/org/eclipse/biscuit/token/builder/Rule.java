@@ -45,10 +45,10 @@ public final class Rule implements Cloneable {
       }
     }
     for (Expression e : expressions) {
-      if (e instanceof Expression.Value) {
-        Expression.Value ev = (Expression.Value) e;
-        if (ev.value instanceof Term.Variable) {
-          variables.put(((Term.Variable) ev.value).value, Optional.empty());
+      if (e instanceof Term) {
+        Term term = (Term) e;
+        if (term instanceof Term.Variable) {
+          variables.put(((Term.Variable) term).value, Optional.empty());
         }
       }
     }
@@ -116,14 +116,14 @@ public final class Rule implements Cloneable {
               this.expressions.stream()
                   .flatMap(
                       e -> {
-                        if (e instanceof Expression.Value) {
-                          Expression.Value ev = (Expression.Value) e;
-                          if (ev.value instanceof Term.Variable) {
+                        if (e instanceof Term) {
+                          Term term = (Term) e;
+                          if (term instanceof Term.Variable) {
                             Optional<Term> t =
                                 laVariables.getOrDefault(
-                                    ((Term.Variable) ev.value).value, Optional.empty());
+                                    ((Term.Variable) term).value, Optional.empty());
                             if (t.isPresent()) {
-                              return Stream.of(new Expression.Value(t.get()));
+                              return Stream.of(t.get());
                             }
                           }
                         }
@@ -147,7 +147,11 @@ public final class Rule implements Cloneable {
             .collect(Collectors.toSet());
 
     for (Expression e : this.expressions) {
-      e.gatherVariables(freeVariables);
+      try {
+        e.gatherVariables(freeVariables);
+      } catch (Error.Shadowing err) {
+        return Result.err("rule expression contains closure parameters which shadow variables");
+      }
     }
     if (freeVariables.isEmpty()) {
       return Result.ok(this);
@@ -182,7 +186,7 @@ public final class Rule implements Cloneable {
     }
 
     for (Expression e : r.expressions) {
-      expressions.add(e.convert(symbolTable));
+      expressions.add(e.convertExpr(symbolTable));
     }
 
     for (Scope s : r.scopes) {
@@ -202,7 +206,7 @@ public final class Rule implements Cloneable {
     }
 
     for (org.eclipse.biscuit.datalog.expressions.Expression e : r.expressions()) {
-      expressions.add(Expression.convertFrom(e, symbolTable));
+      expressions.add(Expression.convertFrom(e.getOps(), symbolTable));
     }
 
     for (org.eclipse.biscuit.datalog.Scope s : r.scopes()) {

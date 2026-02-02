@@ -127,9 +127,9 @@ class ParserTest {
                         Utils.pred("resource", List.of(Utils.string("file1")))),
                     List.of(
                         new Expression.Binary(
-                            Expression.Op.LessOrEqual,
-                            new Expression.Value(Utils.var("0")),
-                            new Expression.Value(new Term.Date(1575452801))))))),
+                            Expression.OpCode.LessOrEqual,
+                            Utils.var("0"),
+                            new Term.Date(1575452801)))))),
         res);
   }
 
@@ -150,62 +150,55 @@ class ParserTest {
                         Utils.pred("resource", List.of(Utils.string("file1")))),
                     List.of(
                         new Expression.Binary(
-                            Expression.Op.LessOrEqual,
-                            new Expression.Value(Utils.var("0")),
-                            new Expression.Value(new Term.Date(1575452801))))))),
+                            Expression.OpCode.LessOrEqual,
+                            Utils.var("0"),
+                            new Term.Date(1575452801)))))),
         res);
   }
 
   @Test
   void expressionIntersectionAndContainsTest() {
-    var res = Parser.expression("[1, 2, 3].intersection([1, 2]).contains(1)");
+    var res = Parser.expression("{1, 2, 3}.intersection({1, 2}).contains(1)");
 
     assertEquals(
         Result.ok(
             new Pair<>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.Contains,
+                    Expression.OpCode.Contains,
                     new Expression.Binary(
-                        Expression.Op.Intersection,
-                        new Expression.Value(
-                            Utils.set(
-                                new HashSet<>(
-                                    Arrays.asList(
-                                        Utils.integer(1), Utils.integer(2), Utils.integer(3))))),
-                        new Expression.Value(
-                            Utils.set(
-                                new HashSet<>(Arrays.asList(Utils.integer(1), Utils.integer(2)))))),
-                    new Expression.Value(Utils.integer(1))))),
+                        Expression.OpCode.Intersection,
+                        Utils.set(
+                            new HashSet<>(
+                                Arrays.asList(
+                                    Utils.integer(1), Utils.integer(2), Utils.integer(3)))),
+                        Utils.set(
+                            new HashSet<>(Arrays.asList(Utils.integer(1), Utils.integer(2))))),
+                    Utils.integer(1)))),
         res);
   }
 
   @Test
   void expressionIntersectionAndContainsAndLengthEqualsTest() {
-    var res = Parser.expression("[1, 2, 3].intersection([1, 2]).length() == 2");
+    var res = Parser.expression("{1, 2, 3}.intersection({1, 2}).length() === 2");
 
     assertEquals(
         Result.ok(
             new Pair<>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.Equal,
+                    Expression.OpCode.Equal,
                     new Expression.Unary(
-                        Expression.Op.Length,
+                        Expression.OpCode.Length,
                         new Expression.Binary(
-                            Expression.Op.Intersection,
-                            new Expression.Value(
-                                Utils.set(
-                                    new HashSet<>(
-                                        Arrays.asList(
-                                            Utils.integer(1),
-                                            Utils.integer(2),
-                                            Utils.integer(3))))),
-                            new Expression.Value(
-                                Utils.set(
-                                    new HashSet<>(
-                                        Arrays.asList(Utils.integer(1), Utils.integer(2))))))),
-                    new Expression.Value(Utils.integer(2))))),
+                            Expression.OpCode.Intersection,
+                            Utils.set(
+                                new HashSet<>(
+                                    Arrays.asList(
+                                        Utils.integer(1), Utils.integer(2), Utils.integer(3)))),
+                            Utils.set(
+                                new HashSet<>(Arrays.asList(Utils.integer(1), Utils.integer(2)))))),
+                    Utils.integer(2)))),
         res);
   }
 
@@ -223,11 +216,10 @@ class ParserTest {
                         new ArrayList<>(),
                         List.of(
                             new Expression.Binary(
-                                Expression.Op.And,
+                                Expression.OpCode.LazyAnd,
                                 new Expression.Unary(
-                                    Expression.Op.Negate,
-                                    new Expression.Value(new Term.Bool(false))),
-                                new Expression.Value(new Term.Bool(true)))))))),
+                                    Expression.OpCode.Negate, new Term.Bool(false)),
+                                new Expression.Closure(new Term.Bool(true)))))))),
         res);
   }
 
@@ -291,8 +283,7 @@ class ParserTest {
   void testExpression() {
     var res = Parser.expression(" -1 ");
 
-    assertEquals(
-        new Pair<String, Expression>("", new Expression.Value(Utils.integer(-1))), res.getOk());
+    assertEquals(new Pair<String, Expression>("", Utils.integer(-1)), res.getOk());
 
     var res2 = Parser.expression(" $0 <= 2019-12-04T09:46:41+00:00");
 
@@ -300,9 +291,7 @@ class ParserTest {
         new Pair<String, Expression>(
             "",
             new Expression.Binary(
-                Expression.Op.LessOrEqual,
-                new Expression.Value(Utils.var("0")),
-                new Expression.Value(new Term.Date(1575452801)))),
+                Expression.OpCode.LessOrEqual, Utils.var("0"), new Term.Date(1575452801))),
         res2.getOk());
 
     var res3 = Parser.expression(" 1 < $test + 2 ");
@@ -312,24 +301,22 @@ class ParserTest {
             new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.LessThan,
-                    new Expression.Value(Utils.integer(1)),
+                    Expression.OpCode.LessThan,
+                    Utils.integer(1),
                     new Expression.Binary(
-                        Expression.Op.Add,
-                        new Expression.Value(Utils.var("test")),
-                        new Expression.Value(Utils.integer(2)))))),
+                        Expression.OpCode.Add, Utils.var("test"), Utils.integer(2))))),
         res3);
 
     SymbolTable s3 = new SymbolTable();
     long test = s3.insert("test");
     assertEquals(
         Arrays.asList(
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(1)),
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Variable(test)),
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(2)),
+            new org.eclipse.biscuit.datalog.Term.Integer(1),
+            new org.eclipse.biscuit.datalog.Term.Variable(test),
+            new org.eclipse.biscuit.datalog.Term.Integer(2),
             new Op.Binary(Op.BinaryOp.Add),
             new Op.Binary(Op.BinaryOp.LessThan)),
-        res3.getOk()._2.convert(s3).getOps());
+        res3.getOk()._2.convertExpr(s3).getOps());
 
     var res4 = Parser.expression("  2 < $test && $var2.starts_with(\"test\") && true ");
 
@@ -338,21 +325,20 @@ class ParserTest {
             new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.And,
+                    Expression.OpCode.LazyAnd,
                     new Expression.Binary(
-                        Expression.Op.And,
+                        Expression.OpCode.LazyAnd,
                         new Expression.Binary(
-                            Expression.Op.LessThan,
-                            new Expression.Value(Utils.integer(2)),
-                            new Expression.Value(Utils.var("test"))),
-                        new Expression.Binary(
-                            Expression.Op.Prefix,
-                            new Expression.Value(Utils.var("var2")),
-                            new Expression.Value(Utils.string("test")))),
-                    new Expression.Value(new Term.Bool(true))))),
+                            Expression.OpCode.LessThan, Utils.integer(2), Utils.var("test")),
+                        new Expression.Closure(
+                            new Expression.Binary(
+                                Expression.OpCode.Prefix,
+                                Utils.var("var2"),
+                                Utils.string("test")))),
+                    new Expression.Closure(new Term.Bool(true))))),
         res4);
 
-    var res5 = Parser.expression("  [ \"abc\", \"def\" ].contains($operation) ");
+    var res5 = Parser.expression("  { \"abc\", \"def\" }.contains($operation) ");
 
     HashSet<Term> s = new HashSet<>();
     s.add(Utils.str("abc"));
@@ -363,9 +349,7 @@ class ParserTest {
             new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.Contains,
-                    new Expression.Value(Utils.set(s)),
-                    new Expression.Value(Utils.var("operation"))))),
+                    Expression.OpCode.Contains, Utils.set(s), Utils.var("operation")))),
         res5);
   }
 
@@ -378,24 +362,22 @@ class ParserTest {
             new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.Add,
-                    new Expression.Value(Utils.integer(1)),
+                    Expression.OpCode.Add,
+                    Utils.integer(1),
                     new Expression.Binary(
-                        Expression.Op.Mul,
-                        new Expression.Value(Utils.integer(2)),
-                        new Expression.Value(Utils.integer(3)))))),
+                        Expression.OpCode.Mul, Utils.integer(2), Utils.integer(3))))),
         res);
 
     Expression e = res.getOk()._2;
     SymbolTable s = new SymbolTable();
 
-    org.eclipse.biscuit.datalog.expressions.Expression ex = e.convert(s);
+    org.eclipse.biscuit.datalog.expressions.Expression ex = e.convertExpr(s);
 
     assertEquals(
         Arrays.asList(
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(1)),
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(2)),
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(3)),
+            new org.eclipse.biscuit.datalog.Term.Integer(1),
+            new org.eclipse.biscuit.datalog.Term.Integer(2),
+            new org.eclipse.biscuit.datalog.Term.Integer(3),
             new Op.Binary(Op.BinaryOp.Mul),
             new Op.Binary(Op.BinaryOp.Add)),
         ex.getOps());
@@ -412,28 +394,26 @@ class ParserTest {
             new Pair<String, Expression>(
                 "",
                 new Expression.Binary(
-                    Expression.Op.Mul,
+                    Expression.OpCode.Mul,
                     new Expression.Unary(
-                        Expression.Op.Parens,
+                        Expression.OpCode.Parens,
                         new Expression.Binary(
-                            Expression.Op.Add,
-                            new Expression.Value(Utils.integer(1)),
-                            new Expression.Value(Utils.integer(2)))),
-                    new Expression.Value(Utils.integer(3))))),
+                            Expression.OpCode.Add, Utils.integer(1), Utils.integer(2))),
+                    Utils.integer(3)))),
         res2);
 
     Expression e2 = res2.getOk()._2;
     SymbolTable s2 = new SymbolTable();
 
-    org.eclipse.biscuit.datalog.expressions.Expression ex2 = e2.convert(s2);
+    org.eclipse.biscuit.datalog.expressions.Expression ex2 = e2.convertExpr(s2);
 
     assertEquals(
         Arrays.asList(
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(1)),
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(2)),
+            new org.eclipse.biscuit.datalog.Term.Integer(1),
+            new org.eclipse.biscuit.datalog.Term.Integer(2),
             new Op.Binary(Op.BinaryOp.Add),
             new Op.Unary(Op.UnaryOp.Parens),
-            new Op.Value(new org.eclipse.biscuit.datalog.Term.Integer(3)),
+            new org.eclipse.biscuit.datalog.Term.Integer(3),
             new Op.Binary(Op.BinaryOp.Mul)),
         ex2.getOps());
 
@@ -467,7 +447,7 @@ class ParserTest {
 
   @Test
   void testDatalogSucceedsArrays() throws org.eclipse.biscuit.error.Error.Parser {
-    String l1 = "check if [2, 3].union([2])";
+    String l1 = "check if {2, 3}.union({2})";
     String toParse = String.join(";", List.of(l1));
 
     var output = Parser.datalog(1, toParse);
@@ -482,7 +462,7 @@ class ParserTest {
   @Test
   void testDatalogSucceedsArraysContains() throws org.eclipse.biscuit.error.Error.Parser {
     String l1 =
-        "check if [2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z].contains(2020-12-04T09:46:41Z)";
+        "check if {2019-12-04T09:46:41Z, 2020-12-04T09:46:41Z}.contains(2020-12-04T09:46:41Z)";
     String toParse = String.join(";", List.of(l1));
 
     var output = Parser.datalog(1, toParse);

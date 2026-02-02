@@ -5,23 +5,22 @@
 
 package org.eclipse.biscuit.token.builder;
 
-import static org.eclipse.biscuit.datalog.Check.Kind.ONE;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.eclipse.biscuit.datalog.Check.Kind;
 import org.eclipse.biscuit.datalog.SymbolTable;
 
 public final class Check {
-  private final org.eclipse.biscuit.datalog.Check.Kind kind;
+  private final Kind kind;
   private final List<Rule> queries;
 
-  public Check(org.eclipse.biscuit.datalog.Check.Kind kind, List<Rule> queries) {
+  public Check(Kind kind, List<Rule> queries) {
     this.kind = kind;
     this.queries = queries;
   }
 
-  public Check(org.eclipse.biscuit.datalog.Check.Kind kind, Rule query) {
+  public Check(Kind kind, Rule query) {
     this.kind = kind;
 
     // Checks are queries that match facts, not rules that generate facts.
@@ -54,15 +53,24 @@ public final class Check {
     return new Check(r.kind(), queries);
   }
 
+  public Kind kind() {
+    return kind;
+  }
+
   @Override
   public String toString() {
     final List<String> qs =
         queries.stream().map((q) -> q.bodyToString()).collect(Collectors.toList());
 
-    if (kind == ONE) {
-      return "check if " + String.join(" or ", qs);
-    } else {
-      return "check all " + String.join(" or ", qs);
+    switch (kind) {
+      case ONE:
+        return "check if " + String.join(" or ", qs);
+      case ALL:
+        return "check all " + String.join(" or ", qs);
+      case REJECT:
+        return "reject if " + String.join(" or ", qs);
+      default:
+        return "check if " + String.join(" or ", qs);
     }
   }
 
