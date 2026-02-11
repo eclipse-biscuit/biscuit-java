@@ -20,7 +20,7 @@ import org.eclipse.biscuit.token.builder.Utils;
 
 public abstract class PublicKey {
   public interface Factory {
-    PublicKey load(Algorithm algorithm, byte[] bytes) throws Error.FormatError.InvalidKey;
+    PublicKey load(Algorithm algorithm, byte[] bytes) throws Error.FormatError;
   }
 
   private static final Factory factory;

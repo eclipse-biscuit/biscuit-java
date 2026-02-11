@@ -704,8 +704,12 @@ public class BiscuitTest {
                   new KeyDelegate() {
                     @Override
                     public Optional<PublicKey> getRootKey(Optional<Integer> keyId) {
-
-                      KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+                      KeyPair root = null;
+                      try {
+                        root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+                      } catch (Error.FormatError e) {
+                        throw new IllegalStateException(e);
+                      }
                       return Optional.of(root.getPublicKey());
                     }
                   });

@@ -15,9 +15,9 @@ import org.eclipse.biscuit.token.builder.Utils;
 /** Private and public key. */
 public abstract class KeyPair implements Signer {
   public interface Factory {
-    KeyPair generate(Algorithm algorithm, byte[] bytes) throws Error.FormatError.InvalidKeySize;
+    KeyPair generate(Algorithm algorithm, byte[] bytes) throws Error.FormatError;
 
-    KeyPair generate(Algorithm algorithm, SecureRandom rng);
+    KeyPair generate(Algorithm algorithm, SecureRandom rng) throws Error.FormatError;
   }
 
   private static final Factory factory;
@@ -31,21 +31,19 @@ public abstract class KeyPair implements Signer {
     factory = factories.get(0).get();
   }
 
-  public static KeyPair generate(Algorithm algorithm) {
+  public static KeyPair generate(Algorithm algorithm) throws Error.FormatError {
     return generate(algorithm, new SecureRandom());
   }
 
-  public static KeyPair generate(Algorithm algorithm, String hex)
-      throws Error.FormatError.InvalidKeySize {
+  public static KeyPair generate(Algorithm algorithm, String hex) throws Error.FormatError {
     return generate(algorithm, Utils.hexStringToByteArray(hex));
   }
 
-  public static KeyPair generate(Algorithm algorithm, byte[] bytes)
-      throws Error.FormatError.InvalidKeySize {
+  public static KeyPair generate(Algorithm algorithm, byte[] bytes) throws Error.FormatError {
     return factory.generate(algorithm, bytes);
   }
 
-  public static KeyPair generate(Algorithm algorithm, SecureRandom rng) {
+  public static KeyPair generate(Algorithm algorithm, SecureRandom rng) throws Error.FormatError {
     return factory.generate(algorithm, rng);
   }
 

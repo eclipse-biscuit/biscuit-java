@@ -50,7 +50,7 @@ public class SignatureTest {
 
   @Test
   public void testThreeMessages()
-      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error.FormatError {
     prTestThreeMessages(Schema.PublicKey.Algorithm.Ed25519);
     prTestThreeMessages(Schema.PublicKey.Algorithm.SECP256R1);
   }
@@ -120,7 +120,7 @@ public class SignatureTest {
   }
 
   private void prTestThreeMessages(Schema.PublicKey.Algorithm algorithm)
-      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error.FormatError {
     String message1 = "hello";
     KeyPair root = KeyPair.generate(algorithm, rng);
     KeyPair keypair2 = KeyPair.generate(algorithm, rng);

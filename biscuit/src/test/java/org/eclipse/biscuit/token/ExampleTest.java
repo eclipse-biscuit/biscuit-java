@@ -17,7 +17,7 @@ import org.eclipse.biscuit.token.builder.Block;
  * if these functions change, please send a PR to update them at https://github.com/biscuit-auth/website
  */
 public class ExampleTest {
-  public KeyPair root() {
+  public KeyPair root() throws Error.FormatError {
     return KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519);
   }
 
