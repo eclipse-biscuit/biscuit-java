@@ -9,7 +9,7 @@
     <groupId>org.eclipse</groupId>
     <artifactId>biscuit-java</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.1</version>
+    <version>4.1.0</version>
     <name>biscuit-java</name>
     <url>https://github.com/eclipse-biscuit/biscuit-java</url>
 
