@@ -348,7 +348,10 @@ public class UnverifiedBiscuit {
             throw new InvalidKeyException("unknown root key id");
         }
 
-        serializedBiscuit.verify(root.get());
+        var result = serializedBiscuit.verify(root.get());
+        if (result.isLeft()) {
+          throw result.getLeft();
+        }
         return Biscuit.from_serialized_biscuit(serializedBiscuit, this.symbols);
     }
 }
