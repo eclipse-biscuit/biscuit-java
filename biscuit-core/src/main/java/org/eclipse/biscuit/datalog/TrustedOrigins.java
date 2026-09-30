@@ -7,6 +7,7 @@ package org.eclipse.biscuit.datalog;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public final class TrustedOrigins {
   private final Origin origin;
@@ -89,6 +90,25 @@ public final class TrustedOrigins {
   @Override
   public String toString() {
     return "TrustedOrigins{inner=" + origin + '}';
+  }
+
+  @Override
+  public boolean equals(Object o){
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    TrustedOrigins trustedOrigin = (TrustedOrigins) o;
+
+    return Objects.equals(origin, trustedOrigin.origin);
+  }
+
+  @Override
+  public int hashCode() {
+    return origin.hashCode();
   }
 
   public Origin getOrigin() {
