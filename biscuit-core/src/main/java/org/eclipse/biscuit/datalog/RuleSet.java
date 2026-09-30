@@ -20,7 +20,7 @@ public final class RuleSet {
 
   public void add(Long origin, TrustedOrigins scope, Rule rule) {
     if (!rules.containsKey(scope)) {
-      rules.put(scope, List.of(new Pair<>(origin, rule)));
+      rules.put(scope, new ArrayList<>(List.of(new Pair<>(origin, rule))));
     } else {
       rules.get(scope).add(new Pair<>(origin, rule));
     }
