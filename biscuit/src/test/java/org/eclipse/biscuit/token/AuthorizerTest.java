@@ -5,7 +5,8 @@
 
 package org.eclipse.biscuit.token;
 
-import static org.eclipse.biscuit.token.builder.Utils.constrainedRule;
+import static org.eclipse.biscuit.crypto.TokenSignature.hex;
+import static org.eclipse.biscuit.token.builder.Utils.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,6 +21,9 @@ import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Error.Parser;
+import org.eclipse.biscuit.error.FailedCheck;
+import org.eclipse.biscuit.error.LogicError;
+import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Term;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +59,78 @@ public class AuthorizerTest {
 
     authorizer.addPolicy("deny if true");
     assertEquals(3, policies.size());
+  }
+
+  @Test
+  public void ruleSetHashIssue() throws Exception {
+    KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    org.eclipse.biscuit.token.builder.Block authorityBuilder = new org.eclipse.biscuit.token.builder.Block();
+
+    authorityBuilder.addFact(fact("right", Arrays.asList(str("file1"), str("read"))));
+    authorityBuilder.addFact(fact("right", Arrays.asList(str("file2"), str("read"))));
+    authorityBuilder.addFact(fact("right", Arrays.asList(str("file1"), str("write"))));
+
+    Biscuit b = Biscuit.make(rng, root, authorityBuilder.build());
+
+    byte[] data = b.serialize();
+
+    Biscuit deser = Biscuit.fromBytes(data, root.getPublicKey());
+    assertEquals(1, deser.blockCount());
+
+    KeyPair keypair2 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    org.eclipse.biscuit.token.builder.Block builder = deser.createBlock();
+    builder.addCheck(
+            check(
+                    rule(
+                            "caveat1",
+                            List.of(var("resource")),
+                            Arrays.asList(
+                                    pred("resource", List.of(var("resource"))),
+                                    pred("operation", List.of(str("read"))),
+                                    pred("right", Arrays.asList(var("resource"), str("read")))))));
+
+    builder.addRule("left($0, $1) <- right($0, $1)");
+    builder.addRule("straight($0, $1) <- right($0, $1)");
+
+    Biscuit b2 = deser.attenuate(rng, keypair2, builder);
+
+    byte[] data2 = b2.serialize();
+
+    Biscuit finalToken = Biscuit.fromBytes(data2, root.getPublicKey());
+    assertEquals(2, finalToken.blockCount());
+
+    Authorizer authorizer = finalToken.authorizer();
+    authorizer.addFact("resource(\"file1\")");
+    authorizer.addFact("operation(\"read\")");
+    authorizer.addPolicy("allow if true");
+    authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
+
+//    Authorizer authorizer2 = finalToken.authorizer();
+//    authorizer2.addFact("resource(\"file2\")");
+//    authorizer2.addFact("operation(\"write\")");
+//    authorizer2.addPolicy("allow if true");
+
+//    try {
+//      authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
+//    } catch (Error e) {
+//      System.out.println(e);
+//      assertEquals(
+//              new Error.FailedLogic(
+//                      new LogicError.Unauthorized(
+//                              new LogicError.MatchedPolicy.Allow(0),
+//                              Arrays.asList(
+//                                      new FailedCheck.FailedBlock(
+//                                              1,
+//                                              0,
+//                                              "check if resource($resource), operation(\"read\"), right($resource,"
+//                                                      + " \"read\")"),
+//                                      new FailedCheck.FailedBlock(2, 0, "check if resource(\"file1\")")))),
+//              e);
+//    }
+
+
   }
 
   @Test
