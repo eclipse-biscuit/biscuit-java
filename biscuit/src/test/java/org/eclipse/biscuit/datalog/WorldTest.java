@@ -5,7 +5,9 @@
 
 package org.eclipse.biscuit.datalog;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -761,5 +763,69 @@ public class WorldTest {
       System.out.println("\t" + syms.formatFact(f));
     }
     assertTrue(res.size() == 0);
+  }
+
+  @Test
+  public void testAddRuleSameTrustedOriginsInstanceThrows() {
+    final World w = new World();
+    final SymbolTable syms = new SymbolTable();
+
+    final long left = syms.insert("left");
+    final long straight = syms.insert("straight");
+    final long right = syms.insert("right");
+    final Term.Variable a = new Term.Variable(syms.insert("a"));
+    final Term.Variable b = new Term.Variable(syms.insert("b"));
+
+    final Rule r1 =
+        new Rule(
+            new Predicate(left, Arrays.asList(a, b)),
+            Arrays.asList(new Predicate(right, Arrays.asList(a, b))),
+            new ArrayList<>());
+    final Rule r2 =
+        new Rule(
+            new Predicate(straight, Arrays.asList(a, b)),
+            Arrays.asList(new Predicate(right, Arrays.asList(a, b))),
+            new ArrayList<>());
+
+    System.out.println("adding r1: " + syms.formatRule(r1));
+    System.out.println("adding r2 under the SAME TrustedOrigins instance: " + syms.formatRule(r2));
+
+    final TrustedOrigins sharedScope = TrustedOrigins.defaultOrigins();
+    w.addRule(1L, sharedScope, r1);
+
+    assertThrows(UnsupportedOperationException.class, () -> w.addRule(1L, sharedScope, r2));
+  }
+
+  @Test
+  public void testAddRuleEqualButDistinctTrustedOriginsDoesNotThrowToday() {
+    final World w = new World();
+    final SymbolTable syms = new SymbolTable();
+
+    final long left = syms.insert("left");
+    final long straight = syms.insert("straight");
+    final long right = syms.insert("right");
+    final Term.Variable a = new Term.Variable(syms.insert("a"));
+    final Term.Variable b = new Term.Variable(syms.insert("b"));
+
+    final Rule r1 =
+        new Rule(
+            new Predicate(left, Arrays.asList(a, b)),
+            Arrays.asList(new Predicate(right, Arrays.asList(a, b))),
+            new ArrayList<>());
+    final Rule r2 =
+        new Rule(
+            new Predicate(straight, Arrays.asList(a, b)),
+            Arrays.asList(new Predicate(right, Arrays.asList(a, b))),
+            new ArrayList<>());
+
+    System.out.println("adding r1: " + syms.formatRule(r1));
+    System.out.println(
+        "adding r2 under an equal but distinct TrustedOrigins instance: " + syms.formatRule(r2));
+
+    assertDoesNotThrow(
+        () -> {
+          w.addRule(1L, TrustedOrigins.defaultOrigins(), r1);
+          w.addRule(1L, TrustedOrigins.defaultOrigins(), r2);
+        });
   }
 }
