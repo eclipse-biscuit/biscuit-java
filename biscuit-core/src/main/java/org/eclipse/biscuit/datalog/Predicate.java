@@ -47,8 +47,7 @@ public final class Predicate implements Serializable {
   }
 
   public Predicate clone() {
-    final List<Term> terms = new ArrayList<>();
-    terms.addAll(this.terms);
+    final List<Term> terms = new ArrayList<>(this.terms);
     return new Predicate(this.name, terms);
   }
 
@@ -78,19 +77,17 @@ public final class Predicate implements Serializable {
   public String toString() {
     return this.name
         + "("
-        + String.join(
-            ", ",
-            this.terms.stream()
-                .map((i) -> (i == null) ? "(null)" : i.toString())
-                .collect(Collectors.toList()))
+        + this.terms.stream()
+            .map((i) -> (i == null) ? "(null)" : i.toString())
+            .collect(Collectors.joining(", "))
         + ")";
   }
 
   public Schema.PredicateV2 serialize() {
     Schema.PredicateV2.Builder builder = Schema.PredicateV2.newBuilder().setName(this.name);
 
-    for (int i = 0; i < this.terms.size(); i++) {
-      builder.addTerms(this.terms.get(i).serializeTerm());
+    for (Term term : this.terms) {
+      builder.addTerms(term.serializeTerm());
     }
 
     return builder.build();

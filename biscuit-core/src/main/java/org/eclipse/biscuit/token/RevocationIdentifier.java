@@ -9,7 +9,7 @@ import java.util.Base64;
 import org.eclipse.biscuit.token.builder.Utils;
 
 public final class RevocationIdentifier {
-  private byte[] bytes;
+  private final byte[] bytes;
 
   public RevocationIdentifier(byte[] bytes) {
     this.bytes = bytes;

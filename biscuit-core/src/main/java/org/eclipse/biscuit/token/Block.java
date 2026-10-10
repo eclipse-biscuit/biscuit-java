@@ -118,7 +118,7 @@ public final class Block {
     s.append(this.context);
     if (this.externalKey.isPresent()) {
       s.append("\n\t\texternal key: ");
-      s.append(this.externalKey.get().toString());
+      s.append(this.externalKey.get());
     }
     s.append("\n\t\tscopes: [");
     for (Scope scope : this.scopes) {
@@ -171,16 +171,16 @@ public final class Block {
         s.append(this.externalKey.get().toString());
     }*/
     for (Scope scope : this.scopes) {
-      s.append("trusting " + localSymbols.formatScope(scope) + "\n");
+      s.append("trusting ").append(localSymbols.formatScope(scope)).append("\n");
     }
     for (Fact f : this.facts) {
-      s.append(localSymbols.formatFact(f) + ";\n");
+      s.append(localSymbols.formatFact(f)).append(";\n");
     }
     for (Rule r : this.rules) {
-      s.append(localSymbols.formatRule(r) + ";\n");
+      s.append(localSymbols.formatRule(r)).append(";\n");
     }
     for (Check c : this.checks) {
-      s.append(localSymbols.formatCheck(c) + ";\n");
+      s.append(localSymbols.formatCheck(c)).append(";\n");
     }
 
     return s.toString();
@@ -202,16 +202,16 @@ public final class Block {
       b.setContext(this.context);
     }
 
-    for (int i = 0; i < this.facts.size(); i++) {
-      b.addFactsV2(this.facts.get(i).serialize());
+    for (Fact fact : this.facts) {
+      b.addFactsV2(fact.serialize());
     }
 
-    for (int i = 0; i < this.rules.size(); i++) {
-      b.addRulesV2(this.rules.get(i).serialize());
+    for (Rule rule : this.rules) {
+      b.addRulesV2(rule.serialize());
     }
 
-    for (int i = 0; i < this.checks.size(); i++) {
-      b.addChecksV2(this.checks.get(i).serialize());
+    for (Check check : this.checks) {
+      b.addChecksV2(check.serialize());
     }
 
     for (Scope scope : this.scopes) {

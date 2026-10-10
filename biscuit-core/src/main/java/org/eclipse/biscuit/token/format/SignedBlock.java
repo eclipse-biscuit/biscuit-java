@@ -9,11 +9,11 @@ import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 
 public class SignedBlock {
-  private byte[] block;
-  private PublicKey key;
-  private byte[] signature;
-  private Optional<ExternalSignature> externalSignature;
-  private int version;
+  private final byte[] block;
+  private final PublicKey key;
+  private final byte[] signature;
+  private final Optional<ExternalSignature> externalSignature;
+  private final int version;
 
   public SignedBlock(
       byte[] block,

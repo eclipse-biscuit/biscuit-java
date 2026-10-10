@@ -36,7 +36,7 @@ public final class MatchedVariables implements Serializable {
   }
 
   public boolean isComplete() {
-    return this.variables.values().stream().allMatch((v) -> v.isPresent());
+    return this.variables.values().stream().allMatch(Optional::isPresent);
   }
 
   public Optional<Map<Long, Term>> complete() {

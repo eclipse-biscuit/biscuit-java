@@ -32,10 +32,10 @@ import org.eclipse.biscuit.token.builder.parser.Parser;
 
 public final class Block {
   private String context;
-  private List<Fact> facts;
-  private List<Rule> rules;
-  private List<Check> checks;
-  private List<Scope> scopes;
+  private final List<Fact> facts;
+  private final List<Rule> rules;
+  private final List<Check> checks;
+  private final List<Scope> scopes;
 
   public Block() {
     this.context = "";

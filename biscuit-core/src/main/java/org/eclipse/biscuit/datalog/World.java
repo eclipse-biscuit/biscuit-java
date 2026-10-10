@@ -147,7 +147,7 @@ public final class World implements Serializable {
 
     s.append("World {\n\t\tfacts: [");
     for (Map.Entry<Origin, HashSet<Fact>> entry : this.facts.facts().entrySet()) {
-      s.append("\n\t\t\t" + entry.getKey() + ":");
+      s.append("\n\t\t\t").append(entry.getKey()).append(":");
       for (Fact f : entry.getValue()) {
         s.append("\n\t\t\t\t");
         s.append(symbolTable.formatFact(f));

@@ -242,9 +242,7 @@ public final class SerializedBiscuit {
     }
 
     biscuitBuilder.setProof(proofBuilder.build());
-    if (!this.rootKeyId.isEmpty()) {
-      biscuitBuilder.setRootKeyId(this.rootKeyId.get());
-    }
+    this.rootKeyId.ifPresent(biscuitBuilder::setRootKeyId);
 
     Schema.Biscuit biscuit = biscuitBuilder.build();
 
@@ -342,10 +340,7 @@ public final class SerializedBiscuit {
       SignedBlock signedBlock =
           new SignedBlock(block, nextKey, signature, externalSignature, blockSignatureVersion);
 
-      ArrayList<SignedBlock> blocks = new ArrayList<>();
-      for (SignedBlock bl : this.blocks) {
-        blocks.add(bl);
-      }
+      ArrayList<SignedBlock> blocks = new ArrayList<>(this.blocks);
       blocks.add(signedBlock);
 
       Proof proof = new Proof.NextSecret(next);
@@ -420,11 +415,9 @@ public final class SerializedBiscuit {
     }
 
     var verificationResult = publicKey.verify(payload.getOk(), signedBlock.getSignature());
-    if (verificationResult.isPresent()) {
-      return Result.err(verificationResult.get());
-    }
-
-    return Result.ok(signedBlock.getKey());
+    return verificationResult
+        .<Result<PublicKey, Error>>map(Result::err)
+        .orElseGet(() -> Result.ok(signedBlock.getKey()));
   }
 
   static Result<org.eclipse.biscuit.crypto.PublicKey, Error> verifyBlockSignature(
@@ -465,7 +458,6 @@ public final class SerializedBiscuit {
   }
 
   public Pair<Block, List<Block>> extractBlocks(SymbolTable symbolTable) throws Error {
-    ArrayList<Optional<org.eclipse.biscuit.crypto.PublicKey>> blockExternalKeys = new ArrayList<>();
     var authRes = Block.fromBytes(this.authority.getBlock(), Optional.empty());
     if (authRes.isErr()) {
       throw authRes.getErr();
@@ -474,7 +466,6 @@ public final class SerializedBiscuit {
     for (org.eclipse.biscuit.crypto.PublicKey pk : authority.getPublicKeys()) {
       symbolTable.insert(pk);
     }
-    blockExternalKeys.add(Optional.empty());
 
     for (String s : authority.getSymbolTable().symbols()) {
       symbolTable.add(s);
@@ -495,9 +486,7 @@ public final class SerializedBiscuit {
       // blocks with external signatures keep their own symbol table
       if (bdata.getExternalSignature().isPresent()) {
         // symbolTable.insert(bdata.externalSignature.get().key);
-        blockExternalKeys.add(Optional.of(bdata.getExternalSignature().get().getKey()));
       } else {
-        blockExternalKeys.add(Optional.empty());
         for (String s : block.getSymbolTable().symbols()) {
           symbolTable.add(s);
         }

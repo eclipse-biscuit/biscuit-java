@@ -221,11 +221,7 @@ public abstract class Term extends Expression {
       if (this == o) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      return true;
+      return o != null && getClass() == o.getClass();
     }
 
     @Override
@@ -440,16 +436,16 @@ public abstract class Term extends Expression {
 
     @Override
     public String toString() {
-      if (value.size() == 0) {
+      if (value.isEmpty()) {
         return "{,}";
       }
-      String s = "{";
+      StringBuilder s = new StringBuilder("{");
       int count = 0;
       for (Term elem : value) {
-        s += elem;
+        s.append(elem);
         count += 1;
         if (count < value.size()) {
-          s += ", ";
+          s.append(", ");
         }
       }
       return s + "}";

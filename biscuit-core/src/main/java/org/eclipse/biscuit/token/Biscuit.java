@@ -120,7 +120,6 @@ public final class Biscuit extends UnverifiedBiscuit {
     } else {
       SerializedBiscuit s = container.getOk();
 
-      Optional<SerializedBiscuit> c = Optional.of(s);
       return new Biscuit(authority, blocks, authority.getSymbolTable(), s);
     }
   }
@@ -339,10 +338,7 @@ public final class Biscuit extends UnverifiedBiscuit {
       symbolTable.insert(pk);
     }
 
-    ArrayList<Block> blocks = new ArrayList<>();
-    for (Block b : copiedBiscuit.blocks) {
-      blocks.add(b);
-    }
+    ArrayList<Block> blocks = new ArrayList<>(copiedBiscuit.blocks);
     blocks.add(block);
 
     SerializedBiscuit container = containerRes.getOk();

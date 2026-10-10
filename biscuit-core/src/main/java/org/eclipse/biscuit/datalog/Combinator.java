@@ -39,10 +39,10 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
 
   @Override
   public Pair<Origin, Map<Long, Term>> next() {
-    if (this.nextElement == null || !this.nextElement.isPresent()) {
+    if (this.nextElement == null || this.nextElement.isEmpty()) {
       this.nextElement = getNext();
     }
-    if (this.nextElement == null || !this.nextElement.isPresent()) {
+    if (this.nextElement == null || this.nextElement.isEmpty()) {
       throw new NoSuchElementException();
     } else {
       Pair<Origin, Map<Long, Term>> t = this.nextElement.get();
@@ -134,10 +134,6 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
             return Optional.empty();
           }
         }
-      }
-
-      if (this.currentIt == null) {
-        return Optional.empty();
       }
 
       Optional<Pair<Origin, Map<Long, Term>>> opt = this.currentIt.getNext();

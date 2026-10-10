@@ -6,6 +6,7 @@
 package org.eclipse.biscuit.datalog;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.expressions.Expression;
@@ -130,10 +131,8 @@ public final class SchemaVersion {
       for (Op op : e.getOps()) {
         if (op instanceof Op.Unary) {
           Op.Unary b = (Op.Unary) op;
-          switch (b.getOp()) {
-            case TypeOf:
-              return true;
-            default:
+          if (Objects.requireNonNull(b.getOp()) == Op.UnaryOp.TypeOf) {
+            return true;
           }
         } else if (op instanceof Op.Binary) {
           Op.Binary b = (Op.Binary) op;
@@ -174,9 +173,6 @@ public final class SchemaVersion {
     if (term instanceof Term.Array) {
       return true;
     }
-    if (term instanceof Term.Map) {
-      return true;
-    }
-    return false;
+    return term instanceof Term.Map;
   }
 }

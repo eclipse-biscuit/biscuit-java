@@ -16,8 +16,8 @@ public final class Scope {
     PublicKey
   }
 
-  private Kind kind;
-  private long publicKey;
+  private final Kind kind;
+  private final long publicKey;
 
   private Scope(Kind kind, long publicKey) {
     this.kind = kind;
@@ -106,7 +106,7 @@ public final class Scope {
   @Override
   public int hashCode() {
     int result = kind != null ? kind.hashCode() : 0;
-    result = 31 * result + (int) (publicKey ^ (publicKey >>> 32));
+    result = 31 * result + Long.hashCode(publicKey);
     return result;
   }
 }

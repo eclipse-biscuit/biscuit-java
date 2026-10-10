@@ -55,8 +55,8 @@ public final class Check {
       default:
     }
 
-    for (int i = 0; i < this.queries.size(); i++) {
-      b.addQueries(this.queries.get(i).serialize());
+    for (Rule query : this.queries) {
+      b.addQueries(query.serialize());
     }
 
     return b.build();

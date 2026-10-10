@@ -5,6 +5,8 @@
 
 package org.eclipse.biscuit.token.builder.parser;
 
+import java.util.Objects;
+
 public final class Error extends Exception {
   String input;
   String message;
@@ -31,10 +33,10 @@ public final class Error extends Exception {
 
     Error error = (Error) o;
 
-    if (input != null ? !input.equals(error.input) : error.input != null) {
+    if (!Objects.equals(input, error.input)) {
       return false;
     }
-    return message != null ? message.equals(error.message) : error.message == null;
+    return Objects.equals(message, error.message);
   }
 
   @Override

@@ -25,7 +25,7 @@ public abstract class Expression {
   }
 
   public static Expression convertFrom(ArrayList<Op> ops, SymbolTable symbolTable) {
-    Deque<Expression> stack = new ArrayDeque<Expression>(16);
+    Deque<Expression> stack = new ArrayDeque<>(16);
     for (Op op : ops) {
       if (op instanceof org.eclipse.biscuit.datalog.Term) {
         org.eclipse.biscuit.datalog.Term v = (org.eclipse.biscuit.datalog.Term) op;
@@ -479,8 +479,8 @@ public abstract class Expression {
   }
 
   public static final class Closure extends Expression {
-    private ArrayList<String> params;
-    private Expression body;
+    private final ArrayList<String> params;
+    private final Expression body;
 
     public Closure(Expression body) {
       this.params = new ArrayList<>();
@@ -493,10 +493,10 @@ public abstract class Expression {
     }
 
     public void toOpcodes(SymbolTable symbolTable, List<Op> ops) {
-      ArrayList<Long> paramIndexes = new ArrayList<Long>();
+      ArrayList<Long> paramIndexes = new ArrayList<>();
       for (String param : params) {
         long index = symbolTable.insert(param);
-        paramIndexes.add(new Long(index));
+        paramIndexes.add(index);
       }
       ArrayList<Op> bodyOps = new ArrayList<>();
       body.toOpcodes(symbolTable, bodyOps);
@@ -541,19 +541,19 @@ public abstract class Expression {
 
     @Override
     public String toString() {
-      if (params.size() == 0) {
+      if (params.isEmpty()) {
         return body.toString();
       }
 
-      String s = null;
+      StringBuilder s = null;
       for (String param : params) {
         if (s == null) {
-          s = "$" + param;
+          s = new StringBuilder("$" + param);
         } else {
-          s = s + ", $" + param;
+          s.append(", $").append(param);
         }
       }
-      return s + " -> " + body.toString();
+      return s + " -> " + body;
     }
   }
 }

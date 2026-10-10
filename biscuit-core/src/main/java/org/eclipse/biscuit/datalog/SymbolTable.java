@@ -72,7 +72,7 @@ public final class SymbolTable implements Serializable {
   private final List<PublicKey> publicKeys;
 
   public long insert(final String symbol) {
-    int index = this.DEFAULT_SYMBOLS.indexOf(symbol);
+    int index = DEFAULT_SYMBOLS.indexOf(symbol);
     if (index == -1) {
       index = this.symbols.indexOf(symbol);
       if (index == -1) {
@@ -114,7 +114,7 @@ public final class SymbolTable implements Serializable {
 
   public Optional<Long> get(final String symbol) {
     // looking for symbol in default symbols
-    long index = this.DEFAULT_SYMBOLS.indexOf(symbol);
+    long index = DEFAULT_SYMBOLS.indexOf(symbol);
     if (index == -1) {
       // looking for symbol in usages defined symbols
       index = this.symbols.indexOf(symbol);
@@ -129,8 +129,8 @@ public final class SymbolTable implements Serializable {
   }
 
   public Optional<String> getSymbol(int i) {
-    if (i >= 0 && i < this.DEFAULT_SYMBOLS.size() && i < DEFAULT_SYMBOLS_OFFSET) {
-      return Optional.of(this.DEFAULT_SYMBOLS.get(i));
+    if (i >= 0 && i < DEFAULT_SYMBOLS.size() && i < DEFAULT_SYMBOLS_OFFSET) {
+      return Optional.of(DEFAULT_SYMBOLS.get(i));
     } else if (i >= DEFAULT_SYMBOLS_OFFSET && i < this.symbols.size() + DEFAULT_SYMBOLS_OFFSET) {
       return Optional.of(this.symbols.get(i - DEFAULT_SYMBOLS_OFFSET));
     } else {
@@ -155,9 +155,9 @@ public final class SymbolTable implements Serializable {
 
   public String formatRuleBody(final Rule r) {
     final List<String> preds =
-        r.body().stream().map((p) -> this.formatPredicate(p)).collect(Collectors.toList());
+        r.body().stream().map(this::formatPredicate).collect(Collectors.toList());
     final List<String> expressions =
-        r.expressions().stream().map((c) -> this.formatExpression(c)).collect(Collectors.toList());
+        r.expressions().stream().map(this::formatExpression).collect(Collectors.toList());
 
     String res = String.join(", ", preds);
     if (!expressions.isEmpty()) {
@@ -170,7 +170,7 @@ public final class SymbolTable implements Serializable {
     if (!r.scopes().isEmpty()) {
       res += " trusting ";
       final List<String> scopes =
-          r.scopes().stream().map((s) -> this.formatScope(s)).collect(Collectors.toList());
+          r.scopes().stream().map(this::formatScope).collect(Collectors.toList());
       res += String.join(", ", scopes);
     }
     return res;
@@ -199,13 +199,7 @@ public final class SymbolTable implements Serializable {
   }
 
   public String formatPredicate(final Predicate p) {
-    List<String> ids =
-        p.terms().stream()
-            .map(
-                (t) -> {
-                  return this.formatTerm(t);
-                })
-            .collect(Collectors.toList());
+    List<String> ids = p.terms().stream().map(this::formatTerm).collect(Collectors.toList());
     return Optional.ofNullable(this.formatSymbol((int) p.name())).orElse("<?>")
         + "("
         + String.join(", ", ids)
@@ -220,15 +214,14 @@ public final class SymbolTable implements Serializable {
     } else if (i instanceof Term.Date) {
       return fromEpochIsoDate(((Term.Date) i).value());
     } else if (i instanceof Term.Integer) {
-      return "" + ((Term.Integer) i).value();
+      return String.valueOf(((Term.Integer) i).value());
     } else if (i instanceof Term.Str) {
       return "\"" + this.formatSymbol((int) ((Term.Str) i).value()) + "\"";
     } else if (i instanceof Term.Bytes) {
       return "hex:" + Utils.byteArrayToHexString(((Term.Bytes) i).value()).toLowerCase();
     } else if (i instanceof Term.Set) {
       final List<String> values =
-          ((Term.Set) i)
-              .value().stream().map((v) -> this.formatTerm(v)).collect(Collectors.toList());
+          ((Term.Set) i).value().stream().map(this::formatTerm).collect(Collectors.toList());
       if (values.isEmpty()) {
         return "{,}";
       } else {
@@ -239,11 +232,10 @@ public final class SymbolTable implements Serializable {
       return "null";
     } else if (i instanceof Term.Array) {
       final List<String> values =
-          ((Term.Array) i)
-              .value().stream().map((v) -> this.formatTerm(v)).collect(Collectors.toList());
+          ((Term.Array) i).value().stream().map(this::formatTerm).collect(Collectors.toList());
       return "[" + String.join(", ", values) + "]";
     } else if (i instanceof Term.Map) {
-      ArrayList<String> entries = new ArrayList();
+      ArrayList<String> entries = new ArrayList<>();
       for (Map.Entry<MapKey, Term> entry : ((Term.Map) i).value().entrySet()) {
         entries.add(formatTerm(entry.getKey()) + ": " + formatTerm(entry.getValue()));
       }
@@ -275,15 +267,15 @@ public final class SymbolTable implements Serializable {
         break;
     }
     final List<String> queries =
-        c.queries().stream().map((q) -> this.formatRuleBody(q)).collect(Collectors.toList());
+        c.queries().stream().map(this::formatRuleBody).collect(Collectors.toList());
     return prefix + String.join(" or ", queries);
   }
 
   public String formatWorld(final World w) {
     final List<String> facts =
-        w.getFacts().stream().map((f) -> this.formatFact(f)).collect(Collectors.toList());
+        w.getFacts().stream().map(this::formatFact).collect(Collectors.toList());
     final List<String> rules =
-        w.getRules().stream().map((r) -> this.formatRule(r)).collect(Collectors.toList());
+        w.getRules().stream().map(this::formatRule).collect(Collectors.toList());
 
     StringBuilder b = new StringBuilder();
     b.append("World {\n\tfacts: [\n\t\t");
