@@ -171,10 +171,7 @@ public class UnverifiedBiscuit {
       symbols.add(s);
     }
 
-    ArrayList<Block> blocks = new ArrayList<>();
-    for (Block b : copiedBiscuit.blocks) {
-      blocks.add(b);
-    }
+    ArrayList<Block> blocks = new ArrayList<>(copiedBiscuit.blocks);
     blocks.add(block);
     SerializedBiscuit container = containerRes.getOk();
 
@@ -318,10 +315,7 @@ public class UnverifiedBiscuit {
 
     SymbolTable symbols = new SymbolTable(copiedBiscuit.symbolTable);
 
-    ArrayList<Block> blocks = new ArrayList<>();
-    for (Block b : copiedBiscuit.blocks) {
-      blocks.add(b);
-    }
+    ArrayList<Block> blocks = new ArrayList<>(copiedBiscuit.blocks);
     blocks.add(block);
 
     return new UnverifiedBiscuit(copiedBiscuit.authority, blocks, symbols, container);

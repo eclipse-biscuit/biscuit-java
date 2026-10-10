@@ -7,6 +7,7 @@ package org.eclipse.biscuit.token.builder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.datalog.SymbolTable;
 
@@ -51,9 +52,8 @@ public final class Predicate implements Cloneable {
 
   @Override
   public String toString() {
-    final List<String> i =
-        terms.stream().map((term) -> term.toString()).collect(Collectors.toList());
-    return "" + name + "(" + String.join(", ", i) + ")";
+    final List<String> i = terms.stream().map(Object::toString).collect(Collectors.toList());
+    return name + "(" + String.join(", ", i) + ")";
   }
 
   @Override
@@ -67,10 +67,10 @@ public final class Predicate implements Cloneable {
 
     Predicate predicate = (Predicate) o;
 
-    if (name != null ? !name.equals(predicate.name) : predicate.name != null) {
+    if (!Objects.equals(name, predicate.name)) {
       return false;
     }
-    return terms != null ? terms.equals(predicate.terms) : predicate.terms == null;
+    return Objects.equals(terms, predicate.terms);
   }
 
   @Override
@@ -83,7 +83,7 @@ public final class Predicate implements Cloneable {
   @Override
   public Predicate clone() {
     String name = this.name;
-    List<Term> terms = new ArrayList<Term>(this.terms.size());
+    List<Term> terms = new ArrayList<>(this.terms.size());
     terms.addAll(this.terms);
     return new Predicate(name, terms);
   }

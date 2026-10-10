@@ -6,7 +6,7 @@
 package org.eclipse.biscuit.datalog.expressions;
 
 import biscuit.format.schema.Schema;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.eclipse.biscuit.datalog.MapKey;
@@ -90,11 +91,7 @@ public abstract class Op {
             if (s.isEmpty()) {
               throw new Error.Execution("string not found in symbols for id" + value);
             } else {
-              try {
-                stack.push(new Term.Integer(s.get().getBytes("UTF-8").length));
-              } catch (UnsupportedEncodingException e) {
-                throw new Error.Execution("cannot calculate string length: " + e.toString());
-              }
+              stack.push(new Term.Integer(s.get().getBytes(StandardCharsets.UTF_8).length));
             }
           } else if (value instanceof Term.Bytes) {
             stack.push(new Term.Integer(((Term.Bytes) value).value().length));
@@ -536,7 +533,7 @@ public abstract class Op {
               Closure closure = (Closure) right;
               Term result = closure.call(variables, temporarySymbolTable);
               if (result instanceof Term.Bool) {
-                stack.push((Term.Bool) result);
+                stack.push(result);
               }
             } else {
               stack.push(new Term.Bool(false));
@@ -551,14 +548,14 @@ public abstract class Op {
               Closure closure = (Closure) right;
               Term result = closure.call(variables, temporarySymbolTable);
               if (result instanceof Term.Bool) {
-                stack.push((Term.Bool) result);
+                stack.push(result);
               }
             }
           }
           break;
         case Intersection:
           if (right instanceof Term.Set && left instanceof Term.Set) {
-            HashSet<Term> intersec = new HashSet<Term>();
+            HashSet<Term> intersec = new HashSet<>();
             HashSet<Term> setRight = ((Term.Set) right).value();
             HashSet<Term> setLeft = ((Term.Set) left).value();
             for (Term locId : setRight) {
@@ -571,7 +568,7 @@ public abstract class Op {
           break;
         case Union:
           if (right instanceof Term.Set && left instanceof Term.Set) {
-            HashSet<Term> union = new HashSet<Term>();
+            HashSet<Term> union = new HashSet<>();
             HashSet<Term> setRight = ((Term.Set) right).value();
             HashSet<Term> setLeft = ((Term.Set) left).value();
             union.addAll(setRight);
@@ -608,22 +605,14 @@ public abstract class Op {
               stack.push(new Term.Null());
             } else {
               Term element = array.get(index);
-              if (element != null) {
-                stack.push(element);
-              } else {
-                stack.push(new Term.Null());
-              }
+              stack.push(Objects.requireNonNullElseGet(element, Term.Null::new));
             }
           }
           if (right instanceof MapKey && left instanceof Term.Map) {
             MapKey key = (MapKey) right;
             HashMap<MapKey, Term> map = ((Term.Map) left).value();
             Term value = map.get(key);
-            if (value != null) {
-              stack.push(value);
-            } else {
-              stack.push(new Term.Null());
-            }
+            stack.push(Objects.requireNonNullElseGet(value, Term.Null::new));
           }
           break;
         case Any:
@@ -1088,7 +1077,7 @@ public abstract class Op {
       if (arity() != 0) {
         throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
       }
-      Deque<Op> stack = new ArrayDeque<Op>(16); // Default value
+      Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
         op.evaluate(stack, variables, temporarySymbolTable);
       }
@@ -1107,7 +1096,7 @@ public abstract class Op {
         throw new Error.Execution(
             Error.Execution.Kind.ShadowedVariable, "closure parameter shadows variable");
       }
-      Deque<Op> stack = new ArrayDeque<Op>(16); // Default value
+      Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
         op.evaluate(stack, variables, temporarySymbolTable);
       }
@@ -1165,7 +1154,7 @@ public abstract class Op {
       ArrayList<Op> ops = new ArrayList<>();
 
       for (long param : closure.getParamsList()) {
-        params.add(new Long(param));
+        params.add(param);
       }
 
       for (Schema.Op op : closure.getOpsList()) {

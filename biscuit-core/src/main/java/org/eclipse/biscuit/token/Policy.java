@@ -25,7 +25,7 @@ public final class Policy {
   }
 
   private final List<Rule> queries;
-  private Kind kind;
+  private final Kind kind;
 
   public Policy(List<Rule> queries, Kind kind) {
     this.queries = queries;
@@ -42,8 +42,7 @@ public final class Policy {
 
   @Override
   public String toString() {
-    final List<String> qs =
-        queries.stream().map((q) -> q.bodyToString()).collect(Collectors.toList());
+    final List<String> qs = queries.stream().map(Rule::bodyToString).collect(Collectors.toList());
 
     switch (this.kind) {
       case ALLOW:

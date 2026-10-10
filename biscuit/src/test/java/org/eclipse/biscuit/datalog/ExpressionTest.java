@@ -27,7 +27,7 @@ public class ExpressionTest {
 
     Expression e =
         new Expression(
-            new ArrayList<Op>(
+            new ArrayList<>(
                 Arrays.asList(
                     new Term.Integer(1),
                     new Term.Variable(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2),
@@ -51,7 +51,7 @@ public class ExpressionTest {
 
     Expression e =
         new Expression(
-            new ArrayList<Op>(
+            new ArrayList<>(
                 Arrays.asList(
                     new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET),
                     new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1),
@@ -72,7 +72,7 @@ public class ExpressionTest {
 
     Expression e =
         new Expression(
-            new ArrayList<Op>(
+            new ArrayList<>(
                 Arrays.asList(
                     new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET),
                     new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1),
@@ -92,7 +92,7 @@ public class ExpressionTest {
 
     Expression e =
         new Expression(
-            new ArrayList<Op>(
+            new ArrayList<>(
                 Arrays.asList(
                     new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET),
                     new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 1),
@@ -111,7 +111,7 @@ public class ExpressionTest {
 
     Expression e =
         new Expression(
-            new ArrayList<Op>(
+            new ArrayList<>(
                 Arrays.asList(
                     new Term.Set(
                         new HashSet<>(

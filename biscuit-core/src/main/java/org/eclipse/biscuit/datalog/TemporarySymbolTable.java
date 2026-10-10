@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Optional;
 
 public final class TemporarySymbolTable {
-  private SymbolTable base;
-  private int offset;
-  private List<String> symbols;
+  private final SymbolTable base;
+  private final int offset;
+  private final List<String> symbols;
 
   public TemporarySymbolTable(SymbolTable base) {
     this.offset = DEFAULT_SYMBOLS_OFFSET + base.currentOffset();
@@ -42,7 +42,7 @@ public final class TemporarySymbolTable {
 
     int index = this.symbols.indexOf(symbol);
     if (index != -1) {
-      return (long) (this.offset + index);
+      return this.offset + index;
     }
     this.symbols.add(symbol);
     return this.symbols.size() - 1 + this.offset;

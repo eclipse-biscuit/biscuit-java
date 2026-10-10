@@ -219,7 +219,6 @@ public final class Parser {
       return Result.err(new Error(s, "rule arrow not found"));
     }
 
-    List<Predicate> predicates = new ArrayList<Predicate>();
     s = s.substring(2);
 
     var bodyRes = ruleBody(s);
@@ -288,7 +287,6 @@ public final class Parser {
       return Result.err(new Error(s, "missing policy prefix"));
     }
 
-    List<Rule> queries = new ArrayList<>();
     var bodyRes = checkBody(s);
     if (bodyRes.isErr()) {
       return Result.err(bodyRes.getErr());
@@ -326,7 +324,6 @@ public final class Parser {
     }
     queries.add(valid.getOk());
 
-    int i = 0;
     while (true) {
       if (s.isEmpty()) {
         break;
@@ -359,7 +356,7 @@ public final class Parser {
   }
 
   public static Result<RuleBody, Error> ruleBody(String s) {
-    List<Predicate> predicates = new ArrayList<Predicate>();
+    List<Predicate> predicates = new ArrayList<>();
     List<Expression> expressions = new ArrayList<>();
 
     while (true) {
@@ -406,17 +403,17 @@ public final class Parser {
     String name = tn._1;
     s = tn._2;
 
-    if (name.length() == 0) {
+    if (name.isEmpty()) {
       return Result.err(new Error(s, "no predicate name"));
     }
 
     s = space(s);
-    if (s.length() == 0 || s.charAt(0) != '(') {
+    if (s.isEmpty() || s.charAt(0) != '(') {
       return Result.err(new Error(s, "opening parens not found for predicate " + name));
     }
     s = s.substring(1);
 
-    List<Term> terms = new ArrayList<Term>();
+    List<Term> terms = new ArrayList<>();
     while (true) {
 
       s = space(s);
@@ -445,7 +442,7 @@ public final class Parser {
     }
     String remaining = s.substring(1);
 
-    return Result.ok(new Pair<String, Predicate>(remaining, new Predicate(name, terms)));
+    return Result.ok(new Pair<>(remaining, new Predicate(name, terms)));
   }
 
   public static Result<Pair<String, List<Scope>>, Error> scopes(String s) {
@@ -455,7 +452,7 @@ public final class Parser {
     s = s.substring("trusting".length());
     s = space(s);
 
-    List<Scope> scopes = new ArrayList<Scope>();
+    List<Scope> scopes = new ArrayList<>();
 
     while (true) {
       s = space(s);
@@ -499,7 +496,7 @@ public final class Parser {
         return Result.err(new Error(s, "unrecognized parameter"));
       }
       Pair<String, String> t = res.getOk();
-      if (!s.isEmpty() && s.charAt(0) == '}') {
+      if (s.charAt(0) == '}') {
         return Result.ok(new Pair<>(t._1, Scope.parameter(t._2)));
       } else {
         return Result.err(new Error(s, "unrecognized parameter end"));
@@ -544,12 +541,12 @@ public final class Parser {
     s = tn._2;
 
     s = space(s);
-    if (s.length() == 0 || s.charAt(0) != '(') {
+    if (s.isEmpty() || s.charAt(0) != '(') {
       return Result.err(new Error(s, "opening parens not found for fact " + name));
     }
     s = s.substring(1);
 
-    List<Term> terms = new ArrayList<Term>();
+    List<Term> terms = new ArrayList<>();
     while (true) {
 
       s = space(s);
@@ -578,7 +575,7 @@ public final class Parser {
     }
     String remaining = s.substring(1);
 
-    return Result.ok(new Pair<String, Predicate>(remaining, new Predicate(name, terms)));
+    return Result.ok(new Pair<>(remaining, new Predicate(name, terms)));
   }
 
   public static Result<Pair<String, String>, Error> name(String s) {
@@ -586,7 +583,7 @@ public final class Parser {
     String name = t._1;
     String remaining = t._2;
 
-    return Result.ok(new Pair<String, String>(remaining, name));
+    return Result.ok(new Pair<>(remaining, name));
   }
 
   public static Result<Pair<String, Term>, Error> term(String s) {
@@ -762,7 +759,7 @@ public final class Parser {
     String string = s.substring(1, index + 1);
     String remaining = s.substring(index + 2);
 
-    return Result.ok(new Pair<String, Term.Str>(remaining, (Term.Str) Utils.string(string)));
+    return Result.ok(new Pair<>(remaining, (Term.Str) Utils.string(string)));
   }
 
   public static Result<Pair<String, Term.Integer>, Error> integer(String s) {
@@ -788,7 +785,7 @@ public final class Parser {
     long i = Long.parseLong(s.substring(0, index2));
     String remaining = s.substring(index2);
 
-    return Result.ok(new Pair<String, Term.Integer>(remaining, (Term.Integer) Utils.integer(i)));
+    return Result.ok(new Pair<>(remaining, (Term.Integer) Utils.integer(i)));
   }
 
   public static Result<Pair<String, Term.Date>, Error> date(String s) {
@@ -798,7 +795,7 @@ public final class Parser {
     try {
       OffsetDateTime d = OffsetDateTime.parse(t._1);
       String remaining = t._2;
-      return Result.ok(new Pair<String, Term.Date>(remaining, new Term.Date(d.toEpochSecond())));
+      return Result.ok(new Pair<>(remaining, new Term.Date(d.toEpochSecond())));
     } catch (DateTimeParseException e) {
       return Result.err(new Error(s, "not a date"));
     }
@@ -813,7 +810,7 @@ public final class Parser {
         takewhile(
             s.substring(1), (c) -> Character.isAlphabetic(c) || Character.isDigit(c) || c == '_');
 
-    return Result.ok(new Pair<String, Term.Variable>(t._2, (Term.Variable) Utils.var(t._1)));
+    return Result.ok(new Pair<>(t._2, (Term.Variable) Utils.var(t._1)));
   }
 
   public static Result<Pair<String, Term.Null>, Error> nullTerm(String s) {
@@ -846,7 +843,7 @@ public final class Parser {
     }
     s = s.substring(1);
 
-    ArrayList<Term> terms = new ArrayList<Term>();
+    ArrayList<Term> terms = new ArrayList<>();
     while (true) {
 
       s = space(s);
@@ -890,7 +887,7 @@ public final class Parser {
     }
     s = s.substring(1);
 
-    HashMap<MapKey, Term> v = new HashMap<MapKey, Term>();
+    HashMap<MapKey, Term> v = new HashMap<>();
     while (true) {
       s = space(s);
 
@@ -953,13 +950,13 @@ public final class Parser {
       s = space(s.substring(1));
       if (s.charAt(0) == '}') {
         s = s.substring(1);
-        return Result.ok(new Pair<>(s, new Term.Set(new HashSet<Term>())));
+        return Result.ok(new Pair<>(s, new Term.Set(new HashSet<>())));
       } else {
         return Result.err(new Error(s, "closing brace not found"));
       }
     }
 
-    HashSet<Term> terms = new HashSet<Term>();
+    HashSet<Term> terms = new HashSet<>();
     while (true) {
 
       s = space(s);

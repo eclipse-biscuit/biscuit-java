@@ -63,7 +63,7 @@ public final class FactSet {
     }
   }
 
-  public Stream stream(TrustedOrigins blockIds) {
+  public Stream<Pair<Origin, Fact>> stream(TrustedOrigins blockIds) {
     return facts.entrySet().stream()
         .filter(
             entry -> {
