@@ -72,10 +72,10 @@ public final class Rule implements Serializable {
                 }
                 // continue evaluating if true
               } else {
-                return Stream.empty();
+                return Stream.of(Result.err(new Error.InvalidType()));
               }
             } catch (Error error) {
-              return Stream.empty();
+              return Stream.of(Result.err(error));
             }
           }
 
