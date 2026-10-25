@@ -301,11 +301,9 @@ public abstract class Term extends Op implements Serializable {
     public boolean match(final Term other) {
       if (other instanceof Variable) {
         return true;
+      } else {
+        return this.equals(other);
       }
-      if (other instanceof Bytes) {
-        return this.value.equals(((Bytes) other).value);
-      }
-      return false;
     }
 
     public Bytes(final byte[] value) {
