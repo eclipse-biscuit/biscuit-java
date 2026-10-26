@@ -16,9 +16,9 @@ import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.error.Error;
 
 public final class ThirdPartyBlockContents {
-  private byte[] payload;
-  private byte[] signature;
-  private PublicKey publicKey;
+  private final byte[] payload;
+  private final byte[] signature;
+  private final PublicKey publicKey;
 
   ThirdPartyBlockContents(byte[] payload, byte[] signature, PublicKey publicKey) {
     this.payload = payload;

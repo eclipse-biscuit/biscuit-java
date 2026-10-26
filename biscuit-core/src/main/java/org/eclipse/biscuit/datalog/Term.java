@@ -103,11 +103,7 @@ public abstract class Term extends Op implements Serializable {
       if (this == o) {
         return true;
       }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      return true;
+      return o != null && getClass() == o.getClass();
     }
 
     @Override
@@ -177,7 +173,7 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public int hashCode() {
-      return (int) (value ^ (value >>> 32));
+      return Long.hashCode(value);
     }
 
     @Override
@@ -244,12 +240,12 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public int hashCode() {
-      return (int) (value ^ (value >>> 32));
+      return Long.hashCode(value);
     }
 
     @Override
     public String toString() {
-      return "" + this.value;
+      return String.valueOf(this.value);
     }
 
     public Schema.TermV2 serializeTerm() {
@@ -393,7 +389,7 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public int hashCode() {
-      return (int) (value ^ (value >>> 32));
+      return Long.hashCode(value);
     }
 
     public Schema.TermV2 serializeTerm() {
@@ -468,7 +464,7 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public int hashCode() {
-      return (int) (value ^ (value >>> 32));
+      return Long.hashCode(value);
     }
 
     @Override
@@ -541,7 +537,7 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public String toString() {
-      return "" + this.value;
+      return String.valueOf(this.value);
     }
 
     public Schema.TermV2 serializeTerm() {
@@ -608,7 +604,7 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public String toString() {
-      return "" + value;
+      return String.valueOf(value);
     }
 
     public Schema.TermV2 serializeTerm() {
@@ -710,7 +706,7 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public String toString() {
-      return "" + value;
+      return String.valueOf(value);
     }
 
     public Schema.TermV2 serializeTerm() {
@@ -735,7 +731,7 @@ public abstract class Term extends Op implements Serializable {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected map"));
       }
-      java.util.HashMap<MapKey, Term> values = new HashMap();
+      java.util.HashMap<MapKey, Term> values = new HashMap<>();
       Schema.Map s = term.getMap();
 
       for (Schema.MapEntry l : s.getEntriesList()) {
@@ -817,16 +813,16 @@ public abstract class Term extends Op implements Serializable {
 
     @Override
     public String toString() {
-      if (value.size() == 0) {
+      if (value.isEmpty()) {
         return "{,}";
       }
-      String s = "{";
+      StringBuilder s = new StringBuilder("{");
       int count = 0;
       for (Term elem : value) {
-        s += elem;
+        s.append(elem);
         count += 1;
         if (count < value.size()) {
-          s += ", ";
+          s.append(", ");
         }
       }
       return s + "}";

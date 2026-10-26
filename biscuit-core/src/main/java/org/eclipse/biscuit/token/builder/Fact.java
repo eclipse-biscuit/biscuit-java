@@ -8,6 +8,7 @@ package org.eclipse.biscuit.token.builder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,7 +21,7 @@ public final class Fact implements Cloneable {
   Optional<Map<String, Optional<Term>>> variables;
 
   public Fact(String name, List<Term> terms) {
-    Map<String, Optional<Term>> variables = new HashMap<String, Optional<Term>>();
+    Map<String, Optional<Term>> variables = new HashMap<>();
     for (Term term : terms) {
       if (term instanceof Term.Variable) {
         variables.put(((Term.Variable) term).value, Optional.empty());
@@ -41,7 +42,7 @@ public final class Fact implements Cloneable {
   }
 
   public void validate() throws Error.Language {
-    if (!this.variables.isEmpty()) {
+    if (this.variables.isPresent()) {
       List<String> invalidVariables =
           variables.get().entrySet().stream()
               .flatMap(
@@ -75,21 +76,21 @@ public final class Fact implements Cloneable {
 
   public Fact applyVariables() {
     this.variables.ifPresent(
-        laVariables -> {
-          this.predicate.terms =
-              this.predicate.terms.stream()
-                  .flatMap(
-                      t -> {
-                        if (t instanceof Term.Variable) {
-                          Optional<Term> term =
-                              laVariables.getOrDefault(((Term.Variable) t).value, Optional.empty());
-                          return term.map(t2 -> Stream.of(t2)).orElse(Stream.empty());
-                        } else {
-                          return Stream.of(t);
-                        }
-                      })
-                  .collect(Collectors.toList());
-        });
+        laVariables ->
+            this.predicate.terms =
+                this.predicate.terms.stream()
+                    .flatMap(
+                        t -> {
+                          if (t instanceof Term.Variable) {
+                            Optional<Term> term =
+                                laVariables.getOrDefault(
+                                    ((Term.Variable) t).value, Optional.empty());
+                            return term.stream();
+                          } else {
+                            return Stream.of(t);
+                          }
+                        })
+                    .collect(Collectors.toList()));
     return this;
   }
 
@@ -129,7 +130,7 @@ public final class Fact implements Cloneable {
 
     Fact fact = (Fact) o;
 
-    return predicate != null ? predicate.equals(fact.predicate) : fact.predicate == null;
+    return Objects.equals(predicate, fact.predicate);
   }
 
   @Override
@@ -140,13 +141,7 @@ public final class Fact implements Cloneable {
   @Override
   public Fact clone() {
     Predicate p = this.predicate.clone();
-    Optional<Map<String, Optional<Term>>> variables =
-        this.variables.map(
-            v -> {
-              Map<String, Optional<Term>> m = new HashMap<>();
-              m.putAll(v);
-              return m;
-            });
+    Optional<Map<String, Optional<Term>>> variables = this.variables.map(HashMap::new);
     return new Fact(p, variables);
   }
 }

@@ -86,14 +86,14 @@ public final class Rule implements Serializable {
               if (!generatedVariables.containsKey(var.value())) {
                 // throw new Error("variables that appear in the head should appear in the body
                 // as well");
-                return Stream.of(Result.<Pair<Origin, Fact>, Error>err(new Error.InternalError()));
+                return Stream.of(Result.err(new Error.InternalError()));
               }
               p.terms().set(index, generatedVariables.get(var.value()));
             }
           }
 
           origin.add(ruleOrigin);
-          return Stream.of(Result.<Pair<Origin, Fact>, Error>ok(new Pair<>(origin, new Fact(p))));
+          return Stream.of(Result.ok(new Pair<>(origin, new Fact(p))));
         });
   }
 
@@ -194,12 +194,12 @@ public final class Rule implements Serializable {
   public Schema.RuleV2 serialize() {
     Schema.RuleV2.Builder b = Schema.RuleV2.newBuilder().setHead(this.head.serialize());
 
-    for (int i = 0; i < this.body.size(); i++) {
-      b.addBody(this.body.get(i).serialize());
+    for (Predicate predicate : this.body) {
+      b.addBody(predicate.serialize());
     }
 
-    for (int i = 0; i < this.expressions.size(); i++) {
-      b.addExpressions(this.expressions.get(i).serialize());
+    for (Expression expression : this.expressions) {
+      b.addExpressions(expression.serialize());
     }
 
     for (Scope scope : this.scopes) {

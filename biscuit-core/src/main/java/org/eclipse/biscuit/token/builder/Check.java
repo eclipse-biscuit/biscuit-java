@@ -7,6 +7,7 @@ package org.eclipse.biscuit.token.builder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.datalog.Check.Kind;
 import org.eclipse.biscuit.datalog.SymbolTable;
@@ -59,8 +60,7 @@ public final class Check {
 
   @Override
   public String toString() {
-    final List<String> qs =
-        queries.stream().map((q) -> q.bodyToString()).collect(Collectors.toList());
+    final List<String> qs = queries.stream().map(Rule::bodyToString).collect(Collectors.toList());
 
     switch (kind) {
       case ONE:
@@ -85,7 +85,7 @@ public final class Check {
 
     Check check = (Check) o;
 
-    return queries != null ? queries.equals(check.queries) : check.queries == null;
+    return Objects.equals(queries, check.queries);
   }
 
   @Override

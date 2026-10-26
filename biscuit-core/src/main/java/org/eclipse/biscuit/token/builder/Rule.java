@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,12 +58,9 @@ public final class Rule implements Cloneable {
 
   @Override
   public Rule clone() {
-    List<Predicate> body = new ArrayList<>();
-    body.addAll(this.body);
-    List<Expression> expressions = new ArrayList<>();
-    expressions.addAll(this.expressions);
-    List<Scope> scopes = new ArrayList<>();
-    scopes.addAll(this.scopes);
+    List<Predicate> body = new ArrayList<>(this.body);
+    List<Expression> expressions = new ArrayList<>(this.expressions);
+    List<Scope> scopes = new ArrayList<>(this.scopes);
     Predicate head = this.head.clone();
     return new Rule(head, body, expressions, scopes);
   }
@@ -90,7 +88,7 @@ public final class Rule implements Cloneable {
                         if (t instanceof Term.Variable) {
                           Optional<Term> term =
                               laVariables.getOrDefault(((Term.Variable) t).value, Optional.empty());
-                          return term.map(t2 -> Stream.of(t2)).orElse(Stream.of(t));
+                          return term.map(Stream::of).orElse(Stream.of(t));
                         } else {
                           return Stream.of(t);
                         }
@@ -105,7 +103,7 @@ public final class Rule implements Cloneable {
                             Optional<Term> term =
                                 laVariables.getOrDefault(
                                     ((Term.Variable) t).value, Optional.empty());
-                            return term.map(t2 -> Stream.of(t2)).orElse(Stream.of(t));
+                            return term.map(Stream::of).orElse(Stream.of(t));
                           } else {
                             return Stream.of(t);
                           }
@@ -171,7 +169,7 @@ public final class Rule implements Cloneable {
     return Result.err(
         "rule head or expressions contains variables that are not "
             + "used in predicates of the rule's body: "
-            + freeVariables.toString());
+            + freeVariables);
   }
 
   public org.eclipse.biscuit.datalog.Rule convert(SymbolTable symbolTable) {
@@ -228,16 +226,16 @@ public final class Rule implements Cloneable {
 
     Rule rule = (Rule) o;
 
-    if (head != null ? !head.equals(rule.head) : rule.head != null) {
+    if (!Objects.equals(head, rule.head)) {
       return false;
     }
-    if (body != null ? !body.equals(rule.body) : rule.body != null) {
+    if (!Objects.equals(body, rule.body)) {
       return false;
     }
-    if (scopes != null ? !scopes.equals(rule.scopes) : rule.scopes != null) {
+    if (!Objects.equals(scopes, rule.scopes)) {
       return false;
     }
-    return expressions != null ? expressions.equals(rule.expressions) : rule.expressions == null;
+    return Objects.equals(expressions, rule.expressions);
   }
 
   @Override
@@ -255,8 +253,7 @@ public final class Rule implements Cloneable {
     String res = "";
 
     if (!r.body.isEmpty()) {
-      final List<String> b =
-          r.body.stream().map((pred) -> pred.toString()).collect(Collectors.toList());
+      final List<String> b = r.body.stream().map(Predicate::toString).collect(Collectors.toList());
       res += String.join(", ", b);
     }
 
@@ -265,9 +262,7 @@ public final class Rule implements Cloneable {
         res += ", ";
       }
       final List<String> e =
-          r.expressions.stream()
-              .map((expression) -> expression.toString())
-              .collect(Collectors.toList());
+          r.expressions.stream().map(Object::toString).collect(Collectors.toList());
       res += String.join(", ", e);
     }
 
@@ -275,8 +270,7 @@ public final class Rule implements Cloneable {
       if (!r.body.isEmpty() || !r.expressions.isEmpty()) {
         res += " ";
       }
-      final List<String> e =
-          r.scopes.stream().map((scope) -> scope.toString()).collect(Collectors.toList());
+      final List<String> e = r.scopes.stream().map(Scope::toString).collect(Collectors.toList());
       res += "trusting " + String.join(", ", e);
     }
 

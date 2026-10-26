@@ -84,9 +84,7 @@ public final class BlockSignatureBuffer {
     }
     var toVerify = ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
     toVerify.put(payload);
-    if (externalSignature.isPresent()) {
-      toVerify.put(externalSignature.get().getSignature());
-    }
+    externalSignature.ifPresent(signature -> toVerify.put(signature.getSignature()));
     toVerify.putInt(nextKey.getAlgorithm().getNumber());
     toVerify.put(nextKeyBytes);
     toVerify.flip();

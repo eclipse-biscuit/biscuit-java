@@ -21,13 +21,13 @@ import org.eclipse.biscuit.token.Block;
 import org.eclipse.biscuit.token.builder.parser.Parser;
 
 public final class Biscuit {
-  private SecureRandom rng;
-  private Signer root;
+  private final SecureRandom rng;
+  private final Signer root;
   private String context;
-  private List<Fact> facts;
-  private List<Rule> rules;
-  private List<Check> checks;
-  private List<Scope> scopes;
+  private final List<Fact> facts;
+  private final List<Rule> rules;
+  private final List<Check> checks;
+  private final List<Scope> scopes;
   private Optional<Integer> rootKeyId;
 
   public Biscuit(final SecureRandom rng, final Signer root) {

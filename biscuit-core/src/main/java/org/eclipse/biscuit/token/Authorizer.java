@@ -187,7 +187,7 @@ public final class Authorizer {
           TrustedOrigins ruleTrustedOrigins =
               TrustedOrigins.fromScopes(
                   convertedRule.scopes(), blockTrustedOrigins, i + 1, this.publicKeyToBlockId);
-          world.addRule((long) i + 1, ruleTrustedOrigins, convertedRule);
+          world.addRule(i + 1, ruleTrustedOrigins, convertedRule);
         }
       }
     }
@@ -415,8 +415,7 @@ public final class Authorizer {
       org.eclipse.biscuit.datalog.Check c = this.checks.get(i).convert(symbolTable);
       boolean successful = false;
 
-      for (int j = 0; j < c.queries().size(); j++) {
-        org.eclipse.biscuit.datalog.Rule query = c.queries().get(j);
+      for (org.eclipse.biscuit.datalog.Rule query : c.queries()) {
         TrustedOrigins ruleTrustedOrigins =
             TrustedOrigins.fromScopes(
                 query.scopes(), authorizerTrustedOrigins, Long.MAX_VALUE, this.publicKeyToBlockId);
@@ -501,8 +500,8 @@ public final class Authorizer {
     for (int i = 0; i < this.policies.size(); i++) {
       Policy policy = this.policies.get(i);
 
-      for (int j = 0; j < policy.queries().size(); j++) {
-        org.eclipse.biscuit.datalog.Rule query = policy.queries().get(j).convert(symbolTable);
+      for (Rule policyQuery : policy.queries()) {
+        org.eclipse.biscuit.datalog.Rule query = policyQuery.convert(symbolTable);
         TrustedOrigins policyTrustedOrigins =
             TrustedOrigins.fromScopes(
                 query.scopes(), authorizerTrustedOrigins, Long.MAX_VALUE, this.publicKeyToBlockId);
@@ -513,7 +512,7 @@ public final class Authorizer {
         }
 
         if (res) {
-          if (this.policies.get(i).kind() == Policy.Kind.ALLOW) {
+          if (policy.kind() == Policy.Kind.ALLOW) {
             policyResult = Optional.of(Result.ok(i));
           } else {
             policyResult = Optional.of(Result.err(i));
@@ -597,7 +596,7 @@ public final class Authorizer {
     StringBuilder facts = new StringBuilder();
     for (Map.Entry<Origin, HashSet<org.eclipse.biscuit.datalog.Fact>> entry :
         this.world.getFacts().facts().entrySet()) {
-      facts.append("\n\t\t" + entry.getKey() + ":");
+      facts.append("\n\t\t").append(entry.getKey()).append(":");
       for (org.eclipse.biscuit.datalog.Fact f : entry.getValue()) {
         facts.append("\n\t\t\t");
         facts.append(this.symbolTable.formatFact(f));
@@ -605,13 +604,13 @@ public final class Authorizer {
     }
     final List<String> rules =
         this.world.getRules().stream()
-            .map((r) -> this.symbolTable.formatRule(r))
+            .map(this.symbolTable::formatRule)
             .collect(Collectors.toList());
 
     List<String> checks = new ArrayList<>();
 
     for (int j = 0; j < this.checks.size(); j++) {
-      checks.add("Authorizer[" + j + "]: " + this.checks.get(j).toString());
+      checks.add("Authorizer[" + j + "]: " + this.checks.get(j));
     }
 
     if (this.token != null) {
@@ -649,7 +648,7 @@ public final class Authorizer {
     }
 
     return "World {\n\tfacts: ["
-        + facts.toString()
+        + facts
         // String.join(",\n\t\t", facts) +
         + "\n\t],\n\trules: [\n\t\t"
         + String.join(",\n\t\t", rules)
