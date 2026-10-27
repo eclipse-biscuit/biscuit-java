@@ -30,7 +30,7 @@
         <maven-source.version>2.2.1</maven-source.version>
         <maven-javadoc.version>2.9.1</maven-javadoc.version>
         <maven-antrun.version>1.8</maven-antrun.version>
-        <nexus-staging-maven.version>1.6.7</nexus-staging-maven.version>
+        <central-publishing-maven.version>0.12.0</central-publishing-maven.version>
         <build-helper-maven.version>3.0.0</build-helper-maven.version>
         <maven-compiler-plugin.version>3.10.0</maven-compiler-plugin.version>
         <spotless.version>2.44.2</spotless.version>
@@ -88,14 +88,6 @@
         <url>git@github.com:biscuit-auth/biscuit-java.git</url>
     </scm>
 
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <name>Central Repository OSSRH</name>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
     <profiles>
         <profile>
             <id>deploy</id>
@@ -119,6 +111,17 @@
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>
                             </gpgArguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-maven.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -180,17 +183,6 @@
                         <arg>-verbose</arg>
                         <arg>-Xlint:all,-options,-path</arg>
                     </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>${nexus-staging-maven.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
             <plugin>
