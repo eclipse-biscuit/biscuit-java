@@ -6,7 +6,7 @@ mvn versions:set -DnewVersion=<NEW-VERSION>
 
 Commit and tag the version. Then push and create a **GitHub release**.
 
-Finally, publishing to [Maven Central](https://central.sonatype.com/) is **automatically triggered by creating a GitHub release** using GitHub Actions. Artifacts are signed and uploaded through the Central Portal (`central-publishing-maven-plugin`, `deploy` profile).
+Finally, publishing to [Maven Central](https://central.sonatype.com/) is **automatically triggered by creating a GitHub release** using GitHub Actions. Artifacts are signed and uploaded through the Central Portal (`central-publishing-maven-plugin`, `deploy` profile). The workflow stops once the deployment is **validated**: a maintainer then has to review it and click **Publish** on https://central.sonatype.com/publishing/deployments (a published version cannot be removed). To publish automatically, set `autoPublish` to `true` and `waitUntil` to `published` in the `deploy` profile of `pom.xml`.
 
 ```bash
 mvn versions:set -DnewVersion=<NEW-VERSION With Minor +1 and -SNAPSHOT>
