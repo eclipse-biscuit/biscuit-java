@@ -26,7 +26,7 @@
         <maven.compiler.source>11</maven.compiler.source>
 
         <!-- plugins -->
-        <maven-gpg.version>1.6</maven-gpg.version>
+        <maven-gpg.version>3.2.8</maven-gpg.version>
         <maven-source.version>2.2.1</maven-source.version>
         <maven-javadoc.version>2.9.1</maven-javadoc.version>
         <maven-antrun.version>1.8</maven-antrun.version>
@@ -104,6 +104,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
