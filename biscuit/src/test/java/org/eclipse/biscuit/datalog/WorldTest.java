@@ -755,13 +755,13 @@ public class WorldTest {
 
     final Rule r1 =
         new Rule(
-            new Predicate(left, Arrays.asList(a, b)),
-            Arrays.asList(new Predicate(right, Arrays.asList(a, b))),
+            new Predicate(left, List.of(a, b)),
+            List.of(new Predicate(right, List.of(a, b))),
             new ArrayList<>());
     final Rule r2 =
         new Rule(
-            new Predicate(straight, Arrays.asList(a, b)),
-            Arrays.asList(new Predicate(right, Arrays.asList(a, b))),
+            new Predicate(straight, List.of(a, b)),
+            List.of(new Predicate(right, List.of(a, b))),
             new ArrayList<>());
 
     System.out.println("adding r1: " + syms.formatRule(r1));
