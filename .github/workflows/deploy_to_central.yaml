@@ -20,8 +20,11 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - name: Set project version from tag
+        run: mvn --batch-mode versions:set -DnewVersion=${{ github.event.release.tag_name }} -DgenerateBackupPoms=false
       - name: Publish package
-        run: mvn -B deploy -Pdeploy -Dgpg.keyname=${{ secrets.GPG_KEY_ID }}
+        run: mvn -B deploy -Pdeploy -Dgpg.keyname=${{ secrets.GPG_KEY_ID }} -DskipTests
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
