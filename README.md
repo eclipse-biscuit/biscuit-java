@@ -1,10 +1,10 @@
 # biscuit-java
 
-[![Tests](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_ci.yml/badge.svg)](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_ci.yml)
+[![Tests](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml/badge.svg)](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_ci.yml)
 
 [![Central Version](https://img.shields.io/maven-central/v/org.eclipse/biscuit)](https://central.sonatype.com/artifact/org.eclipse/biscuit)
 
-[Biscuit's](https://github.com/biscuit-auth/biscuit) Java library implementation.
+[Biscuit's](https://github.com/eclipse-biscuit/biscuit-java) Java library implementation.
 
 This API implements [Biscuit 2.0](https://www.biscuitsec.org/blog/biscuit-2-0/).
 
