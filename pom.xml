@@ -26,11 +26,11 @@
         <maven.compiler.source>11</maven.compiler.source>
 
         <!-- plugins -->
-        <maven-gpg.version>1.6</maven-gpg.version>
+        <maven-gpg.version>3.2.8</maven-gpg.version>
         <maven-source.version>2.2.1</maven-source.version>
         <maven-javadoc.version>2.9.1</maven-javadoc.version>
         <maven-antrun.version>1.8</maven-antrun.version>
-        <nexus-staging-maven.version>1.6.7</nexus-staging-maven.version>
+        <central-publishing-maven.version>0.13.1</central-publishing-maven.version>
         <build-helper-maven.version>3.0.0</build-helper-maven.version>
         <maven-compiler-plugin.version>3.10.0</maven-compiler-plugin.version>
         <spotless.version>2.44.2</spotless.version>
@@ -83,18 +83,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://git@github.com/biscuit-auth/biscuit-java.git</connection>
-        <developerConnection>scm:git:git@github.com:biscuit-auth/biscuit-java.git</developerConnection>
-        <url>git@github.com:biscuit-auth/biscuit-java.git</url>
+        <connection>scm:git:https://git@github.com/eclipse-biscuit/biscuit-java.git</connection>
+        <developerConnection>scm:git:git@github.com:eclipse-biscuit/biscuit-java.git</developerConnection>
+        <url>https://github.com/eclipse-biscuit/biscuit-java</url>
     </scm>
-
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <name>Central Repository OSSRH</name>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <profiles>
         <profile>
@@ -104,6 +96,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -113,11 +106,18 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-maven.version}</version>
+                        <extensions>true</extensions>
                         <configuration>
-                            <gpgArguments>
-                                <arg>--pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
+                            <deploymentName>Eclipse biscuit-java ${project.version}</deploymentName>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                            <centralSnapshotsUrl>https://central.sonatype.com/repository/maven-snapshots/</centralSnapshotsUrl>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -179,17 +179,6 @@
                         <arg>-verbose</arg>
                         <arg>-Xlint:all,-options,-path</arg>
                     </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>${nexus-staging-maven.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
             <plugin>

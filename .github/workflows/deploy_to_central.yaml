@@ -1,30 +1,31 @@
 name: Publish package to the Maven Central Repository
 on:
   release:
-    types: [created]
+    types: [published]
+permissions:
+  contents: read
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install gpg secret key
-        run: |
-          cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
-      - name: Build with Maven
-        run: mvn package
-      - name: Set up Maven Central Repository
-        uses: actions/setup-java@v2
+        uses: actions/checkout@v7
+      - name: Set up JDK 11 and Maven Central Repository
+        uses: actions/setup-java@v6
         with:
           java-version: "11"
-          distribution: "adopt"
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-passphrase: GPG_PASS
+          distribution: "temurin"
+          cache: maven
+          server-id: central
+          server-username-env-var: MAVEN_USERNAME
+          server-password-env-var: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
+      - name: Set project version from tag
+        run: mvn --batch-mode versions:set -DnewVersion=${{ github.event.release.tag_name }} -DgenerateBackupPoms=false
       - name: Publish package
-        run: mvn deploy -Pdeploy
+        run: mvn -B deploy -Pdeploy -Dgpg.keyname=${{ secrets.GPG_KEY_ID }} -DskipTests
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          GPG_PASS: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
