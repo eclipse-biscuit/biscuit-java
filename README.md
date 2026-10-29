@@ -1,8 +1,8 @@
 # biscuit-java
 
-[![Tests](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml/badge.svg)](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_ci.yml)
+[![Tests](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml/badge.svg)](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml)
 
-[![Central Version](https://img.shields.io/maven-central/v/org.eclipse/biscuit)](https://central.sonatype.com/artifact/org.eclipse/biscuit)
+[![Central Version](https://img.shields.io/maven-central/v/org.eclipse.biscuit/biscuit)](https://central.sonatype.com/artifact/org.eclipse.biscuit/biscuit)
 
 [Biscuit's](https://github.com/eclipse-biscuit/biscuit-java) Java library implementation.
 
@@ -11,9 +11,9 @@ This API implements [Biscuit 2.0](https://www.biscuitsec.org/blog/biscuit-2-0/).
 ## Usage
 
 ```xml
-<!-- https://central.sonatype.com/artifact/org.eclipse/biscuit -->
+<!-- https://central.sonatype.com/artifact/org.eclipse.biscuit/biscuit -->
 <dependency>
-    <groupId>org.eclipse</groupId>
+    <groupId>org.eclipse.biscuit</groupId>
     <artifactId>biscuit</artifactId>
     <version>@VERSION@</version>
 </dependency>
