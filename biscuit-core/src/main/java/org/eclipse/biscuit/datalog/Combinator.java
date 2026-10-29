@@ -23,7 +23,7 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
   private final Iterator<Pair<Origin, Fact>> currentFacts;
   private Combinator currentIt;
   private final SymbolTable symbolTable;
-
+  private final StepCounter steps;
   private Origin currentOrigin;
 
   private Optional<Pair<Origin, Map<Long, Term>>> nextElement;
@@ -52,6 +52,8 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
   }
 
   public Optional<Pair<Origin, Map<Long, Term>>> getNext() {
+    if (steps.exceeded()) return Optional.empty();
+
     if (this.predicates.isEmpty()) {
       final Optional<Map<Long, Term>> vOpt = this.variables.complete();
       if (vOpt.isEmpty()) {
@@ -77,6 +79,8 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
         while (true) {
           // we iterate over the facts that match the current predicate
           if (this.currentFacts.hasNext()) {
+            if (!this.steps.step()) return Optional.empty();
+
             final Pair<Origin, Fact> t = this.currentFacts.next();
             Origin currentOrigin = t._1.clone();
             Fact fact = t._2;
@@ -126,7 +130,8 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
                       vars,
                       predicates.subList(1, predicates.size()),
                       this.allFacts,
-                      this.symbolTable);
+                      this.symbolTable,
+                      this.steps);
             }
             break;
 
@@ -152,7 +157,8 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
       final MatchedVariables variables,
       final List<Predicate> predicates,
       Supplier<Stream<Pair<Origin, Fact>>> allFacts,
-      final SymbolTable symbolTable) {
+      final SymbolTable symbolTable,
+      StepCounter steps) {
     this.variables = variables;
     this.allFacts = allFacts;
     this.currentIt = null;
@@ -162,5 +168,6 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
     this.symbolTable = symbolTable;
     this.currentOrigin = null;
     this.nextElement = null;
+    this.steps = steps;
   }
 }

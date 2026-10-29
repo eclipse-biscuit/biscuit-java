@@ -17,10 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import org.eclipse.biscuit.datalog.MapKey;
-import org.eclipse.biscuit.datalog.SymbolTable;
-import org.eclipse.biscuit.datalog.TemporarySymbolTable;
-import org.eclipse.biscuit.datalog.Term;
+import org.eclipse.biscuit.datalog.*;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.regex.PatternMatcher;
@@ -28,8 +25,11 @@ import org.eclipse.biscuit.token.builder.Expression;
 
 public abstract class Op {
   public abstract void evaluate(
-      Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-      throws Error.Execution;
+      Deque<Op> stack,
+      Map<Long, Term> variables,
+      TemporarySymbolTable temporarySymbolTable,
+      StepCounter steps)
+      throws Error;
 
   public abstract String print(Deque<String> stack, SymbolTable symbols);
 
@@ -70,8 +70,13 @@ public abstract class Op {
 
     @Override
     public void evaluate(
-        Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-        throws Error.Execution {
+        Deque<Op> stack,
+        Map<Long, Term> variables,
+        TemporarySymbolTable temporarySymbolTable,
+        StepCounter steps)
+        throws Error {
+      if (!steps.step()) throw new Error.TooManySteps();
+
       Op value = stack.pop();
       switch (this.op) {
         case Negate:
@@ -253,8 +258,13 @@ public abstract class Op {
 
     @Override
     public void evaluate(
-        Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-        throws Error.Execution {
+        Deque<Op> stack,
+        Map<Long, Term> variables,
+        TemporarySymbolTable temporarySymbolTable,
+        StepCounter steps)
+        throws Error {
+      if (!steps.step()) throw new Error.TooManySteps();
+
       Op right = stack.pop();
       Op left = stack.pop();
 
@@ -531,7 +541,7 @@ public abstract class Op {
           if (left instanceof Term.Bool && right instanceof Closure) {
             if (((Term.Bool) left).value()) {
               Closure closure = (Closure) right;
-              Term result = closure.call(variables, temporarySymbolTable);
+              Term result = closure.call(variables, temporarySymbolTable, steps);
               if (result instanceof Term.Bool) {
                 stack.push(result);
               }
@@ -546,7 +556,7 @@ public abstract class Op {
               stack.push(new Term.Bool(true));
             } else {
               Closure closure = (Closure) right;
-              Term result = closure.call(variables, temporarySymbolTable);
+              Term result = closure.call(variables, temporarySymbolTable, steps);
               if (result instanceof Term.Bool) {
                 stack.push(result);
               }
@@ -622,7 +632,7 @@ public abstract class Op {
             if (left instanceof Term.Array) {
               List<Term> array = ((Term.Array) left).value();
               for (Term elem : array) {
-                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
                   throw new Error.Execution("any op did not evaluate to a boolean");
                 }
@@ -634,7 +644,7 @@ public abstract class Op {
             } else if (left instanceof Term.Set) {
               HashSet<Term> set = ((Term.Set) left).value();
               for (Term elem : set) {
-                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
                   throw new Error.Execution("any op did not evaluate to a boolean");
                 }
@@ -648,7 +658,7 @@ public abstract class Op {
               for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
                 List<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
                 Term returnValue =
-                    closure.call(new Term.Array(params), variables, temporarySymbolTable);
+                    closure.call(new Term.Array(params), variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
                   throw new Error.Execution("any op did not evaluate to a boolean");
                 }
@@ -672,7 +682,7 @@ public abstract class Op {
             if (left instanceof Term.Array) {
               List<Term> array = ((Term.Array) left).value();
               for (Term elem : array) {
-                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
                   throw new Error.Execution("all op did not evaluate to a boolean");
                 }
@@ -684,7 +694,7 @@ public abstract class Op {
             } else if (left instanceof Term.Set) {
               HashSet<Term> set = ((Term.Set) left).value();
               for (Term elem : set) {
-                Term returnValue = closure.call(elem, variables, temporarySymbolTable);
+                Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
                   throw new Error.Execution("all op did not evaluate to a boolean");
                 }
@@ -698,7 +708,7 @@ public abstract class Op {
               for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
                 ArrayList<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
                 Term returnValue =
-                    closure.call(new Term.Array(params), variables, temporarySymbolTable);
+                    closure.call(new Term.Array(params), variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
                   throw new Error.Execution("all op did not evaluate to a boolean");
                 }
@@ -719,9 +729,10 @@ public abstract class Op {
           if (left instanceof Closure) {
             Closure closure = (Closure) left;
             try {
-              Term leftValue = closure.call(variables, temporarySymbolTable);
+              Term leftValue = closure.call(variables, temporarySymbolTable, steps);
               stack.push(leftValue);
             } catch (Error e) {
+              if (e instanceof Error.TooManySteps) throw e;
               stack.push(right);
             }
           }
@@ -1063,8 +1074,11 @@ public abstract class Op {
     }
 
     public void evaluate(
-        Deque<Op> stack, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-        throws Error.Execution {
+        Deque<Op> stack,
+        Map<Long, Term> variables,
+        TemporarySymbolTable temporarySymbolTable,
+        StepCounter steps)
+        throws Error {
       stack.push(this);
     }
 
@@ -1072,14 +1086,17 @@ public abstract class Op {
       return params.size();
     }
 
-    Term call(Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-        throws Error.Execution {
+    Term call(
+        Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepCounter steps)
+        throws Error {
+      if (!steps.step()) throw new Error.TooManySteps();
+
       if (arity() != 0) {
         throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
       }
       Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
-        op.evaluate(stack, variables, temporarySymbolTable);
+        op.evaluate(stack, variables, temporarySymbolTable, steps);
       }
       if (stack.size() != 1) {
         throw new Error.Execution("invalid closure expression");
@@ -1087,8 +1104,16 @@ public abstract class Op {
       return (Term) stack.pop();
     }
 
-    Term call(Term arg, Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable)
-        throws Error.Execution {
+    Term call(
+        Term arg,
+        Map<Long, Term> variables,
+        TemporarySymbolTable temporarySymbolTable,
+        StepCounter steps)
+        throws Error {
+      if (!steps.step()) {
+        throw new Error.TooManySteps();
+      }
+
       if (arity() != 1) {
         throw new Error.Execution("called closure with arity " + arity() + "with 1 argument");
       }
@@ -1098,7 +1123,7 @@ public abstract class Op {
       }
       Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
-        op.evaluate(stack, variables, temporarySymbolTable);
+        op.evaluate(stack, variables, temporarySymbolTable, steps);
       }
       variables.remove(params.get(0));
       if (stack.size() != 1) {
