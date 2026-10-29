@@ -7,16 +7,19 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>biscuit</artifactId>
     <packaging>jar</packaging>
+    <name>biscuit</name>
+    <description>Java support for the biscuit auth token and policy language</description>
+    <url>https://github.com/eclipse-biscuit/biscuit-java</url>
 
     <parent>
-        <groupId>org.eclipse</groupId>
+        <groupId>org.eclipse.biscuit</groupId>
         <artifactId>biscuit-java</artifactId>
         <version>5.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse</groupId>
+            <groupId>org.eclipse.biscuit</groupId>
             <artifactId>biscuit-core</artifactId>
             <version>5.0.0-SNAPSHOT</version>
         </dependency>
