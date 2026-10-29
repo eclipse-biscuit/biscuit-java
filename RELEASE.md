@@ -1,7 +1,7 @@
 # Release process
 
 ```bash
-mvn versions:set -DnewVersion=<NEW-VERSION>
+mvn versions:set -DnewVersion=<NEW-VERSION> -DgenerateBackupPoms=false
 ```
 
 Commit and tag the version. Then push and create a **GitHub release**.
@@ -10,7 +10,7 @@ Finally, publishing to [Maven Central](https://central.sonatype.com/) is **autom
 Artifacts are signed, uploaded and published automatically through the Central Portal (`central-publishing-maven-plugin`, `deploy` profile).
 
 ```bash
-mvn versions:set -DnewVersion=<NEW-VERSION With Minor +1 and -SNAPSHOT>
+mvn versions:set -DnewVersion=<NEW-VERSION With Minor +1 and -SNAPSHOT> -DgenerateBackupPoms=false
 ```
 
 Commit and push.
