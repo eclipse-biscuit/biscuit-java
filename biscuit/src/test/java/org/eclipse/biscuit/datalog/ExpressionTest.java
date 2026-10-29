@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 public class ExpressionTest {
 
   @Test
-  public void testNegate() throws Error.Execution {
+  public void testNegate() throws Error {
     SymbolTable symbolTable = new SymbolTable();
     symbolTable.add("a");
     symbolTable.add("b");
@@ -39,11 +39,16 @@ public class ExpressionTest {
     HashMap<Long, Term> variables = new HashMap<>();
     variables.put(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2L, new Term.Integer(0));
 
-    assertEquals(new Term.Bool(true), e.evaluate(variables, new TemporarySymbolTable(symbolTable)));
+    assertEquals(
+        new Term.Bool(true),
+        e.evaluate(
+            variables,
+            new TemporarySymbolTable(symbolTable),
+            new StepCounter(new RunLimits().getMaxSteps())));
   }
 
   @Test
-  public void testAddsStr() throws Error.Execution {
+  public void testAddsStr() throws Error {
     SymbolTable symbolTable = new SymbolTable();
     symbolTable.add("a");
     symbolTable.add("b");
@@ -61,11 +66,14 @@ public class ExpressionTest {
 
     assertEquals(
         new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2),
-        e.evaluate(new HashMap<>(), new TemporarySymbolTable(symbolTable)));
+        e.evaluate(
+            new HashMap<>(),
+            new TemporarySymbolTable(symbolTable),
+            new StepCounter(new RunLimits().getMaxSteps())));
   }
 
   @Test
-  public void testContainsStr() throws Error.Execution {
+  public void testContainsStr() throws Error {
     SymbolTable symbolTable = new SymbolTable();
     symbolTable.add("ab");
     symbolTable.add("b");
@@ -81,11 +89,15 @@ public class ExpressionTest {
     assertEquals("\"ab\".contains(\"b\")", e.print(symbolTable).get());
 
     assertEquals(
-        new Term.Bool(true), e.evaluate(new HashMap<>(), new TemporarySymbolTable(symbolTable)));
+        new Term.Bool(true),
+        e.evaluate(
+            new HashMap<>(),
+            new TemporarySymbolTable(symbolTable),
+            new StepCounter(new RunLimits().getMaxSteps())));
   }
 
   @Test
-  public void testNegativeContainsStr() throws Error.Execution {
+  public void testNegativeContainsStr() throws Error {
     SymbolTable symbolTable = new SymbolTable();
     symbolTable.add("ab");
     symbolTable.add("b");
@@ -102,11 +114,15 @@ public class ExpressionTest {
     assertEquals("!\"ab\".contains(\"b\")", e.print(symbolTable).get());
 
     assertEquals(
-        new Term.Bool(false), e.evaluate(new HashMap<>(), new TemporarySymbolTable(symbolTable)));
+        new Term.Bool(false),
+        e.evaluate(
+            new HashMap<>(),
+            new TemporarySymbolTable(symbolTable),
+            new StepCounter(new RunLimits().getMaxSteps())));
   }
 
   @Test
-  public void testIntersectionAndContains() throws Error.Execution {
+  public void testIntersectionAndContains() throws Error {
     SymbolTable symbolTable = new SymbolTable();
 
     Expression e =
@@ -126,6 +142,10 @@ public class ExpressionTest {
     assertEquals("{1, 2, 3}.intersection({1, 2}).contains(1)", e.print(symbolTable).get());
 
     assertEquals(
-        new Term.Bool(true), e.evaluate(new HashMap<>(), new TemporarySymbolTable(symbolTable)));
+        new Term.Bool(true),
+        e.evaluate(
+            new HashMap<>(),
+            new TemporarySymbolTable(symbolTable),
+            new StepCounter(new RunLimits().getMaxSteps())));
   }
 }
