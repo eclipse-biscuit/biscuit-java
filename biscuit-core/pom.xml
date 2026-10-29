@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.eclipse</groupId>
         <artifactId>biscuit-java</artifactId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.0.0-ALPHA-0</version>
     </parent>
 
     <dependencies>
