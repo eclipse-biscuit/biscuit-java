@@ -1,6 +1,6 @@
 # biscuit-java
 
-[![Tests](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml/badge.svg)](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_ci.yml)
+[![Tests](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml/badge.svg)](https://github.com/eclipse-biscuit/biscuit-java/actions/workflows/java_test.yml)
 
 [![Central Version](https://img.shields.io/maven-central/v/org.eclipse.biscuit/biscuit)](https://central.sonatype.com/artifact/org.eclipse.biscuit/biscuit)
 
