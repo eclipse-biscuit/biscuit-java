@@ -159,15 +159,16 @@ public final class Authorizer {
 
       for (long i = 0; i < token.blocks.size(); i++) {
         Block block = token.blocks.get((int) i);
-        TrustedOrigins blockTrustedOrigins =
-            TrustedOrigins.fromScopes(
-                block.getScopes(), TrustedOrigins.defaultOrigins(), i + 1, this.publicKeyToBlockId);
-
         SymbolTable blockSymbolTable = token.symbolTable;
-
         if (block.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(block.getSymbolTable(), block.getPublicKeys());
         }
+        TrustedOrigins blockTrustedOrigins =
+            TrustedOrigins.fromScopes(
+                translateBlockScopes(i + 1, block.getScopes(), blockSymbolTable),
+                TrustedOrigins.defaultOrigins(),
+                i + 1,
+                this.publicKeyToBlockId);
 
         for (org.eclipse.biscuit.datalog.Fact fact : block.getFacts()) {
           org.eclipse.biscuit.datalog.Fact convertedFact =
@@ -191,6 +192,26 @@ public final class Authorizer {
         }
       }
     }
+  }
+
+  private List<Scope> translateBlockScopes(
+      long blockId, List<Scope> scopes, SymbolTable blockSymbolTable) throws Error.FailedLogic {
+    List<Scope> translated = new ArrayList<>(scopes.size());
+    for (Scope scope : scopes) {
+      // builder.Scope.convertFrom narrows the index to an int and assumes the key exists, so
+      // reject anything out of range here rather than let it wrap around or throw unchecked
+      if (scope.kind() == Scope.Kind.PublicKey) {
+        long index = scope.getPublicKey();
+        if (index < 0 || index >= blockSymbolTable.getPublicKeys().size()) {
+          throw new Error.FailedLogic(
+              new LogicError.InvalidBlockScope(blockId, "unknown public key index " + index));
+        }
+      }
+      translated.add(
+          org.eclipse.biscuit.token.builder.Scope.convertFrom(scope, blockSymbolTable)
+              .convert(this.symbolTable));
+    }
+    return translated;
   }
 
   public Authorizer addToken(Biscuit token) throws Error.FailedLogic {
@@ -525,13 +546,16 @@ public final class Authorizer {
     if (token != null) {
       for (int i = 0; i < token.blocks.size(); i++) {
         Block b = token.blocks.get(i);
-        TrustedOrigins blockTrustedOrigins =
-            TrustedOrigins.fromScopes(
-                b.getScopes(), TrustedOrigins.defaultOrigins(), i + 1, this.publicKeyToBlockId);
         SymbolTable blockSymbolTable = token.symbolTable;
         if (b.getExternalKey().isPresent()) {
           blockSymbolTable = new SymbolTable(b.getSymbolTable(), b.getPublicKeys());
         }
+        TrustedOrigins blockTrustedOrigins =
+            TrustedOrigins.fromScopes(
+                translateBlockScopes(i + 1, b.getScopes(), blockSymbolTable),
+                TrustedOrigins.defaultOrigins(),
+                i + 1,
+                this.publicKeyToBlockId);
 
         for (int j = 0; j < b.getChecks().size(); j++) {
           boolean successful = false;

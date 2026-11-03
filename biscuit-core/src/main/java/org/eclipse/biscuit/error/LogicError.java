@@ -172,6 +172,46 @@ public abstract class LogicError {
     }
   }
 
+  public static final class InvalidBlockScope extends LogicError {
+    public final long id;
+    public final String err;
+
+    public InvalidBlockScope(long id, String e) {
+      this.id = id;
+      this.err = e;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      InvalidBlockScope other = (InvalidBlockScope) o;
+      return id == other.id && err.equals(other.err);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(id, err);
+    }
+
+    @Override
+    public String toString() {
+      return "LogicError.InvalidBlockScope{ id: " + id + ", error: " + err + " }";
+    }
+
+    @Override
+    public JsonNode toJson() {
+      ArrayNode child = objectMapper.createArrayNode();
+      child.add(id);
+      child.add(err);
+      return objectMapper.createObjectNode().set("InvalidBlockScope", child);
+    }
+  }
+
   public static final class Unauthorized extends LogicError {
     public final List<FailedCheck> errors;
     public final MatchedPolicy policy;
