@@ -7,12 +7,9 @@ package org.eclipse.biscuit.datalog;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 import org.eclipse.biscuit.error.Error;
 
 public final class World implements Serializable {
@@ -45,10 +42,7 @@ public final class World implements Serializable {
       for (Map.Entry<TrustedOrigins, List<Pair<Long, Rule>>> entry :
           this.rules.getRules().entrySet()) {
         for (Pair<Long, Rule> t : entry.getValue()) {
-          Supplier<Stream<Pair<Origin, Fact>>> factsSupplier =
-              () -> this.facts.stream(entry.getKey());
-
-          var stream = t._2.apply(factsSupplier, t._1, symbolTable);
+          var stream = t._2.apply(this.facts, t._1, entry.getKey(), symbolTable);
           for (var it = stream.iterator(); it.hasNext(); ) {
             var res = it.next();
             if (Instant.now().compareTo(limit) >= 0) {
@@ -95,9 +89,7 @@ public final class World implements Serializable {
       final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbolTable) throws Error {
     final FactSet newFacts = new FactSet();
 
-    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> this.facts.stream(scope);
-
-    var stream = rule.apply(factsSupplier, origin, symbolTable);
+    var stream = rule.apply(this.facts, origin, scope, symbolTable);
     for (var it = stream.iterator(); it.hasNext(); ) {
       var res = it.next();
 
@@ -146,7 +138,7 @@ public final class World implements Serializable {
     StringBuilder s = new StringBuilder();
 
     s.append("World {\n\t\tfacts: [");
-    for (Map.Entry<Origin, HashSet<Fact>> entry : this.facts.facts().entrySet()) {
+    for (Map.Entry<Origin, List<Fact>> entry : this.facts.byOrigin().entrySet()) {
       s.append("\n\t\t\t").append(entry.getKey()).append(":");
       for (Fact f : entry.getValue()) {
         s.append("\n\t\t\t\t");

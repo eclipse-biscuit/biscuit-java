@@ -594,8 +594,8 @@ public final class Authorizer {
 
   public String formatWorld() {
     StringBuilder facts = new StringBuilder();
-    for (Map.Entry<Origin, HashSet<org.eclipse.biscuit.datalog.Fact>> entry :
-        this.world.getFacts().facts().entrySet()) {
+    for (Map.Entry<Origin, List<org.eclipse.biscuit.datalog.Fact>> entry :
+        this.world.getFacts().byOrigin().entrySet()) {
       facts.append("\n\t\t").append(entry.getKey()).append(":");
       for (org.eclipse.biscuit.datalog.Fact f : entry.getValue()) {
         facts.append("\n\t\t\t");

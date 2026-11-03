@@ -13,13 +13,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public final class Combinator implements Serializable, Iterator<Pair<Origin, Map<Long, Term>>> {
   private MatchedVariables variables;
-  private final Supplier<Stream<Pair<Origin, Fact>>> allFacts;
   private final List<Predicate> predicates;
+  private final FactSet facts;
+  private final TrustedOrigins scope;
   private final Iterator<Pair<Origin, Fact>> currentFacts;
   private Combinator currentIt;
   private final SymbolTable symbolTable;
@@ -81,6 +80,11 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
             Origin currentOrigin = t._1.clone();
             Fact fact = t._2;
 
+            // the candidates only share the predicate name and arity, check the terms
+            if (!fact.matchPredicate(predicate)) {
+              continue;
+            }
+
             // create a new MatchedVariables in which we fix variables we could unify from our first
             // predicate and the current fact
             MatchedVariables vars = this.variables.clone();
@@ -125,7 +129,8 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
                   new Combinator(
                       vars,
                       predicates.subList(1, predicates.size()),
-                      this.allFacts,
+                      this.facts,
+                      this.scope,
                       this.symbolTable);
             }
             break;
@@ -151,14 +156,15 @@ public final class Combinator implements Serializable, Iterator<Pair<Origin, Map
   public Combinator(
       final MatchedVariables variables,
       final List<Predicate> predicates,
-      Supplier<Stream<Pair<Origin, Fact>>> allFacts,
+      final FactSet facts,
+      final TrustedOrigins scope,
       final SymbolTable symbolTable) {
     this.variables = variables;
-    this.allFacts = allFacts;
+    this.facts = facts;
+    this.scope = scope;
     this.currentIt = null;
     this.predicates = predicates;
-    this.currentFacts =
-        allFacts.get().filter((tuple) -> tuple._2.matchPredicate(predicates.get(0))).iterator();
+    this.currentFacts = facts.stream(predicates.get(0), scope).iterator();
     this.symbolTable = symbolTable;
     this.currentOrigin = null;
     this.nextElement = null;

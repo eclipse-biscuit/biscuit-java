@@ -5,13 +5,16 @@
 
 package org.eclipse.biscuit.datalog;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 public final class FactSet {
-  private final HashMap<Origin, HashSet<Fact>> facts;
+  /** facts grouped by (predicate name, arity), then by origin */
+  private final HashMap<Pair<Long, Integer>, HashMap<Origin, HashSet<Fact>>> facts;
 
   public FactSet() {
     facts = new HashMap<>();
@@ -19,24 +22,37 @@ public final class FactSet {
 
   public FactSet(Origin o, HashSet<Fact> factSet) {
     facts = new HashMap<>();
-    facts.put(o, factSet);
+    for (Fact fact : factSet) {
+      add(o, fact);
+    }
   }
 
-  public HashMap<Origin, HashSet<Fact>> facts() {
-    return this.facts;
+  public Map<Origin, List<Fact>> byOrigin() {
+    Map<Origin, List<Fact>> origins = new HashMap<>();
+    for (HashMap<Origin, HashSet<Fact>> group : facts.values()) {
+      for (Map.Entry<Origin, HashSet<Fact>> entry : group.entrySet()) {
+        origins.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(entry.getValue());
+      }
+    }
+    return origins;
+  }
+
+  private static Pair<Long, Integer> keyOf(Predicate predicate) {
+    return new Pair<>(predicate.name(), predicate.terms().size());
   }
 
   public void add(Origin origin, Fact fact) {
-    if (!facts.containsKey(origin)) {
-      facts.put(origin, new HashSet<>());
-    }
-    facts.get(origin).add(fact);
+    Pair<Long, Integer> key = keyOf(fact.predicate());
+    HashMap<Origin, HashSet<Fact>> group = facts.computeIfAbsent(key, k -> new HashMap<>());
+    group.computeIfAbsent(origin, k -> new HashSet<>()).add(fact);
   }
 
   public int size() {
     int size = 0;
-    for (HashSet<Fact> h : facts.values()) {
-      size += h.size();
+    for (HashMap<Origin, HashSet<Fact>> group : facts.values()) {
+      for (HashSet<Fact> h : group.values()) {
+        size += h.size();
+      }
     }
 
     return size;
@@ -45,36 +61,44 @@ public final class FactSet {
   public FactSet clone() {
     FactSet newFacts = new FactSet();
 
-    for (Map.Entry<Origin, HashSet<Fact>> entry : this.facts.entrySet()) {
-      HashSet<Fact> h = new HashSet<>(entry.getValue());
-      newFacts.facts.put(entry.getKey(), h);
+    for (Map.Entry<Pair<Long, Integer>, HashMap<Origin, HashSet<Fact>>> group :
+        this.facts.entrySet()) {
+      HashMap<Origin, HashSet<Fact>> newGroup = new HashMap<>();
+      for (Map.Entry<Origin, HashSet<Fact>> entry : group.getValue().entrySet()) {
+        newGroup.put(entry.getKey(), new HashSet<>(entry.getValue()));
+      }
+      newFacts.facts.put(group.getKey(), newGroup);
     }
 
     return newFacts;
   }
 
   public void merge(FactSet other) {
-    for (Map.Entry<Origin, HashSet<Fact>> entry : other.facts.entrySet()) {
-      if (!facts.containsKey(entry.getKey())) {
-        facts.put(entry.getKey(), entry.getValue());
-      } else {
-        facts.get(entry.getKey()).addAll(entry.getValue());
+    for (Map.Entry<Pair<Long, Integer>, HashMap<Origin, HashSet<Fact>>> group :
+        other.facts.entrySet()) {
+      HashMap<Origin, HashSet<Fact>> ownGroup =
+          facts.computeIfAbsent(group.getKey(), k -> new HashMap<>());
+      for (Map.Entry<Origin, HashSet<Fact>> entry : group.getValue().entrySet()) {
+        ownGroup.computeIfAbsent(entry.getKey(), k -> new HashSet<>()).addAll(entry.getValue());
       }
     }
   }
 
-  public Stream<Pair<Origin, Fact>> stream(TrustedOrigins blockIds) {
-    return facts.entrySet().stream()
-        .filter(
-            entry -> {
-              Origin o = entry.getKey();
-              return blockIds.contains(o);
-            })
+  /** trusted facts sharing the predicate's name and arity, the terms are not checked */
+  public Stream<Pair<Origin, Fact>> stream(Predicate predicate, TrustedOrigins blockIds) {
+    HashMap<Origin, HashSet<Fact>> group = facts.get(keyOf(predicate));
+    if (group == null) {
+      return Stream.empty();
+    }
+    return group.entrySet().stream()
+        .filter(entry -> blockIds.contains(entry.getKey()))
         .flatMap(entry -> entry.getValue().stream().map(fact -> new Pair<>(entry.getKey(), fact)));
   }
 
   public Stream<Fact> stream() {
-    return facts.entrySet().stream().flatMap(entry -> entry.getValue().stream());
+    return facts.values().stream()
+        .flatMap(group -> group.values().stream())
+        .flatMap(HashSet::stream);
   }
 
   @Override
@@ -99,7 +123,7 @@ public final class FactSet {
   @Override
   public String toString() {
     StringBuilder res = new StringBuilder("FactSet {");
-    for (Map.Entry<Origin, HashSet<Fact>> entry : this.facts.entrySet()) {
+    for (Map.Entry<Origin, List<Fact>> entry : this.byOrigin().entrySet()) {
       res.append("\n\t").append(entry.getKey()).append("[");
       for (Fact fact : entry.getValue()) {
         res.append("\n\t\t").append(fact);
