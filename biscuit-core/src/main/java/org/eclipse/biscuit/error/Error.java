@@ -699,6 +699,21 @@ public abstract class Error extends Exception {
     }
   }
 
+  public static final class TooManySteps extends Error {
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      return o != null && getClass() == o.getClass();
+    }
+
+    @Override
+    public JsonNode toJson() {
+      return TextNode.valueOf("TooManySteps");
+    }
+  }
+
   public static final class TooManyFacts extends Error {
     @Override
     public boolean equals(Object o) {
