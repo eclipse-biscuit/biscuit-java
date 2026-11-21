@@ -68,7 +68,7 @@ public final class MatchedVariables {
   }
 
   public Optional<Map<Long, Term>> checkExpressions(
-      List<Expression> expressions, SymbolTable symbolTable, StepCounter steps) throws Error {
+      List<Expression> expressions, SymbolTable symbolTable, StepBudget steps) throws Error {
     final Optional<Map<Long, Term>> vars = this.complete();
     if (vars.isPresent()) {
       Map<Long, Term> variables = vars.get();

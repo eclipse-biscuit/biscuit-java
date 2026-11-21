@@ -45,7 +45,7 @@ public class ExpressionTest {
         e.evaluate(
             variables,
             new TemporarySymbolTable(symbolTable),
-            new StepCounter(new RunLimits().getMaxSteps())));
+            new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
 
   @Test
@@ -70,7 +70,7 @@ public class ExpressionTest {
         e.evaluate(
             new HashMap<>(),
             new TemporarySymbolTable(symbolTable),
-            new StepCounter(new RunLimits().getMaxSteps())));
+            new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
 
   @Test
@@ -94,7 +94,7 @@ public class ExpressionTest {
         e.evaluate(
             new HashMap<>(),
             new TemporarySymbolTable(symbolTable),
-            new StepCounter(new RunLimits().getMaxSteps())));
+            new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
 
   @Test
@@ -119,7 +119,7 @@ public class ExpressionTest {
         e.evaluate(
             new HashMap<>(),
             new TemporarySymbolTable(symbolTable),
-            new StepCounter(new RunLimits().getMaxSteps())));
+            new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
 
   @Test
@@ -147,7 +147,7 @@ public class ExpressionTest {
         e.evaluate(
             new HashMap<>(),
             new TemporarySymbolTable(symbolTable),
-            new StepCounter(new RunLimits().getMaxSteps())));
+            new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
 
   private static Term evaluate(Op... ops) throws Error {
@@ -155,7 +155,7 @@ public class ExpressionTest {
         .evaluate(
             new HashMap<>(),
             new TemporarySymbolTable(new SymbolTable()),
-            new StepCounter(new RunLimits().getMaxSteps()));
+            new StepCounter().budget(new RunLimits().getMaxSteps()));
   }
 
   private static Op.Closure closure(Op... ops) {

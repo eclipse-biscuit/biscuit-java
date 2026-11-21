@@ -383,7 +383,9 @@ class ParserTest {
     Map<Long, org.eclipse.biscuit.datalog.Term> variables = new HashMap<>();
     org.eclipse.biscuit.datalog.Term value =
         ex.evaluate(
-            variables, new TemporarySymbolTable(s), new StepCounter(new RunLimits().getMaxSteps()));
+            variables,
+            new TemporarySymbolTable(s),
+            new StepCounter().budget(new RunLimits().getMaxSteps()));
     assertEquals(new org.eclipse.biscuit.datalog.Term.Integer(7), value);
     assertEquals("1 + 2 * 3", ex.print(s).get());
 
@@ -422,7 +424,7 @@ class ParserTest {
         ex2.evaluate(
             variables2,
             new TemporarySymbolTable(s2),
-            new StepCounter(new RunLimits().getMaxSteps()));
+            new StepCounter().budget(new RunLimits().getMaxSteps()));
     assertEquals(new org.eclipse.biscuit.datalog.Term.Integer(9), value2);
     assertEquals("(1 + 2) * 3", ex2.print(s2).get());
   }

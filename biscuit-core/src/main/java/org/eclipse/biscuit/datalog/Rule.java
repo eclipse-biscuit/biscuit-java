@@ -48,7 +48,7 @@ public final class Rule {
       Long ruleOrigin,
       TrustedOrigins scope,
       SymbolTable symbolTable,
-      StepCounter steps) {
+      StepBudget steps) {
     MatchedVariables variables = variablesSet();
 
     Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
@@ -117,7 +117,7 @@ public final class Rule {
       Long origin,
       TrustedOrigins scope,
       SymbolTable symbolTable,
-      StepCounter steps)
+      StepBudget steps)
       throws Error {
     MatchedVariables variables = variablesSet();
 
@@ -146,7 +146,7 @@ public final class Rule {
 
   // verifies that the expressions return true for every matching set of facts
   public boolean checkMatchAll(
-      final FactSet facts, TrustedOrigins scope, SymbolTable symbolTable, StepCounter steps)
+      final FactSet facts, TrustedOrigins scope, SymbolTable symbolTable, StepBudget steps)
       throws Error {
     MatchedVariables variables = variablesSet();
 

@@ -28,7 +28,7 @@ public abstract class Op {
       Deque<Op> stack,
       Map<Long, Term> variables,
       TemporarySymbolTable temporarySymbolTable,
-      StepCounter steps)
+      StepBudget steps)
       throws Error;
 
   public abstract String print(Deque<String> stack, SymbolTable symbols);
@@ -73,7 +73,7 @@ public abstract class Op {
         Deque<Op> stack,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
       if (!steps.step()) throw new Error.TooManySteps();
 
@@ -261,7 +261,7 @@ public abstract class Op {
         Deque<Op> stack,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
       if (!steps.step()) throw new Error.TooManySteps();
 
@@ -1080,7 +1080,7 @@ public abstract class Op {
         Deque<Op> stack,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
       stack.push(this);
     }
@@ -1090,7 +1090,7 @@ public abstract class Op {
     }
 
     Term call(
-        Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepCounter steps)
+        Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepBudget steps)
         throws Error {
       if (!steps.step()) throw new Error.TooManySteps();
 
@@ -1111,7 +1111,7 @@ public abstract class Op {
         Term arg,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
       if (!steps.step()) {
         throw new Error.TooManySteps();

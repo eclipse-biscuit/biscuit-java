@@ -21,7 +21,7 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
   private final Iterator<Pair<Origin, Fact>> currentFacts;
   private Combinator currentIt;
   private final SymbolTable symbolTable;
-  private final StepCounter steps;
+  private final StepBudget steps;
   private Origin currentOrigin;
 
   private Optional<Pair<Origin, Map<Long, Term>>> nextElement;
@@ -163,7 +163,7 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
       final FactSet facts,
       final TrustedOrigins scope,
       final SymbolTable symbolTable,
-      StepCounter steps) {
+      StepBudget steps) {
     this.variables = variables;
     this.facts = facts;
     this.scope = scope;

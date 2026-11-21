@@ -33,7 +33,7 @@ public class StepLimitTest {
   private SecureRandom rng;
 
   /** Limits where only maxSteps can realistically trip. */
-  private static RunLimits steps(int maxSteps) {
+  private static RunLimits steps(long maxSteps) {
     return new RunLimits(1_000_000, 1_000_000, Duration.ofDays(1), maxSteps);
   }
 
@@ -168,9 +168,10 @@ public class StepLimitTest {
   }
 
   @Test
-  public void counterIsResetBetweenAuthorizations() throws Exception {
+  public void explicitLimitsGiveEachAuthorizationAFullBudget() throws Exception {
     // First run costs 16 steps (8 facts, two passes). The second run finds nothing new, so one
-    // pass of 8 steps. 16 + 8 would not fit in 20, so this only passes if the counter is reset.
+    // pass of 8 steps. 16 + 8 would not fit in 20, so this only passes if the second call gets
+    // 20 steps on top of the ones already taken.
     KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     var block = Biscuit.builder(keyPair);
     for (int i = 0; i < 8; i++) {
@@ -183,6 +184,54 @@ public class StepLimitTest {
 
     assertDoesNotThrow(() -> authorizer.authorize(steps(20)));
     assertDoesNotThrow(() -> authorizer.authorize(steps(20)));
+  }
+
+  @Test
+  public void defaultLimitsCountTheStepsAlreadyTaken() throws Exception {
+    // The first run takes 1000 steps (500 facts, two passes), which leaves none of the default
+    // 1000 steps for the second one. It fails on its first step, well before the default timeout.
+    Authorizer authorizer = defaultBudgetTaken();
+
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
+    assertThrows(Error.TooManySteps.class, () -> authorizer.authorize());
+  }
+
+  @Test
+  public void queryWithDefaultLimitsCountsTheStepsTakenByAuthorize() throws Exception {
+    Authorizer authorizer = defaultBudgetTaken();
+
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
+    assertThrows(Error.TooManySteps.class, () -> authorizer.query("q($0) <- b($0)"));
+  }
+
+  @Test
+  public void clonedAuthorizerKeepsTheStepsTaken() throws Exception {
+    Authorizer authorizer = defaultBudgetTaken();
+
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
+    Authorizer cloned = authorizer.clone();
+    assertThrows(Error.TooManySteps.class, () -> cloned.authorize());
+  }
+
+  @Test
+  public void maximumBudgetDoesNotOverflowAfterStepsWereTaken() throws Exception {
+    Authorizer authorizer = defaultBudgetTaken();
+
+    assertDoesNotThrow(() -> authorizer.authorize(steps(Long.MAX_VALUE)));
+    assertDoesNotThrow(() -> authorizer.authorize(steps(Long.MAX_VALUE)));
+  }
+
+  private Authorizer defaultBudgetTaken() throws Exception {
+    KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    var block = Biscuit.builder(keyPair);
+    for (int i = 0; i < 500; i++) {
+      block.addAuthorityFact("f(" + i + ")");
+    }
+    block.addAuthorityRule("b($0) <- f($0)");
+
+    Authorizer authorizer = block.build().authorizer();
+    authorizer.addPolicy("allow if true");
+    return authorizer;
   }
 
   // ---------------------------------------------------------------------------------------------
