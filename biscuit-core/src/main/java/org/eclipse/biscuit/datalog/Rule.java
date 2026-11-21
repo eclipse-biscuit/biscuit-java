@@ -151,7 +151,7 @@ public final class Rule implements Serializable {
       return variables.checkExpressions(this.expressions, symbolTable, steps).isPresent();
     }
 
-    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps)
+    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
 
     boolean found = false;
 
