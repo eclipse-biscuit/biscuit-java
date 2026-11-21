@@ -6,8 +6,7 @@
 package org.eclipse.biscuit.token;
 
 import static org.eclipse.biscuit.token.builder.Utils.constrainedRule;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import biscuit.format.schema.Schema;
 import java.security.SecureRandom;
@@ -87,6 +86,33 @@ public class AuthorizerTest {
     assertEquals(
         Set.of(new Term.Integer(1), new Term.Integer(2), new Term.Integer(3)),
         ((Term.Set) permsTerm).getValue());
+  }
+
+  @Test
+  public void eliminateUnusedBodyPredicateInRule() throws Exception {
+
+    KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    var block = Biscuit.builder(keyPair);
+    for (int i = 0; i < 100; i++) {
+      block.addAuthorityFact("f(" + i + ")");
+    }
+
+    block.addAuthorityRule("b($0) <- f($0), f($1), f($2), f($3), f($4), f($5)");
+
+    var token = block.build();
+
+    Authorizer authorizer =
+        Biscuit.fromBase64Url(token.serializeBase64Url(), keyPair.getPublicKey())
+            .verify(keyPair.getPublicKey())
+            .authorizer();
+
+    authorizer.addPolicy("allow if true");
+
+    RunLimits limits = new RunLimits(1_000_000_000, 1_000_000_000, Duration.ofDays(20), 1000);
+    assertEquals(6, authorizer.getRules().stream().findFirst().get().body().size());
+
+    assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(limits));
   }
 
   @Test
