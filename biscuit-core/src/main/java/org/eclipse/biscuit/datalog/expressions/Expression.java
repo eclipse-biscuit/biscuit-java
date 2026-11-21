@@ -12,7 +12,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import org.eclipse.biscuit.datalog.StepCounter;
+import org.eclipse.biscuit.datalog.StepBudget;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
@@ -32,7 +32,7 @@ public final class Expression {
 
   // FIXME: should return a Result<Term, error::Expression>
   public Term evaluate(
-      Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepCounter steps)
+      Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepBudget steps)
       throws Error {
     Deque<Op> stack = new ArrayDeque<Op>(16); // Default value
     for (Op op : ops) {

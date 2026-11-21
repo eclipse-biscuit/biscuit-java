@@ -1,28 +1,21 @@
 package org.eclipse.biscuit.datalog;
 
-public class StepCounter implements Cloneable {
-  private int counter;
-  private final int maxSteps;
+public final class StepCounter {
+  long count;
 
-  public StepCounter(int maxSteps) {
-    this.maxSteps = maxSteps;
-    this.counter = 0;
+  public StepCounter() {
+    this(0);
   }
 
-  public boolean step() {
-    return ++counter <= maxSteps;
+  public StepCounter(long taken) {
+    this.count = taken;
   }
 
-  public boolean exceeded() {
-    return counter > maxSteps;
+  public long taken() {
+    return this.count;
   }
 
-  @Override
-  public StepCounter clone() {
-    try {
-      return (StepCounter) super.clone();
-    } catch (CloneNotSupportedException e) {
-      throw new AssertionError();
-    }
+  public StepBudget budget(long maxSteps) {
+    return new StepBudget(this, maxSteps);
   }
 }

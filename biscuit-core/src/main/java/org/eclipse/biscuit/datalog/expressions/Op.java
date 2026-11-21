@@ -28,7 +28,7 @@ public abstract class Op {
       Deque<Op> stack,
       Map<Long, Term> variables,
       TemporarySymbolTable temporarySymbolTable,
-      StepCounter steps)
+      StepBudget steps)
       throws Error;
 
   public abstract String print(Deque<String> stack, SymbolTable symbols);
@@ -73,9 +73,9 @@ public abstract class Op {
         Deque<Op> stack,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
-      if (!steps.step()) throw new Error.TooManySteps();
+      steps.step();
 
       Op value = stack.pop();
       switch (this.op) {
@@ -261,9 +261,9 @@ public abstract class Op {
         Deque<Op> stack,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
-      if (!steps.step()) throw new Error.TooManySteps();
+      steps.step();
 
       Op right = stack.pop();
       Op left = stack.pop();
@@ -1080,7 +1080,7 @@ public abstract class Op {
         Deque<Op> stack,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
       stack.push(this);
     }
@@ -1090,9 +1090,9 @@ public abstract class Op {
     }
 
     Term call(
-        Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepCounter steps)
+        Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepBudget steps)
         throws Error {
-      if (!steps.step()) throw new Error.TooManySteps();
+      steps.step();
 
       if (arity() != 0) {
         throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
@@ -1111,11 +1111,9 @@ public abstract class Op {
         Term arg,
         Map<Long, Term> variables,
         TemporarySymbolTable temporarySymbolTable,
-        StepCounter steps)
+        StepBudget steps)
         throws Error {
-      if (!steps.step()) {
-        throw new Error.TooManySteps();
-      }
+      steps.step();
 
       if (arity() != 1) {
         throw new Error.Execution("called closure with arity " + arity() + "with 1 argument");

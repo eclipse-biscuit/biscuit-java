@@ -11,7 +11,7 @@ public final class RunLimits {
   private int maxFacts = 1000;
   private int maxIterations = 100;
   private Duration maxTime = Duration.ofMillis(5);
-  private int maxSteps = 1000;
+  private long maxSteps = 1000;
 
   public RunLimits() {}
 
@@ -19,7 +19,7 @@ public final class RunLimits {
     this(maxFacts, maxIterations, maxTime, 1000);
   }
 
-  public RunLimits(int maxFacts, int maxIterations, Duration maxTime, int maxSteps) {
+  public RunLimits(int maxFacts, int maxIterations, Duration maxTime, long maxSteps) {
     this.maxFacts = maxFacts;
     this.maxIterations = maxIterations;
     this.maxTime = maxTime;
@@ -38,7 +38,7 @@ public final class RunLimits {
     return this.maxTime;
   }
 
-  public int getMaxSteps() {
+  public long getMaxSteps() {
     return this.maxSteps;
   }
 }

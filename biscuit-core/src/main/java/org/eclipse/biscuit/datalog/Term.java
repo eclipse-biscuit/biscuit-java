@@ -38,7 +38,7 @@ public abstract class Term extends Op {
       Deque<Op> stack,
       java.util.Map<Long, Term> variables,
       TemporarySymbolTable temporarySymbolTable,
-      StepCounter steps)
+      StepBudget steps)
       throws Error.Execution {
     if (this instanceof Term.Variable) {
       Term.Variable var = (Term.Variable) this;

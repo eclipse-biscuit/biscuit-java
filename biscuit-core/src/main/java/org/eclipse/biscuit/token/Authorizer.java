@@ -41,11 +41,13 @@ public final class Authorizer {
   private final HashMap<Long, List<Long>> publicKeyToBlockId;
   private final World world;
   private final SymbolTable symbolTable;
+  private final StepCounter steps;
 
   private Authorizer(Biscuit token, World w) throws Error.FailedLogic {
     this.token = token;
     this.world = w;
     this.symbolTable = new SymbolTable(this.token.symbolTable);
+    this.steps = new StepCounter();
     this.checks = new ArrayList<>();
     this.policies = new ArrayList<>();
     this.scopes = new ArrayList<>();
@@ -62,6 +64,7 @@ public final class Authorizer {
   public Authorizer() {
     this.world = new World();
     this.symbolTable = Biscuit.defaultSymbolTable();
+    this.steps = new StepCounter();
     this.checks = new ArrayList<>();
     this.policies = new ArrayList<>();
     this.scopes = new ArrayList<>();
@@ -73,12 +76,14 @@ public final class Authorizer {
       List<Check> checks,
       List<Policy> policies,
       World world,
-      SymbolTable symbolTable) {
+      SymbolTable symbolTable,
+      StepCounter steps) {
     this.token = token;
     this.checks = checks;
     this.policies = policies;
     this.world = world;
     this.symbolTable = symbolTable;
+    this.steps = steps;
     this.scopes = new ArrayList<>();
     this.publicKeyToBlockId = new HashMap<>();
   }
@@ -101,7 +106,8 @@ public final class Authorizer {
         new ArrayList<>(this.checks),
         new ArrayList<>(this.policies),
         new World(this.world),
-        new SymbolTable(this.symbolTable));
+        new SymbolTable(this.symbolTable),
+        new StepCounter(this.steps.taken()));
   }
 
   public void updateOnToken() throws Error.FailedLogic {
@@ -369,7 +375,8 @@ public final class Authorizer {
   }
 
   public Set<Fact> query(Rule query) throws Error {
-    return this.query(query, new RunLimits());
+    RunLimits limits = new RunLimits();
+    return this.query(query, limits, Math.max(this.steps.taken(), limits.getMaxSteps()));
   }
 
   public Set<org.eclipse.biscuit.token.builder.Fact> query(String s) throws Error {
@@ -381,7 +388,12 @@ public final class Authorizer {
   }
 
   public Set<Fact> query(Rule query, RunLimits limits) throws Error {
-    world.run(limits, symbolTable);
+    return this.query(query, limits, this.maxSteps(limits));
+  }
+
+  private Set<Fact> query(Rule query, RunLimits limits, long maxSteps) throws Error {
+    StepBudget budget = this.steps.budget(maxSteps);
+    world.run(limits, budget, symbolTable);
 
     org.eclipse.biscuit.datalog.Rule rule = query.convert(symbolTable);
     TrustedOrigins ruleTrustedorigins =
@@ -391,7 +403,7 @@ public final class Authorizer {
             Long.MAX_VALUE,
             this.publicKeyToBlockId);
 
-    FactSet facts = world.queryRule(rule, Long.MAX_VALUE, ruleTrustedorigins, symbolTable);
+    FactSet facts = world.queryRule(rule, Long.MAX_VALUE, ruleTrustedorigins, symbolTable, budget);
     Set<Fact> s = new HashSet<>();
 
     for (Iterator<org.eclipse.biscuit.datalog.Fact> it = facts.stream().iterator();
@@ -413,16 +425,28 @@ public final class Authorizer {
   }
 
   public Long authorize() throws Error {
-    return this.authorize(new RunLimits());
+    RunLimits limits = new RunLimits();
+    return this.authorize(limits, Math.max(this.steps.taken(), limits.getMaxSteps()));
   }
 
   public Long authorize(RunLimits limits) throws Error {
+    return this.authorize(limits, this.maxSteps(limits));
+  }
+
+  private long maxSteps(RunLimits limits) {
+    long taken = this.steps.taken();
+    long maxSteps = limits.getMaxSteps();
+    return maxSteps > Long.MAX_VALUE - taken ? Long.MAX_VALUE : taken + maxSteps;
+  }
+
+  private Long authorize(RunLimits limits, long maxSteps) throws Error {
+    StepBudget budget = this.steps.budget(maxSteps);
     Instant timeLimit = Instant.now().plus(limits.getMaxTime());
     List<FailedCheck> errors = new LinkedList<>();
 
     TrustedOrigins authorizerTrustedOrigins = this.authorizerTrustedOrigins();
 
-    world.run(limits, symbolTable);
+    world.run(limits, budget, symbolTable);
 
     for (int i = 0; i < this.checks.size(); i++) {
       org.eclipse.biscuit.datalog.Check c = this.checks.get(i).convert(symbolTable);
@@ -434,13 +458,15 @@ public final class Authorizer {
                 query.scopes(), authorizerTrustedOrigins, Long.MAX_VALUE, this.publicKeyToBlockId);
         switch (c.kind()) {
           case ONE:
-            successful = world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable);
+            successful =
+                world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable, budget);
             break;
           case ALL:
-            successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+            successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable, budget);
             break;
           case REJECT:
-            successful = world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable);
+            successful =
+                world.queryMatch(query, Long.MAX_VALUE, ruleTrustedOrigins, symbolTable, budget);
             break;
           default:
             throw new RuntimeException("unmapped kind");
@@ -481,13 +507,15 @@ public final class Authorizer {
                   query.scopes(), authorityTrustedOrigins, 0, this.publicKeyToBlockId);
           switch (check.kind()) {
             case ONE:
-              successful = world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable);
+              successful =
+                  world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable, budget);
               break;
             case ALL:
-              successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+              successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable, budget);
               break;
             case REJECT:
-              successful = world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable);
+              successful =
+                  world.queryMatch(query, (long) 0, ruleTrustedOrigins, symbolTable, budget);
               break;
             default:
               throw new RuntimeException("unmapped kind");
@@ -518,7 +546,8 @@ public final class Authorizer {
         TrustedOrigins policyTrustedOrigins =
             TrustedOrigins.fromScopes(
                 query.scopes(), authorizerTrustedOrigins, Long.MAX_VALUE, this.publicKeyToBlockId);
-        boolean res = world.queryMatch(query, Long.MAX_VALUE, policyTrustedOrigins, symbolTable);
+        boolean res =
+            world.queryMatch(query, Long.MAX_VALUE, policyTrustedOrigins, symbolTable, budget);
 
         if (Instant.now().compareTo(timeLimit) >= 0) {
           throw new Error.Timeout();
@@ -562,13 +591,15 @@ public final class Authorizer {
                     query.scopes(), blockTrustedOrigins, i + 1, this.publicKeyToBlockId);
             switch (check.kind()) {
               case ONE:
-                successful = world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable);
+                successful =
+                    world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable, budget);
                 break;
               case ALL:
-                successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable);
+                successful = world.queryMatchAll(query, ruleTrustedOrigins, symbolTable, budget);
                 break;
               case REJECT:
-                successful = world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable);
+                successful =
+                    world.queryMatch(query, (long) i + 1, ruleTrustedOrigins, symbolTable, budget);
                 break;
               default:
                 throw new RuntimeException("unmapped kind");

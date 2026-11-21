@@ -48,17 +48,22 @@ public final class Rule {
       Long ruleOrigin,
       TrustedOrigins scope,
       SymbolTable symbolTable,
-      StepCounter steps) {
+      StepBudget steps) {
     MatchedVariables variables = variablesSet();
 
     Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
 
-    Spliterator<Pair<Origin, Map<Long, Term>>> splitItr =
+    Spliterator<Result<Pair<Origin, Map<Long, Term>>, Error>> splitItr =
         Spliterators.spliteratorUnknownSize(combinator, Spliterator.ORDERED);
-    Stream<Pair<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
+    Stream<Result<Pair<Origin, Map<Long, Term>>, Error>> stream =
+        StreamSupport.stream(splitItr, false);
 
     return stream.flatMap(
-        t -> {
+        res -> {
+          if (res.isErr()) {
+            return Stream.of(Result.err(res.getErr()));
+          }
+          Pair<Origin, Map<Long, Term>> t = res.getOk();
           Origin origin = t._1;
           Map<Long, Term> generatedVariables = t._2;
           TemporarySymbolTable temporarySymbols = new TemporarySymbolTable(symbolTable);
@@ -117,7 +122,7 @@ public final class Rule {
       Long origin,
       TrustedOrigins scope,
       SymbolTable symbolTable,
-      StepCounter steps)
+      StepBudget steps)
       throws Error {
     MatchedVariables variables = variablesSet();
 
@@ -128,11 +133,7 @@ public final class Rule {
     var stream = this.apply(facts, origin, scope, symbolTable, steps);
     var it = stream.iterator();
 
-    boolean res = it.hasNext();
-
-    if (steps.exceeded()) throw new Error.TooManySteps();
-
-    if (!res) {
+    if (!it.hasNext()) {
       return false;
     }
 
@@ -146,7 +147,7 @@ public final class Rule {
 
   // verifies that the expressions return true for every matching set of facts
   public boolean checkMatchAll(
-      final FactSet facts, TrustedOrigins scope, SymbolTable symbolTable, StepCounter steps)
+      final FactSet facts, TrustedOrigins scope, SymbolTable symbolTable, StepBudget steps)
       throws Error {
     MatchedVariables variables = variablesSet();
 
@@ -159,7 +160,11 @@ public final class Rule {
     boolean found = false;
 
     for (Combinator it = combinator; it.hasNext(); ) {
-      Pair<Origin, Map<Long, Term>> t = it.next();
+      Result<Pair<Origin, Map<Long, Term>>, Error> res = it.next();
+      if (res.isErr()) {
+        throw res.getErr();
+      }
+      Pair<Origin, Map<Long, Term>> t = res.getOk();
       Map<Long, Term> generatedVariables = t._2;
       found = true;
 
@@ -178,8 +183,6 @@ public final class Rule {
         }
       }
     }
-
-    if (steps.exceeded()) throw new Error.TooManySteps();
 
     return found;
   }
