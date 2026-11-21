@@ -6,6 +6,7 @@
 package org.eclipse.biscuit.token;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import biscuit.format.schema.Schema;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.token.builder.Block;
+import org.eclipse.biscuit.token.builder.Scope;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -305,5 +307,107 @@ public class ThirdPartyTest {
     Authorizer authorizer = b1.authorizer();
     authorizer.addPolicy("allow if true");
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
+  }
+
+  /**
+   * Builds a token used to test block-level {@code trusting <key>} scopes on third-party blocks.
+   *
+   * <ol>
+   *   <li>authority: {@code user("alice")}
+   *   <li>block 1 (first-party, added by the token holder): merely mentions {@code evil}, so that
+   *       {@code evil} becomes public-key index 0 in the token's public-key table
+   *   <li>block 2 (third-party, signed by {@code idp}): block-level scope {@code trusting partner}
+   *       (index 0 in the block's own public-key list) and {@code check if mfa(true)}
+   *   <li>block 3 (third-party, signed by {@code mfaSigner}): the fact {@code mfa(true)}
+   * </ol>
+   *
+   * <p>Block 2's check must only be satisfied by an {@code mfa(true)} fact from a block signed by
+   * {@code partner} (or from the authority block / the block itself).
+   */
+  private Biscuit buildTokenForBlockLevelScopeTest(
+      KeyPair root, KeyPair evil, KeyPair idp, KeyPair partner, KeyPair mfaSigner)
+      throws Error, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    Block authorityBuilder = new Block();
+    authorityBuilder.addFact("user(\"alice\")");
+    Biscuit token = Biscuit.make(rng, root, authorityBuilder.build());
+
+    Block holderBlock = new Block();
+    holderBlock.addCheck("check if true trusting ed25519/" + evil.getPublicKey().toHex());
+    token =
+        token.attenuate(
+            rng, KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng), holderBlock);
+
+    Block idpBlock = new Block();
+    idpBlock.addScope(Scope.publicKey(partner.getPublicKey()));
+    idpBlock.addCheck("check if mfa(true)");
+    ThirdPartyBlockContents idpContents =
+        token.thirdPartyRequest().createBlock(idp, idpBlock).getOk();
+    token = token.appendThirdPartyBlock(idp.getPublicKey(), idpContents, rng);
+
+    Block mfaBlock = new Block();
+    mfaBlock.addFact("mfa(true)");
+    ThirdPartyBlockContents mfaContents =
+        token.thirdPartyRequest().createBlock(mfaSigner, mfaBlock).getOk();
+    token = token.appendThirdPartyBlock(mfaSigner.getPublicKey(), mfaContents, rng);
+
+    // go through serialization so the authorizer sees what a verifier would see
+    return Biscuit.fromBytes(token.serialize(), root.getPublicKey());
+  }
+
+  /**
+   * A third-party block's block-level {@code trusting <key>} scope refers to the public-key list of
+   * that block, not to the token's public-key table. Both tables start at index 0, but the entries
+   * differ: the token's index 0 is the unrelated key introduced by the first-party block, while
+   * the block's index 0 is the partner key. The scope must be resolved against the block's own
+   * list.
+   *
+   * <p>Here the {@code mfa(true)} fact is signed by a key other than the partner named in the
+   * block's scope, so the block's check must fail.
+   */
+  @Test
+  public void testThirdPartyBlockLevelScopeRejectsFactFromUntrustedKey()
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    final KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair evil = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair idp = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair partner = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    Biscuit token = buildTokenForBlockLevelScopeTest(root, evil, idp, partner, evil);
+
+    Authorizer authorizer = token.authorizer();
+    authorizer.addPolicy("allow if true");
+
+    Error.FailedLogic e =
+        assertThrows(
+            Error.FailedLogic.class,
+            () -> authorizer.authorize(new RunLimits(500, 100, Duration.ofSeconds(5))),
+            "mfa(true) signed by a key that is not the block's trusted key must not satisfy"
+                + " the check");
+    assertEquals(
+        new Error.FailedLogic(
+            new LogicError.Unauthorized(
+                new LogicError.MatchedPolicy.Allow(0),
+                Arrays.asList(new FailedCheck.FailedBlock(2, 0, "check if mfa(true)")))),
+        e);
+  }
+
+  /**
+   * Positive counterpart of {@link #testThirdPartyBlockLevelScopeRejectsFactFromUntrustedKey}: the
+   * same token layout, but {@code mfa(true)} is signed by the partner key named in the block-level
+   * scope. The check must succeed.
+   */
+  @Test
+  public void testThirdPartyBlockLevelScopeAcceptsFactFromTrustedKey()
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    final KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair evil = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair idp = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair partner = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    Biscuit token = buildTokenForBlockLevelScopeTest(root, evil, idp, partner, partner);
+
+    Authorizer authorizer = token.authorizer();
+    authorizer.addPolicy("allow if true");
+    authorizer.authorize(new RunLimits(500, 100, Duration.ofSeconds(5)));
   }
 }
