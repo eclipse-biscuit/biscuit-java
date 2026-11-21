@@ -45,7 +45,11 @@ public final class Rule implements Serializable {
   }
 
   public Stream<Result<Pair<Origin, Fact>, Error>> apply(
-      final FactSet facts, Long ruleOrigin, TrustedOrigins scope, SymbolTable symbolTable, StepCounter steps) {
+      final FactSet facts,
+      Long ruleOrigin,
+      TrustedOrigins scope,
+      SymbolTable symbolTable,
+      StepCounter steps) {
     MatchedVariables variables = variablesSet();
 
     Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
