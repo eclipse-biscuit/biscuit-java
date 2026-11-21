@@ -5,6 +5,7 @@
 
 package org.eclipse.biscuit.token;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -23,6 +24,7 @@ import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Scope;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,16 +86,18 @@ public class ThirdPartyTest {
     assertEquals(Optional.of(external.getPublicKey()), b2.blockExternalKey(1));
 
     System.out.println("will check the token for resource=file1");
-    Authorizer authorizer = deser.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(deser);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
     System.out.println("will check the token for resource=file2");
-    Authorizer authorizer2 = deser.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addPolicy("allow if true");
 
+    Authorizer authorizer2 = authorizer2Builder.build(deser);
     try {
       authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error e) {
@@ -172,16 +176,18 @@ public class ThirdPartyTest {
     System.out.println("TOKEN: " + deser4.print());
 
     System.out.println("will check the token for resource=file1");
-    Authorizer authorizer = deser4.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(deser4);
     System.out.println("Authorizer world:\n" + authorizer.formatWorld());
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
     System.out.println("will check the token for resource=file2");
-    Authorizer authorizer2 = deser4.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addPolicy("allow if true");
+    Authorizer authorizer2 = authorizer2Builder.build(deser4);
     System.out.println("Authorizer world 2:\n" + authorizer2.formatWorld());
 
     try {
@@ -232,17 +238,19 @@ public class ThirdPartyTest {
     assertEquals(b2.print(), deser.print());
 
     System.out.println("will check the token for resource=file1");
-    Authorizer authorizer = deser.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(deser);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     System.out.println("Authorizer world:\n" + authorizer.formatWorld());
 
     System.out.println("will check the token for resource=file2");
-    Authorizer authorizer2 = deser.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addPolicy("allow if true");
 
+    Authorizer authorizer2 = authorizer2Builder.build(deser);
     try {
       authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error e) {
@@ -304,8 +312,9 @@ public class ThirdPartyTest {
     assertEquals(b1.print(), b2.print());
 
     // Make sure that the token is still valid
-    Authorizer authorizer = b1.authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(b1);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
   }
 
@@ -374,9 +383,10 @@ public class ThirdPartyTest {
 
     Biscuit token = buildTokenForBlockLevelScopeTest(root, evil, idp, partner, evil);
 
-    Authorizer authorizer = token.authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(token);
     Error.FailedLogic e =
         assertThrows(
             Error.FailedLogic.class,
@@ -406,8 +416,36 @@ public class ThirdPartyTest {
 
     Biscuit token = buildTokenForBlockLevelScopeTest(root, evil, idp, partner, partner);
 
-    Authorizer authorizer = token.authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(token);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofSeconds(5)));
+  }
+
+  @Test
+  public void clonedAuthorizerKeepsItsScopes() throws Exception {
+    final KeyPair root = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+    final KeyPair external = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
+
+    Block authority = new Block();
+    authority.addFact("right(\"read\")");
+    Biscuit b1 = Biscuit.make(rng, root, authority.build());
+
+    Block thirdParty = new Block();
+    thirdParty.addFact("group(\"admin\")");
+    ThirdPartyBlockContents response =
+        b1.thirdPartyRequest().createBlock(external, thirdParty).getOk();
+    Biscuit b2 = b1.appendThirdPartyBlock(external.getPublicKey(), response);
+
+    // the third-party fact is only visible through the authorizer scope
+    Authorizer authorizer =
+        new AuthorizerBuilder()
+            .addScope(Scope.publicKey(external.getPublicKey()))
+            .addPolicy("allow if group(\"admin\")")
+            .build(b2);
+    Authorizer cloned = authorizer.clone();
+
+    assertDoesNotThrow(() -> authorizer.authorize(new RunLimits(500, 100, Duration.ofSeconds(5))));
+    assertDoesNotThrow(() -> cloned.authorize(new RunLimits(500, 100, Duration.ofSeconds(5))));
   }
 }

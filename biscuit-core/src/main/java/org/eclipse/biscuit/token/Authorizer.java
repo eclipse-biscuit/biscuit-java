@@ -7,9 +7,9 @@ package org.eclipse.biscuit.token;
 
 import static org.eclipse.biscuit.datalog.Check.Kind.REJECT;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,6 +25,7 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.Fact;
 import org.eclipse.biscuit.token.builder.Rule;
@@ -34,7 +35,7 @@ import org.eclipse.biscuit.token.builder.parser.Parser;
 
 /** Token verification class */
 public final class Authorizer {
-  private Biscuit token;
+  private final Biscuit token;
   private final List<Check> checks;
   private final List<Policy> policies;
   private final List<Scope> scopes;
@@ -42,75 +43,92 @@ public final class Authorizer {
   private final World world;
   private final SymbolTable symbolTable;
   private final StepCounter steps;
-
-  private Authorizer(Biscuit token, World w) throws Error.FailedLogic {
-    this.token = token;
-    this.world = w;
-    this.symbolTable = new SymbolTable(this.token.symbolTable);
-    this.steps = new StepCounter();
-    this.checks = new ArrayList<>();
-    this.policies = new ArrayList<>();
-    this.scopes = new ArrayList<>();
-    this.publicKeyToBlockId = new HashMap<>();
-    updateOnToken();
-  }
-
-  /**
-   * Creates an empty authorizer
-   *
-   * <p>used to apply policies when unauthenticated (no token) and to preload an authorizer that is
-   * cloned for each new request
-   */
-  public Authorizer() {
-    this.world = new World();
-    this.symbolTable = Biscuit.defaultSymbolTable();
-    this.steps = new StepCounter();
-    this.checks = new ArrayList<>();
-    this.policies = new ArrayList<>();
-    this.scopes = new ArrayList<>();
-    this.publicKeyToBlockId = new HashMap<>();
-  }
+  private final RunLimits limits;
+  private Duration executionTime;
 
   private Authorizer(
       Biscuit token,
       List<Check> checks,
       List<Policy> policies,
+      List<Scope> scopes,
+      HashMap<Long, List<Long>> publicKeyToBlockId,
       World world,
       SymbolTable symbolTable,
-      StepCounter steps) {
+      StepCounter steps,
+      RunLimits limits,
+      Duration executionTime) {
     this.token = token;
     this.checks = checks;
     this.policies = policies;
+    this.scopes = scopes;
+    this.publicKeyToBlockId = publicKeyToBlockId;
     this.world = world;
     this.symbolTable = symbolTable;
     this.steps = steps;
-    this.scopes = new ArrayList<>();
-    this.publicKeyToBlockId = new HashMap<>();
+    this.limits = limits;
+    this.executionTime = executionTime;
   }
 
   /**
-   * Creates a authorizer for a token
+   * Creates an authorizer from the contents of a builder, for a token or without one
    *
-   * <p>also checks that the token is valid for this root public key
-   *
-   * @param token
-   * @return Authorizer
+   * <p>the Datalog evaluation is not run here, but on the first call to {@code authorize} or
+   * {@code query}
    */
-  public static Authorizer make(Biscuit token) throws Error.FailedLogic {
-    return new Authorizer(token, new World());
+  public static Authorizer make(AuthorizerBuilder builder, Biscuit token) throws Error.FailedLogic {
+    SymbolTable symbolTable =
+        token != null ? new SymbolTable(token.symbolTable) : Biscuit.defaultSymbolTable();
+    Authorizer authorizer =
+        new Authorizer(
+            token,
+            new ArrayList<>(builder.checks()),
+            new ArrayList<>(builder.policies()),
+            new ArrayList<>(),
+            new HashMap<>(),
+            new World(),
+            symbolTable,
+            new StepCounter(),
+            builder.limits(),
+            null);
+    authorizer.loadToken();
+
+    for (org.eclipse.biscuit.token.builder.Scope scope : builder.scopes()) {
+      authorizer.scopes.add(scope.convert(symbolTable));
+    }
+    for (Fact fact : builder.facts()) {
+      authorizer.world.addFact(Origin.authorizer(), fact.convert(symbolTable));
+    }
+    TrustedOrigins authorizerTrustedOrigins = authorizer.authorizerTrustedOrigins();
+    for (Rule rule : builder.rules()) {
+      org.eclipse.biscuit.datalog.Rule r = rule.convert(symbolTable);
+      TrustedOrigins ruleTrustedOrigins =
+          TrustedOrigins.fromScopes(
+              r.scopes(), authorizerTrustedOrigins, Long.MAX_VALUE, authorizer.publicKeyToBlockId);
+      authorizer.world.addRule(Long.MAX_VALUE, ruleTrustedOrigins, r);
+    }
+
+    return authorizer;
   }
 
   public Authorizer clone() {
+    HashMap<Long, List<Long>> publicKeyToBlockId = new HashMap<>();
+    for (Map.Entry<Long, List<Long>> entry : this.publicKeyToBlockId.entrySet()) {
+      publicKeyToBlockId.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+    }
     return new Authorizer(
         this.token,
         new ArrayList<>(this.checks),
         new ArrayList<>(this.policies),
+        new ArrayList<>(this.scopes),
+        publicKeyToBlockId,
         new World(this.world),
         new SymbolTable(this.symbolTable),
-        new StepCounter(this.steps.taken()));
+        new StepCounter(this.steps.taken()),
+        this.limits,
+        this.executionTime);
   }
 
-  public void updateOnToken() throws Error.FailedLogic {
+  private void loadToken() throws Error.FailedLogic {
     if (token != null) {
       for (long i = 0; i < token.blocks.size(); i++) {
         Block block = token.blocks.get((int) i);
@@ -212,101 +230,57 @@ public final class Authorizer {
     return translated;
   }
 
-  public Authorizer addToken(Biscuit token) throws Error.FailedLogic {
-    if (this.token != null) {
-      throw new Error.FailedLogic(new LogicError.AuthorizerNotEmpty());
+  /** Runs the Datalog evaluation with the authorizer's limits, if it has not run yet */
+  public Duration run() throws Error {
+    return this.run(this.limitsWithMaxSteps(this.remainingSteps()));
+  }
+
+  /** Runs the Datalog evaluation with the given limits, if it has not run yet */
+  public Duration run(RunLimits limits) throws Error {
+    long maxSteps = this.maxSteps(limits);
+    if (this.executionTime != null) {
+      return this.executionTime;
     }
-
-    this.token = token;
-    updateOnToken();
-    return this;
+    Instant start = Instant.now();
+    this.world.run(limits, this.steps.budget(maxSteps), this.symbolTable);
+    this.executionTime = Duration.between(start, Instant.now());
+    return this.executionTime;
   }
 
-  public Result<Authorizer, Map<Integer, List<Error>>> addDatalog(String s) {
-    var result = Parser.datalogComponents(s);
-
-    if (result.isErr()) {
-      var errors = result.getErr();
-      Map<Integer, List<Error>> errorMap = new HashMap<>();
-      for (Map.Entry<Integer, List<org.eclipse.biscuit.token.builder.parser.Error>> entry :
-          errors.entrySet()) {
-        List<Error> errorsList = new ArrayList<>();
-        for (org.eclipse.biscuit.token.builder.parser.Error error : entry.getValue()) {
-          errorsList.add(new Error.Parser(error));
-        }
-        errorMap.put(entry.getKey(), errorsList);
-      }
-      return Result.err(errorMap);
+  /** The limits of the authorizer, minus what was already used by previous calls */
+  private RunLimits remainingLimits(Duration executionTime) throws Error.Timeout {
+    if (executionTime.compareTo(this.limits.getMaxTime()) >= 0) {
+      throw new Error.Timeout();
     }
-
-    var components = result.getOk();
-    components.facts.forEach(this::addFact);
-    components.rules.forEach(this::addRule);
-    components.checks.forEach(this::addCheck);
-    components.scopes.forEach(this::addScope);
-    components.policies.forEach(this::addPolicy);
-
-    return Result.ok(this);
+    return new RunLimits(
+        this.limits.getMaxFacts(),
+        this.limits.getMaxIterations() - this.world.iterations(),
+        this.limits.getMaxTime().minus(executionTime),
+        this.remainingSteps());
   }
 
-  public Authorizer addScope(org.eclipse.biscuit.token.builder.Scope s) {
-    this.scopes.add(s.convert(symbolTable));
-    return this;
+  private RunLimits limitsWithMaxSteps(long maxSteps) {
+    return new RunLimits(
+        this.limits.getMaxFacts(),
+        this.limits.getMaxIterations(),
+        this.limits.getMaxTime(),
+        maxSteps);
   }
 
-  public Authorizer addFact(Fact fact) {
-    world.addFact(Origin.authorizer(), fact.convert(symbolTable));
-    return this;
+  private long remainingSteps() {
+    return Math.max(0, this.limits.getMaxSteps() - this.steps.taken());
   }
 
-  public Authorizer addFact(String s) throws Error.Parser {
-    var res = Parser.fact(s);
-    if (res.isErr()) {
-      throw new Error.Parser(res.getErr());
-    }
-    return this.addFact(res.getOk()._2);
-  }
-
-  public Authorizer addRule(Rule rule) {
-    org.eclipse.biscuit.datalog.Rule r = rule.convert(symbolTable);
-    TrustedOrigins ruleTrustedOrigins =
-        TrustedOrigins.fromScopes(
-            r.scopes(), this.authorizerTrustedOrigins(), Long.MAX_VALUE, this.publicKeyToBlockId);
-    world.addRule(Long.MAX_VALUE, ruleTrustedOrigins, r);
-    return this;
-  }
-
-  public Authorizer addRule(String s) throws Error.Parser {
-    var res = Parser.rule(s);
-    if (res.isErr()) {
-      throw new Error.Parser(res.getErr());
-    }
-    return addRule(res.getOk()._1);
+  /** Total step count the authorizer can reach in a call using {@code limits} */
+  private long maxSteps(RunLimits limits) {
+    long taken = this.steps.taken();
+    long maxSteps = limits.getMaxSteps();
+    return maxSteps > Long.MAX_VALUE - taken ? Long.MAX_VALUE : taken + maxSteps;
   }
 
   public TrustedOrigins authorizerTrustedOrigins() {
     return TrustedOrigins.fromScopes(
         this.scopes, TrustedOrigins.defaultOrigins(), Long.MAX_VALUE, this.publicKeyToBlockId);
-  }
-
-  public Authorizer addCheck(Check check) {
-    this.checks.add(check);
-    return this;
-  }
-
-  public Authorizer addCheck(String s) throws Error.Parser {
-    var res = Parser.check(s);
-    if (res.isErr()) {
-      throw new Error.Parser(res.getErr());
-    }
-    return addCheck(res.getOk()._2);
-  }
-
-  public Authorizer setTime() throws Error.Language {
-    world.addFact(
-        Origin.authorizer(),
-        Utils.fact("time", List.of(Utils.date(new Date()))).convert(symbolTable));
-    return this;
   }
 
   public List<String> getRevocationIds() throws Error {
@@ -333,53 +307,12 @@ public final class Authorizer {
     return ids;
   }
 
-  public Authorizer allow() {
-    ArrayList<Rule> q = new ArrayList<>();
-
-    q.add(
-        Utils.constrainedRule(
-            "allow", new ArrayList<>(), new ArrayList<>(), List.of(new Term.Bool(true))));
-
-    this.policies.add(new Policy(q, Policy.Kind.ALLOW));
-    return this;
-  }
-
-  public Authorizer deny() {
-    ArrayList<Rule> q = new ArrayList<>();
-
-    q.add(
-        Utils.constrainedRule(
-            "deny", new ArrayList<>(), new ArrayList<>(), List.of(new Term.Bool(true))));
-
-    this.policies.add(new Policy(q, Policy.Kind.DENY));
-    return this;
-  }
-
-  public Authorizer addPolicy(String s) throws Error.Parser {
-    var res = Parser.policy(s);
-    if (res.isErr()) {
-      throw new Error.Parser(res.getErr());
-    }
-    this.policies.add(res.getOk()._2);
-    return this;
-  }
-
-  public Authorizer addPolicy(Policy p) {
-    this.policies.add(p);
-    return this;
-  }
-
-  public Authorizer addScope(Scope s) {
-    this.scopes.add(s);
-    return this;
-  }
-
   public Set<Fact> query(Rule query) throws Error {
-    RunLimits limits = new RunLimits();
-    return this.query(query, limits, Math.max(this.steps.taken(), limits.getMaxSteps()));
+    Duration executionTime = this.run();
+    return this.query(query, this.remainingLimits(executionTime));
   }
 
-  public Set<org.eclipse.biscuit.token.builder.Fact> query(String s) throws Error {
+  public Set<Fact> query(String s) throws Error {
     var res = Parser.rule(s);
     if (res.isErr()) {
       throw new Error.Parser(res.getErr());
@@ -387,14 +320,27 @@ public final class Authorizer {
     return query(res.getOk()._2);
   }
 
+  /** Runs a query, overriding the authorizer's limits for this call */
   public Set<Fact> query(Rule query, RunLimits limits) throws Error {
-    return this.query(query, limits, this.maxSteps(limits));
+    long maxSteps = this.maxSteps(limits);
+    Duration executionTime = this.run(limits);
+    Instant start = Instant.now();
+    try {
+      return this.queryInner(query, maxSteps);
+    } finally {
+      this.executionTime = executionTime.plus(Duration.between(start, Instant.now()));
+    }
   }
 
-  private Set<Fact> query(Rule query, RunLimits limits, long maxSteps) throws Error {
-    StepBudget budget = this.steps.budget(maxSteps);
-    world.run(limits, budget, symbolTable);
+  public Set<Fact> query(String s, RunLimits limits) throws Error {
+    var res = Parser.rule(s);
+    if (res.isErr()) {
+      throw new Error.Parser(res.getErr());
+    }
+    return query(res.getOk()._2, limits);
+  }
 
+  private Set<Fact> queryInner(Rule query, long maxSteps) throws Error {
     org.eclipse.biscuit.datalog.Rule rule = query.convert(symbolTable);
     TrustedOrigins ruleTrustedorigins =
         TrustedOrigins.fromScopes(
@@ -403,7 +349,9 @@ public final class Authorizer {
             Long.MAX_VALUE,
             this.publicKeyToBlockId);
 
-    FactSet facts = world.queryRule(rule, Long.MAX_VALUE, ruleTrustedorigins, symbolTable, budget);
+    FactSet facts =
+        world.queryRule(
+            rule, Long.MAX_VALUE, ruleTrustedorigins, symbolTable, this.steps.budget(maxSteps));
     Set<Fact> s = new HashSet<>();
 
     for (Iterator<org.eclipse.biscuit.datalog.Fact> it = facts.stream().iterator();
@@ -415,38 +363,45 @@ public final class Authorizer {
     return s;
   }
 
-  public Set<org.eclipse.biscuit.token.builder.Fact> query(String s, RunLimits limits)
-      throws Error {
-    var res = Parser.rule(s);
-    if (res.isErr()) {
-      throw new Error.Parser(res.getErr());
-    }
-    return query(res.getOk()._2, limits);
-  }
-
   public Long authorize() throws Error {
-    RunLimits limits = new RunLimits();
-    return this.authorize(limits, Math.max(this.steps.taken(), limits.getMaxSteps()));
+    Duration executionTime = this.run();
+    return this.authorize(this.remainingLimits(executionTime));
   }
 
+  /** Verifies the checks and policies, overriding the authorizer's limits for this call */
   public Long authorize(RunLimits limits) throws Error {
-    return this.authorize(limits, this.maxSteps(limits));
+    long maxSteps = this.maxSteps(limits);
+    Duration executionTime = this.run(limits);
+    Instant start = Instant.now();
+    try {
+      return this.authorizeInner(limits, maxSteps);
+    } finally {
+      this.executionTime = executionTime.plus(Duration.between(start, Instant.now()));
+    }
   }
 
-  private long maxSteps(RunLimits limits) {
-    long taken = this.steps.taken();
-    long maxSteps = limits.getMaxSteps();
-    return maxSteps > Long.MAX_VALUE - taken ? Long.MAX_VALUE : taken + maxSteps;
+  public Optional<Duration> executionTime() {
+    return Optional.ofNullable(this.executionTime);
   }
 
-  private Long authorize(RunLimits limits, long maxSteps) throws Error {
+  public int iterations() {
+    return this.world.iterations();
+  }
+
+  public long elapsedSteps() {
+    return this.steps.taken();
+  }
+
+  public RunLimits limits() {
+    return this.limits;
+  }
+
+  private Long authorizeInner(RunLimits limits, long maxSteps) throws Error {
     StepBudget budget = this.steps.budget(maxSteps);
     Instant timeLimit = Instant.now().plus(limits.getMaxTime());
     List<FailedCheck> errors = new LinkedList<>();
 
     TrustedOrigins authorizerTrustedOrigins = this.authorizerTrustedOrigins();
-
-    world.run(limits, budget, symbolTable);
 
     for (int i = 0; i < this.checks.size(); i++) {
       org.eclipse.biscuit.datalog.Check c = this.checks.get(i).convert(symbolTable);

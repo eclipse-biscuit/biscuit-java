@@ -264,7 +264,7 @@ public final class Biscuit extends UnverifiedBiscuit {
    * @return
    */
   public Authorizer authorizer() throws Error.FailedLogic {
-    return Authorizer.make(this);
+    return new org.eclipse.biscuit.token.builder.AuthorizerBuilder().build(this);
   }
 
   /**

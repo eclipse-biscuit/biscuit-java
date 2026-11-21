@@ -14,6 +14,7 @@ import org.eclipse.biscuit.error.Error;
 public final class World {
   private final FactSet facts;
   private final RuleSet rules;
+  private int iterations;
 
   public void addFact(final Origin origin, final Fact fact) {
     this.facts.add(origin, fact);
@@ -66,6 +67,7 @@ public final class World {
       this.facts.merge(newFacts);
 
       if (this.facts.size() == len) {
+        this.iterations += iterations;
         return;
       }
 
@@ -82,6 +84,10 @@ public final class World {
 
   public FactSet getFacts() {
     return this.facts;
+  }
+
+  public int iterations() {
+    return this.iterations;
   }
 
   public RuleSet getRules() {
@@ -144,6 +150,7 @@ public final class World {
   public World(World w) {
     this.facts = w.facts.clone();
     this.rules = w.rules.clone();
+    this.iterations = w.iterations;
   }
 
   public String print(SymbolTable symbolTable) {

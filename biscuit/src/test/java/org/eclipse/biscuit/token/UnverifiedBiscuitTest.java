@@ -21,6 +21,7 @@ import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Block;
 import org.eclipse.biscuit.token.builder.Utils;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,19 +131,21 @@ public class UnverifiedBiscuitTest {
     // check
     System.out.println("will check the token for resource=file1 and operation=read");
 
-    Authorizer authorizer = finalBiscuit.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addFact("operation(\"read\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addFact("operation(\"read\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(finalBiscuit);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
     System.out.println("will check the token for resource=file2 and operation=write");
 
-    Authorizer authorizer2 = finalBiscuit.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addFact("operation(\"write\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addFact("operation(\"write\")");
+    authorizer2Builder.addPolicy("allow if true");
 
+    Authorizer authorizer2 = authorizer2Builder.build(finalBiscuit);
     try {
       authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error e) {

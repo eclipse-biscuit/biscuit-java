@@ -41,6 +41,7 @@ import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Check;
 import org.eclipse.biscuit.token.builder.parser.Parser;
 import org.eclipse.biscuit.token.format.SignedBlock;
@@ -207,7 +208,7 @@ class SamplesTest {
 
               // TODO Add check of the token
 
-              Authorizer authorizer = token.authorizer();
+              AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
               System.out.println(token.print());
               for (String f : authorizerFacts) {
                 f = f.trim();
@@ -215,16 +216,17 @@ class SamplesTest {
                   if (f.startsWith("check if")
                       || f.startsWith("check all")
                       || f.startsWith("reject if")) {
-                    authorizer.addCheck(f);
+                    authorizerBuilder.addCheck(f);
                   } else if (f.startsWith("allow if") || f.startsWith("deny if")) {
-                    authorizer.addPolicy(f);
+                    authorizerBuilder.addPolicy(f);
                   } else if (f.startsWith("revocation_id")) {
                     // do nothing
                   } else {
-                    authorizer.addFact(f);
+                    authorizerBuilder.addFact(f);
                   }
                 }
               }
+              Authorizer authorizer = authorizerBuilder.build(token);
               System.out.println(authorizer.formatWorld());
 
               try {
