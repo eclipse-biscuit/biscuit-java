@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.error.Result;
 
-public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>> {
+public final class Combinator implements Iterator<Result<Pair<Origin, Map<Long, Term>>, Error>> {
   private MatchedVariables variables;
   private final List<Predicate> predicates;
   private final FactSet facts;
@@ -24,7 +26,7 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
   private final StepBudget steps;
   private Origin currentOrigin;
 
-  private Optional<Pair<Origin, Map<Long, Term>>> nextElement;
+  private Optional<Result<Pair<Origin, Map<Long, Term>>, Error>> nextElement;
 
   @Override
   public boolean hasNext() {
@@ -36,22 +38,20 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
   }
 
   @Override
-  public Pair<Origin, Map<Long, Term>> next() {
+  public Result<Pair<Origin, Map<Long, Term>>, Error> next() {
     if (this.nextElement == null || this.nextElement.isEmpty()) {
       this.nextElement = getNext();
     }
     if (this.nextElement == null || this.nextElement.isEmpty()) {
       throw new NoSuchElementException();
     } else {
-      Pair<Origin, Map<Long, Term>> t = this.nextElement.get();
+      Result<Pair<Origin, Map<Long, Term>>, Error> t = this.nextElement.get();
       this.nextElement = Optional.empty();
       return t;
     }
   }
 
-  public Optional<Pair<Origin, Map<Long, Term>>> getNext() {
-    if (steps.exceeded()) return Optional.empty();
-
+  public Optional<Result<Pair<Origin, Map<Long, Term>>, Error>> getNext() {
     if (this.predicates.isEmpty()) {
       final Optional<Map<Long, Term>> vOpt = this.variables.complete();
       if (vOpt.isEmpty()) {
@@ -66,7 +66,7 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
         set.add((long) 0);
 
         this.variables = new MatchedVariables(set);
-        return Optional.of(new Pair<>(new Origin(), variables));
+        return Optional.of(Result.ok(new Pair<>(new Origin(), variables)));
       }
     }
 
@@ -77,7 +77,11 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
         while (true) {
           // we iterate over the facts that match the current predicate
           if (this.currentFacts.hasNext()) {
-            if (!this.steps.step()) return Optional.empty();
+            try {
+              this.steps.step();
+            } catch (Error.TooManySteps e) {
+              return Optional.of(Result.err(e));
+            }
 
             final Pair<Origin, Fact> t = this.currentFacts.next();
             Origin currentOrigin = t._1.clone();
@@ -121,7 +125,7 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
               if (vOpt.isEmpty()) {
                 continue;
               } else {
-                return Optional.of(new Pair<>(currentOrigin, vOpt.get()));
+                return Optional.of(Result.ok(new Pair<>(currentOrigin, vOpt.get())));
               }
             } else {
               this.currentOrigin = currentOrigin;
@@ -145,11 +149,15 @@ public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>>
         }
       }
 
-      Optional<Pair<Origin, Map<Long, Term>>> opt = this.currentIt.getNext();
+      Optional<Result<Pair<Origin, Map<Long, Term>>, Error>> opt = this.currentIt.getNext();
 
       if (opt.isPresent()) {
-        Pair<Origin, Map<Long, Term>> t = opt.get();
-        return Optional.of(new Pair<>(t._1.union(currentOrigin), t._2));
+        Result<Pair<Origin, Map<Long, Term>>, Error> res = opt.get();
+        if (res.isErr()) {
+          return opt;
+        }
+        Pair<Origin, Map<Long, Term>> t = res.getOk();
+        return Optional.of(Result.ok(new Pair<>(t._1.union(currentOrigin), t._2)));
       } else {
         currentOrigin = null;
         currentIt = null;

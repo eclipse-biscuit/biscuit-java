@@ -75,7 +75,7 @@ public abstract class Op {
         TemporarySymbolTable temporarySymbolTable,
         StepBudget steps)
         throws Error {
-      if (!steps.step()) throw new Error.TooManySteps();
+      steps.step();
 
       Op value = stack.pop();
       switch (this.op) {
@@ -263,7 +263,7 @@ public abstract class Op {
         TemporarySymbolTable temporarySymbolTable,
         StepBudget steps)
         throws Error {
-      if (!steps.step()) throw new Error.TooManySteps();
+      steps.step();
 
       Op right = stack.pop();
       Op left = stack.pop();
@@ -1092,7 +1092,7 @@ public abstract class Op {
     Term call(
         Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepBudget steps)
         throws Error {
-      if (!steps.step()) throw new Error.TooManySteps();
+      steps.step();
 
       if (arity() != 0) {
         throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
@@ -1113,9 +1113,7 @@ public abstract class Op {
         TemporarySymbolTable temporarySymbolTable,
         StepBudget steps)
         throws Error {
-      if (!steps.step()) {
-        throw new Error.TooManySteps();
-      }
+      steps.step();
 
       if (arity() != 1) {
         throw new Error.Execution("called closure with arity " + arity() + "with 1 argument");

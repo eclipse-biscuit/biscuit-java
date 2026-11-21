@@ -1,5 +1,7 @@
 package org.eclipse.biscuit.datalog;
 
+import org.eclipse.biscuit.error.Error;
+
 public final class StepBudget {
   private final StepCounter counter;
   private final long maxSteps;
@@ -9,11 +11,9 @@ public final class StepBudget {
     this.maxSteps = maxSteps;
   }
 
-  public boolean step() {
-    return ++counter.count <= maxSteps;
-  }
-
-  public boolean exceeded() {
-    return counter.count > maxSteps;
+  public void step() throws Error.TooManySteps {
+    if (++counter.count > maxSteps) {
+      throw new Error.TooManySteps();
+    }
   }
 }

@@ -62,8 +62,6 @@ public final class World {
         }
       }
 
-      if (steps.exceeded()) throw new Error.TooManySteps();
-
       final int len = this.facts.size();
       this.facts.merge(newFacts);
 
@@ -112,8 +110,6 @@ public final class World {
         throw res.getErr();
       }
     }
-
-    if (steps.exceeded()) throw new Error.TooManySteps();
 
     return newFacts;
   }
