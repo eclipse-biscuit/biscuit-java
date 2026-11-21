@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -46,13 +45,11 @@ public final class Rule implements Serializable {
   }
 
   public Stream<Result<Pair<Origin, Fact>, Error>> apply(
-      final Supplier<Stream<Pair<Origin, Fact>>> factsSupplier,
-      Long ruleOrigin,
-      SymbolTable symbolTable,
-      StepCounter steps) {
+      final FactSet facts, Long ruleOrigin, TrustedOrigins scope, SymbolTable symbolTable, StepCounter steps) {
     MatchedVariables variables = variablesSet();
 
-    Combinator combinator = new Combinator(variables, this.body, factsSupplier, symbolTable, steps);
+    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
+
     Spliterator<Pair<Origin, Map<Long, Term>>> splitItr =
         Spliterators.spliteratorUnknownSize(combinator, Spliterator.ORDERED);
     Stream<Pair<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
@@ -125,8 +122,7 @@ public final class Rule implements Serializable {
       return variables.checkExpressions(this.expressions, symbolTable, steps).isPresent();
     }
 
-    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
-    var stream = this.apply(factsSupplier, origin, symbolTable, steps);
+    var stream = this.apply(facts, origin, scope, symbolTable, steps);
     var it = stream.iterator();
 
     boolean res = it.hasNext();
@@ -155,8 +151,8 @@ public final class Rule implements Serializable {
       return variables.checkExpressions(this.expressions, symbolTable, steps).isPresent();
     }
 
-    Supplier<Stream<Pair<Origin, Fact>>> factsSupplier = () -> facts.stream(scope);
-    Combinator combinator = new Combinator(variables, this.body, factsSupplier, symbolTable, steps);
+    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
+
     boolean found = false;
 
     for (Combinator it = combinator; it.hasNext(); ) {

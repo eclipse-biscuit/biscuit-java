@@ -397,7 +397,7 @@ class SamplesTest {
 
     public World(Authorizer authorizer) {
       this.facts =
-          authorizer.getFacts().facts().entrySet().stream()
+          authorizer.getFacts().byOrigin().entrySet().stream()
               .map(
                   entry ->
                       new FactSet(

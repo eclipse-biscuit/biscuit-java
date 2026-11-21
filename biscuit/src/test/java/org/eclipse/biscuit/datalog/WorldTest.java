@@ -7,6 +7,7 @@ package org.eclipse.biscuit.datalog;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -774,5 +775,45 @@ public class WorldTest {
           w.addRule(1L, TrustedOrigins.defaultOrigins(), r2);
         });
     assertEquals(1, w.getRules().getRules().size());
+  }
+
+  @Test
+  public void testFactSetEquality() {
+    final SymbolTable syms = new SymbolTable();
+    final long f = syms.insert("f");
+    final long g = syms.insert("g");
+    final Fact f1 = new Fact(new Predicate(f, List.of(new Term.Integer(1))));
+    final Fact g12 = new Fact(new Predicate(g, List.of(new Term.Integer(1), new Term.Integer(2))));
+
+    final FactSet first = new FactSet();
+    first.add(new Origin(0), f1);
+    first.add(new Origin(1), g12);
+
+    // same facts and origins, added in another order
+    final FactSet reordered = new FactSet();
+    reordered.add(new Origin(1), g12);
+    reordered.add(new Origin(0), f1);
+    assertEquals(first, reordered);
+    assertEquals(first.hashCode(), reordered.hashCode());
+
+    // the same facts reached through clone and merge
+    assertEquals(first, first.clone());
+    final FactSet merged = new FactSet();
+    merged.add(new Origin(0), f1);
+    final FactSet rest = new FactSet();
+    rest.add(new Origin(1), g12);
+    merged.merge(rest);
+    assertEquals(first, merged);
+    assertEquals(first.hashCode(), merged.hashCode());
+
+    // a fact under another origin is a different set, and so is a missing fact
+    final FactSet otherOrigin = new FactSet();
+    otherOrigin.add(new Origin(2), f1);
+    otherOrigin.add(new Origin(1), g12);
+    assertNotEquals(first, otherOrigin);
+
+    final FactSet missing = new FactSet();
+    missing.add(new Origin(0), f1);
+    assertNotEquals(first, missing);
   }
 }
