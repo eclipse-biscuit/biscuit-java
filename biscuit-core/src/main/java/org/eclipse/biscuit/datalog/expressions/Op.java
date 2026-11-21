@@ -541,13 +541,13 @@ public abstract class Op {
           if (left instanceof Term.Bool && right instanceof Closure) {
             if (((Term.Bool) left).value()) {
               Closure closure = (Closure) right;
-              Term result = closure.call(variables, temporarySymbolTable, steps);
-              if (result instanceof Term.Bool) {
-                stack.push(result);
-              }
+              stack.push(closure.call(variables, temporarySymbolTable, steps));
             } else {
               stack.push(new Term.Bool(false));
             }
+          } else {
+            throw new Error.Execution(
+                Error.Execution.Kind.InvalidType, "invalid operands for lazy and op");
           }
           break;
         case LazyOr:
@@ -556,11 +556,11 @@ public abstract class Op {
               stack.push(new Term.Bool(true));
             } else {
               Closure closure = (Closure) right;
-              Term result = closure.call(variables, temporarySymbolTable, steps);
-              if (result instanceof Term.Bool) {
-                stack.push(result);
-              }
+              stack.push(closure.call(variables, temporarySymbolTable, steps));
             }
+          } else {
+            throw new Error.Execution(
+                Error.Execution.Kind.InvalidType, "invalid operands for lazy or op");
           }
           break;
         case Intersection:
@@ -735,6 +735,9 @@ public abstract class Op {
               if (e instanceof Error.TooManySteps) throw e;
               stack.push(right);
             }
+          } else {
+            throw new Error.Execution(
+                Error.Execution.Kind.InvalidType, "left operand of try_or op is not a closure");
           }
           break;
         default:
