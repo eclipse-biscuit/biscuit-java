@@ -6,6 +6,7 @@
 package org.eclipse.biscuit.datalog;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -147,5 +148,51 @@ public class ExpressionTest {
             new HashMap<>(),
             new TemporarySymbolTable(symbolTable),
             new StepCounter(new RunLimits().getMaxSteps())));
+  }
+
+  private static Term evaluate(Op... ops) throws Error {
+    return new Expression(new ArrayList<>(Arrays.asList(ops)))
+        .evaluate(
+            new HashMap<>(),
+            new TemporarySymbolTable(new SymbolTable()),
+            new StepCounter(new RunLimits().getMaxSteps()));
+  }
+
+  private static Op.Closure closure(Op... ops) {
+    return new Op.Closure(new ArrayList<>(), new ArrayList<>(Arrays.asList(ops)));
+  }
+
+  @Test
+  public void lazyOpsReturnTheClosureResult() throws Error {
+    assertEquals(
+        new Term.Integer(1),
+        evaluate(
+            new Term.Bool(true), closure(new Term.Integer(1)), new Op.Binary(Op.BinaryOp.LazyAnd)));
+    assertEquals(
+        new Term.Integer(1),
+        evaluate(
+            new Term.Bool(false), closure(new Term.Integer(1)), new Op.Binary(Op.BinaryOp.LazyOr)));
+  }
+
+  @Test
+  public void lazyOpsRejectInvalidOperands() {
+    assertThrows(
+        Error.Execution.class,
+        () ->
+            evaluate(new Term.Bool(true), new Term.Bool(true), new Op.Binary(Op.BinaryOp.LazyAnd)));
+    assertThrows(
+        Error.Execution.class,
+        () ->
+            evaluate(
+                new Term.Integer(1),
+                closure(new Term.Bool(true)),
+                new Op.Binary(Op.BinaryOp.LazyOr)));
+  }
+
+  @Test
+  public void tryOrRejectsANonClosureOperand() {
+    assertThrows(
+        Error.Execution.class,
+        () -> evaluate(new Term.Integer(1), new Term.Integer(2), new Op.Binary(Op.BinaryOp.TryOr)));
   }
 }
