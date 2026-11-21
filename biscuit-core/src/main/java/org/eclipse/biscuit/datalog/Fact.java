@@ -6,13 +6,12 @@
 package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 
-public final class Fact implements Serializable {
+public final class Fact {
   private final Predicate predicate;
 
   public Predicate predicate() {

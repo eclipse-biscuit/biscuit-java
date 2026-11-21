@@ -7,7 +7,6 @@ package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
 import com.google.protobuf.ByteString;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,7 +18,7 @@ import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 
-public abstract class Term extends Op implements Serializable {
+public abstract class Term extends Op {
 
   public abstract boolean match(Term other);
 
@@ -88,7 +87,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Null extends Term implements Serializable {
+  public static final class Null extends Term {
     public boolean match(final Term other) {
       if (other instanceof Variable) {
         return true;
@@ -139,7 +138,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Date extends Term implements Serializable {
+  public static final class Date extends Term {
     private final long value;
 
     public long value() {
@@ -204,7 +203,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Integer extends MapKey implements Serializable {
+  public static final class Integer extends MapKey {
     private final long value;
 
     public long value() {
@@ -288,7 +287,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Bytes extends Term implements Serializable {
+  public static final class Bytes extends Term {
     private final byte[] value;
 
     public byte[] value() {
@@ -353,7 +352,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Str extends MapKey implements Serializable {
+  public static final class Str extends MapKey {
     private final long value;
 
     public long value() {
@@ -434,7 +433,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Variable extends Term implements Serializable {
+  public static final class Variable extends Term {
     private final long value;
 
     public long value() {
@@ -496,7 +495,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Bool extends Term implements Serializable {
+  public static final class Bool extends Term {
     private final boolean value;
 
     public boolean value() {
@@ -563,7 +562,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Array extends Term implements Serializable {
+  public static final class Array extends Term {
     private final List<Term> value;
 
     public List<Term> value() {
@@ -665,7 +664,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Map extends Term implements Serializable {
+  public static final class Map extends Term {
     private final HashMap<MapKey, Term> value;
 
     public HashMap<MapKey, Term> value() {
@@ -772,7 +771,7 @@ public abstract class Term extends Op implements Serializable {
     }
   }
 
-  public static final class Set extends Term implements Serializable {
+  public static final class Set extends Term {
     private final HashSet<Term> value;
 
     public HashSet<Term> value() {

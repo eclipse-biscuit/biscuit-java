@@ -6,7 +6,6 @@
 package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +21,7 @@ import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 
-public final class Rule implements Serializable {
+public final class Rule {
   private final Predicate head;
   private final List<Predicate> body;
   private final List<Expression> expressions;
