@@ -5,14 +5,13 @@
 
 package org.eclipse.biscuit.datalog;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.biscuit.error.Error;
 
-public final class World implements Serializable {
+public final class World {
   private final FactSet facts;
   private final RuleSet rules;
   private StepCounter steps;

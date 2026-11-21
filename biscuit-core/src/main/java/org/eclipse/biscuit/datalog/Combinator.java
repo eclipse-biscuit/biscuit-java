@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
-public final class Combinator implements Serializable, Iterator<Pair<Origin, Map<Long, Term>>> {
+public final class Combinator implements Iterator<Pair<Origin, Map<Long, Term>>> {
   private MatchedVariables variables;
   private final List<Predicate> predicates;
   private final FactSet facts;

@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +13,7 @@ import java.util.Set;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.error.Error;
 
-public final class MatchedVariables implements Serializable {
+public final class MatchedVariables {
   private final Map<Long, Optional<Term>> variables;
 
   public boolean insert(final long key, final Term value) {

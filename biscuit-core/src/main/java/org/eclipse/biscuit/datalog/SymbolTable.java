@@ -5,7 +5,6 @@
 
 package org.eclipse.biscuit.datalog;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -19,7 +18,7 @@ import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.token.builder.Utils;
 
-public final class SymbolTable implements Serializable {
+public final class SymbolTable {
   public static final short DEFAULT_SYMBOLS_OFFSET = 1024;
 
   private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_INSTANT;

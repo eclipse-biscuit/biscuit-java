@@ -6,7 +6,6 @@
 package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 
-public final class Predicate implements Serializable {
+public final class Predicate {
   private final long name;
   private final List<Term> terms;
 
