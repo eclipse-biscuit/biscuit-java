@@ -48,8 +48,8 @@
         <!-- test dependencies -->
         <junit.version>5.8.2</junit.version>
         <awssdk-kms.version>2.30.2</awssdk-kms.version>
-        <testcontainers-junit-jupiter.version>1.20.6</testcontainers-junit-jupiter.version>
-        <testcontainers-localstack.version>1.20.6</testcontainers-localstack.version>
+        <testcontainers-junit-jupiter.version>1.21.4</testcontainers-junit-jupiter.version>
+        <testcontainers-localstack.version>1.21.4</testcontainers-localstack.version>
     </properties>
 
     <licenses>
