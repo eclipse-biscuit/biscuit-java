@@ -27,7 +27,7 @@ import org.eclipse.biscuit.token.builder.Utils;
 @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 final class SECP256R1KeyPair extends KeyPair {
 
-  static final int MINIMUM_SIGNATURE_LENGTH = 68;
+  static final int MINIMUM_SIGNATURE_LENGTH = 8;
   static final int MAXIMUM_SIGNATURE_LENGTH = 72;
   private static final int BUFFER_SIZE = 32;
 

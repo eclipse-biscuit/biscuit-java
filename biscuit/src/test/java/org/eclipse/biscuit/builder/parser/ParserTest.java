@@ -17,9 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.biscuit.crypto.PublicKey;
-import org.eclipse.biscuit.datalog.Pair;
-import org.eclipse.biscuit.datalog.SymbolTable;
-import org.eclipse.biscuit.datalog.TemporarySymbolTable;
+import org.eclipse.biscuit.datalog.*;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.Block;
@@ -354,7 +352,7 @@ class ParserTest {
   }
 
   @Test
-  void testParens() throws org.eclipse.biscuit.error.Error.Execution {
+  void testParens() throws org.eclipse.biscuit.error.Error {
     var res = Parser.expression("  1 + 2 * 3  ");
 
     assertEquals(
@@ -383,7 +381,9 @@ class ParserTest {
         ex.getOps());
 
     Map<Long, org.eclipse.biscuit.datalog.Term> variables = new HashMap<>();
-    org.eclipse.biscuit.datalog.Term value = ex.evaluate(variables, new TemporarySymbolTable(s));
+    org.eclipse.biscuit.datalog.Term value =
+        ex.evaluate(
+            variables, new TemporarySymbolTable(s), new StepCounter(new RunLimits().getMaxSteps()));
     assertEquals(new org.eclipse.biscuit.datalog.Term.Integer(7), value);
     assertEquals("1 + 2 * 3", ex.print(s).get());
 
@@ -419,7 +419,10 @@ class ParserTest {
 
     Map<Long, org.eclipse.biscuit.datalog.Term> variables2 = new HashMap<>();
     org.eclipse.biscuit.datalog.Term value2 =
-        ex2.evaluate(variables2, new TemporarySymbolTable(s2));
+        ex2.evaluate(
+            variables2,
+            new TemporarySymbolTable(s2),
+            new StepCounter(new RunLimits().getMaxSteps()));
     assertEquals(new org.eclipse.biscuit.datalog.Term.Integer(9), value2);
     assertEquals("(1 + 2) * 3", ex2.print(s2).get());
   }

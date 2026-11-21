@@ -45,10 +45,11 @@ public final class Rule implements Serializable {
   }
 
   public Stream<Result<Pair<Origin, Fact>, Error>> apply(
-      final FactSet facts, Long ruleOrigin, TrustedOrigins scope, SymbolTable symbolTable) {
+      final FactSet facts, Long ruleOrigin, TrustedOrigins scope, SymbolTable symbolTable, StepCounter steps) {
     MatchedVariables variables = variablesSet();
 
-    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable);
+    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps);
+
     Spliterator<Pair<Origin, Map<Long, Term>>> splitItr =
         Spliterators.spliteratorUnknownSize(combinator, Spliterator.ORDERED);
     Stream<Pair<Origin, Map<Long, Term>>> stream = StreamSupport.stream(splitItr, false);
@@ -60,7 +61,7 @@ public final class Rule implements Serializable {
           TemporarySymbolTable temporarySymbols = new TemporarySymbolTable(symbolTable);
           for (Expression e : this.expressions) {
             try {
-              Term term = e.evaluate(generatedVariables, temporarySymbols);
+              Term term = e.evaluate(generatedVariables, temporarySymbols, steps);
 
               if (term instanceof Term.Bool) {
                 Term.Bool b = (Term.Bool) term;
@@ -109,18 +110,26 @@ public final class Rule implements Serializable {
 
   // do not produce new facts, only find one matching set of facts
   public boolean findMatch(
-      final FactSet facts, Long origin, TrustedOrigins scope, SymbolTable symbolTable)
+      final FactSet facts,
+      Long origin,
+      TrustedOrigins scope,
+      SymbolTable symbolTable,
+      StepCounter steps)
       throws Error {
     MatchedVariables variables = variablesSet();
 
     if (this.body.isEmpty()) {
-      return variables.checkExpressions(this.expressions, symbolTable).isPresent();
+      return variables.checkExpressions(this.expressions, symbolTable, steps).isPresent();
     }
 
-    var stream = this.apply(facts, origin, scope, symbolTable);
+    var stream = this.apply(facts, origin, scope, symbolTable, steps);
     var it = stream.iterator();
 
-    if (!it.hasNext()) {
+    boolean res = it.hasNext();
+
+    if (steps.exceeded()) throw new Error.TooManySteps();
+
+    if (!res) {
       return false;
     }
 
@@ -133,15 +142,17 @@ public final class Rule implements Serializable {
   }
 
   // verifies that the expressions return true for every matching set of facts
-  public boolean checkMatchAll(final FactSet facts, TrustedOrigins scope, SymbolTable symbolTable)
+  public boolean checkMatchAll(
+      final FactSet facts, TrustedOrigins scope, SymbolTable symbolTable, StepCounter steps)
       throws Error {
     MatchedVariables variables = variablesSet();
 
     if (this.body.isEmpty()) {
-      return variables.checkExpressions(this.expressions, symbolTable).isPresent();
+      return variables.checkExpressions(this.expressions, symbolTable, steps).isPresent();
     }
 
-    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable);
+    Combinator combinator = new Combinator(variables, this.body, facts, scope, symbolTable, steps)
+
     boolean found = false;
 
     for (Combinator it = combinator; it.hasNext(); ) {
@@ -152,7 +163,7 @@ public final class Rule implements Serializable {
       TemporarySymbolTable temporarySymbols = new TemporarySymbolTable(symbolTable);
       for (Expression e : this.expressions) {
 
-        Term term = e.evaluate(generatedVariables, temporarySymbols);
+        Term term = e.evaluate(generatedVariables, temporarySymbols, steps);
         if (term instanceof Term.Bool) {
           Term.Bool b = (Term.Bool) term;
           if (!b.value()) {
@@ -164,6 +175,9 @@ public final class Rule implements Serializable {
         }
       }
     }
+
+    if (steps.exceeded()) throw new Error.TooManySteps();
+
     return found;
   }
 

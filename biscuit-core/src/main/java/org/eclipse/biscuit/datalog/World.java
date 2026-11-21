@@ -15,6 +15,7 @@ import org.eclipse.biscuit.error.Error;
 public final class World implements Serializable {
   private final FactSet facts;
   private final RuleSet rules;
+  private StepCounter steps;
 
   public void addFact(final Origin origin, final Fact fact) {
     this.facts.add(origin, fact);
@@ -35,6 +36,7 @@ public final class World implements Serializable {
   public void run(RunLimits limits, final SymbolTable symbolTable) throws Error {
     int iterations = 0;
     Instant limit = Instant.now().plus(limits.getMaxTime());
+    this.steps = new StepCounter(limits.getMaxSteps());
 
     while (true) {
       final FactSet newFacts = new FactSet();
@@ -42,7 +44,7 @@ public final class World implements Serializable {
       for (Map.Entry<TrustedOrigins, List<Pair<Long, Rule>>> entry :
           this.rules.getRules().entrySet()) {
         for (Pair<Long, Rule> t : entry.getValue()) {
-          var stream = t._2.apply(this.facts, t._1, entry.getKey(), symbolTable);
+          var stream = t._2.apply(this.facts, t._1, entry.getKey(), symbolTable, this.steps);
           for (var it = stream.iterator(); it.hasNext(); ) {
             var res = it.next();
             if (Instant.now().compareTo(limit) >= 0) {
@@ -58,6 +60,8 @@ public final class World implements Serializable {
           }
         }
       }
+
+      if (this.steps.exceeded()) throw new Error.TooManySteps();
 
       final int len = this.facts.size();
       this.facts.merge(newFacts);
@@ -89,7 +93,7 @@ public final class World implements Serializable {
       final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbolTable) throws Error {
     final FactSet newFacts = new FactSet();
 
-    var stream = rule.apply(this.facts, origin, scope, symbolTable);
+    var stream = rule.apply(this.facts, origin, scope, symbolTable, this.steps);
     for (var it = stream.iterator(); it.hasNext(); ) {
       var res = it.next();
 
@@ -101,37 +105,43 @@ public final class World implements Serializable {
       }
     }
 
+    if (this.steps.exceeded()) throw new Error.TooManySteps();
+
     return newFacts;
   }
 
   public boolean queryMatch(
       final Rule rule, Long origin, TrustedOrigins scope, SymbolTable symbolTable) throws Error {
-    return rule.findMatch(this.facts, origin, scope, symbolTable);
+    return rule.findMatch(this.facts, origin, scope, symbolTable, this.steps);
   }
 
   public boolean queryMatchAll(final Rule rule, TrustedOrigins scope, SymbolTable symbolTable)
       throws Error {
-    return rule.checkMatchAll(this.facts, scope, symbolTable);
+    return rule.checkMatchAll(this.facts, scope, symbolTable, this.steps);
   }
 
   public World() {
     this.facts = new FactSet();
     this.rules = new RuleSet();
+    this.steps = new StepCounter(new RunLimits().getMaxSteps());
   }
 
   public World(FactSet facts) {
     this.facts = facts.clone();
     this.rules = new RuleSet();
+    this.steps = new StepCounter(new RunLimits().getMaxSteps());
   }
 
   public World(FactSet facts, RuleSet rules) {
     this.facts = facts.clone();
     this.rules = rules.clone();
+    this.steps = new StepCounter(new RunLimits().getMaxSteps());
   }
 
   public World(World w) {
     this.facts = w.facts.clone();
     this.rules = w.rules.clone();
+    this.steps = w.steps.clone();
   }
 
   public String print(SymbolTable symbolTable) {
