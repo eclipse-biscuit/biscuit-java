@@ -30,6 +30,22 @@ public final class AuthorizerBuilder {
 
   public AuthorizerBuilder() {}
 
+  public AuthorizerBuilder clone() {
+    AuthorizerBuilder clone = new AuthorizerBuilder();
+    clone.facts.addAll(this.facts);
+    clone.rules.addAll(this.rules);
+    clone.checks.addAll(this.checks);
+    clone.scopes.addAll(this.scopes);
+    clone.policies.addAll(this.policies);
+    clone.limits =
+        new RunLimits(
+            this.limits.getMaxFacts(),
+            this.limits.getMaxIterations(),
+            this.limits.getMaxTime(),
+            this.limits.getMaxSteps());
+    return clone;
+  }
+
   public AuthorizerBuilder addFact(Fact fact) {
     this.facts.add(fact);
     return this;
