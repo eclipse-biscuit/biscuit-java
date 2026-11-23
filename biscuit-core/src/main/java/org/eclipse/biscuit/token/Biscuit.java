@@ -147,7 +147,26 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public static Biscuit fromBase64Url(String data, PublicKey root)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), root);
+    return Biscuit.fromBase64Url(data, root, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a Biscuit token from a base64 url (RFC4648_URLSAFE) string, rejecting it if it
+   * contains features which are not permitted by the deserializationLimit
+   *
+   * <p>The deserializationLimit is checked before the signatures are verified. Apart from that,
+   * this behaves like {@link #fromBase64Url(String, PublicKey)}.
+   *
+   * @param data
+   * @param root
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return Biscuit
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static Biscuit fromBase64Url(
+      String data, PublicKey root, DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), root, deserializationLimit);
   }
 
   /**
@@ -165,7 +184,27 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public static Biscuit fromBase64Url(String data, KeyDelegate delegate)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), delegate);
+    return Biscuit.fromBase64Url(data, delegate, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a Biscuit token from a base64 url (RFC4648_URLSAFE) string, rejecting it if it
+   * contains features which are not permitted by the deserializationLimit
+   *
+   * <p>The deserializationLimit is checked before the root key is looked up and before the
+   * signatures are verified. Apart from that, this behaves like
+   * {@link #fromBase64Url(String, KeyDelegate)}.
+   *
+   * @param data
+   * @param delegate
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return Biscuit
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static Biscuit fromBase64Url(
+      String data, KeyDelegate delegate, DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    return Biscuit.fromBytes(Base64.getUrlDecoder().decode(data), delegate, deserializationLimit);
   }
 
   /**
@@ -183,14 +222,33 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public static Biscuit fromBytes(byte[] data, PublicKey root)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    return fromBytesWithSymbols(data, root, defaultSymbolTable());
+    return fromBytes(data, root, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a Biscuit token from a byte array, rejecting it if it contains features which
+   * are not permitted by the deserializationLimit
+   *
+   * <p>The deserializationLimit is checked before the signatures are verified. Apart from that,
+   * this behaves like {@link #fromBytes(byte[], PublicKey)}.
+   *
+   * @param data
+   * @param root
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static Biscuit fromBytes(
+      byte[] data, PublicKey root, DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    return fromBytesWithSymbols(data, root, defaultSymbolTable(), deserializationLimit);
   }
 
   /**
    * Deserializes a Biscuit token from a byte array
    *
    * <p>This checks the signature, but does not verify that the first key is the root key, to allow
-   * appending blocks without knowing about the root key.
+   * appending blocks without knowing about the root key
    *
    * <p>The root key check is performed in the verify method
    *
@@ -201,7 +259,27 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public static Biscuit fromBytes(byte[] data, KeyDelegate delegate)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    return fromBytesWithSymbols(data, delegate, defaultSymbolTable());
+    return fromBytes(data, delegate, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a Biscuit token from a byte array, rejecting it if it contains features which
+   * are not permitted by the deserializationLimit
+   *
+   * <p>The deserializationLimit is checked before the root key is looked up and before the
+   * signatures are verified. Apart from that, this behaves like
+   * {@link #fromBytes(byte[], KeyDelegate)}.
+   *
+   * @param data
+   * @param delegate
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static Biscuit fromBytes(
+      byte[] data, KeyDelegate delegate, DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    return fromBytesWithSymbols(data, delegate, defaultSymbolTable(), deserializationLimit);
   }
 
   /**
@@ -217,11 +295,32 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   public static Biscuit fromBytesWithSymbols(byte[] data, PublicKey root, SymbolTable symbolTable)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    // System.out.println("will deserialize and verify token");
-    SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, root);
-    // System.out.println("deserialized token, will populate Biscuit structure");
+    return fromBytesWithSymbols(data, root, symbolTable, DeserializationLimit.allowEverything());
+  }
 
-    return Biscuit.fromSerializedBiscuit(ser, symbolTable);
+  /**
+   * Deserializes a Biscuit token from a byte array, rejecting it if it contains features which
+   * are not permitted by the deserializationLimit
+   *
+   * <p>The deserializationLimit is checked before the signatures are verified. Apart from that,
+   * this behaves like {@link #fromBytesWithSymbols(byte[], PublicKey, SymbolTable)}.
+   *
+   * @param data
+   * @param root
+   * @param symbolTable
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static Biscuit fromBytesWithSymbols(
+      byte[] data,
+      PublicKey root,
+      SymbolTable symbolTable,
+      DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, root, deserializationLimit);
+
+    return Biscuit.fromSerializedBiscuit(ser, symbolTable, deserializationLimit);
   }
 
   /**
@@ -238,11 +337,34 @@ public final class Biscuit extends UnverifiedBiscuit {
   public static Biscuit fromBytesWithSymbols(
       byte[] data, KeyDelegate delegate, SymbolTable symbolTable)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    // System.out.println("will deserialize and verify token");
-    SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, delegate);
-    // System.out.println("deserialized token, will populate Biscuit structure");
+    return fromBytesWithSymbols(
+        data, delegate, symbolTable, DeserializationLimit.allowEverything());
+  }
 
-    return Biscuit.fromSerializedBiscuit(ser, symbolTable);
+  /**
+   * Deserializes a Biscuit token from a byte array, rejecting it if it contains features which
+   * are not permitted by the deserializationLimit
+   *
+   * <p>The deserializationLimit is checked before the root key is looked up and before the
+   * signatures are verified. Apart from that, this behaves like
+   * {@link #fromBytesWithSymbols(byte[], KeyDelegate, SymbolTable)}.
+   *
+   * @param data
+   * @param delegate
+   * @param symbolTable
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static Biscuit fromBytesWithSymbols(
+      byte[] data,
+      KeyDelegate delegate,
+      SymbolTable symbolTable,
+      DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    SerializedBiscuit ser = SerializedBiscuit.fromBytes(data, delegate, deserializationLimit);
+
+    return Biscuit.fromSerializedBiscuit(ser, symbolTable, deserializationLimit);
   }
 
   /**
@@ -252,12 +374,18 @@ public final class Biscuit extends UnverifiedBiscuit {
    */
   static Biscuit fromSerializedBiscuit(SerializedBiscuit ser, SymbolTable symbolTable)
       throws Error {
-    Pair<Block, List<Block>> t = ser.extractBlocks(symbolTable);
+    return fromSerializedBiscuit(ser, symbolTable, DeserializationLimit.allowEverything());
+  }
+
+  static Biscuit fromSerializedBiscuit(
+      SerializedBiscuit ser, SymbolTable symbolTable, DeserializationLimit deserializationLimit)
+      throws Error {
+    Pair<Block, List<Block>> t = ser.extractBlocks(symbolTable, deserializationLimit);
     return new Biscuit(t._1, t._2, symbolTable, ser);
   }
 
   /**
-   * Creates a authorizer for this token
+   * Creates an authorizer for this token
    *
    * <p>This function checks that the root key is the one we expect
    *

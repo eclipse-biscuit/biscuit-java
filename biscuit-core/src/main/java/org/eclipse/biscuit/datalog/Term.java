@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public abstract class Term extends Op {
 
@@ -60,30 +61,85 @@ public abstract class Term extends Op {
     return s;
   }
 
-  public static Result<Term, Error.FormatError> deserializeEnumV2(Schema.TermV2 term) {
-    if (term.hasDate()) {
-      return Date.deserializeV2(term);
-    } else if (term.hasInteger()) {
-      return Integer.deserializeV2(term);
-    } else if (term.hasString()) {
-      return Str.deserializeV2(term);
-    } else if (term.hasBytes()) {
-      return Bytes.deserializeV2(term);
-    } else if (term.hasVariable()) {
-      return Variable.deserializeV2(term);
-    } else if (term.hasBool()) {
-      return Bool.deserializeV2(term);
-    } else if (term.hasSet()) {
-      return Set.deserializeV2(term);
-    } else if (term.hasNull()) {
-      return Null.deserializeV2(term);
-    } else if (term.hasArray()) {
-      return Array.deserializeV2(term);
-    } else if (term.hasMap()) {
-      return Map.deserializeV2(term);
-    } else {
+  public static Result<Term, Error.FormatError> deserializeEnumV2(
+      Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    var allowedTypes = limits.getAllowedTermTypes();
+    // a variable is not a value, so it has no type
+    var type = termType(term.getContentCase());
+    if (allowedTypes != null && type != null && !allowedTypes.contains(type)) {
       return Result.err(
-          new Error.FormatError.DeserializationError("invalid Term kind: term.getKind()"));
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TERM_TYPE_NOT_ALLOWED));
+    }
+
+    switch (term.getContentCase()) {
+      case DATE:
+        return Date.deserializeV2(term);
+      case INTEGER:
+        return Integer.deserializeV2(term);
+      case STRING:
+        var stringError = limits.checkString(symbols, term.getString());
+        if (stringError != null) {
+          return Result.err(stringError);
+        }
+        return Str.deserializeV2(term);
+      case BYTES:
+        if (term.getBytes().size() > limits.getMaxBytesLength()) {
+          return Result.err(
+              new Error.FormatError.DeserializationLimitError(
+                  Error.FormatError.DeserializationLimitError.Reason.BYTES_TOO_LONG));
+        }
+        return Bytes.deserializeV2(term);
+      case VARIABLE:
+        var nameError =
+            limits.checkName(symbols, java.lang.Integer.toUnsignedLong(term.getVariable()));
+        if (nameError != null) {
+          return Result.err(nameError);
+        }
+        return Variable.deserializeV2(term);
+      case BOOL:
+        return Bool.deserializeV2(term);
+      case SET:
+        return Set.deserializeV2(term, limits, symbols);
+      case NULL:
+        return Null.deserializeV2(term);
+      case ARRAY:
+        return Array.deserializeV2(term, limits, symbols);
+      case MAP:
+        return Map.deserializeV2(term, limits, symbols);
+      default:
+        return Result.err(
+            new Error.FormatError.DeserializationError(
+                "invalid Term kind: " + term.getContentCase()));
+    }
+  }
+
+  private static DeserializationLimit.TermType termType(Schema.TermV2.ContentCase content) {
+    switch (content) {
+      case INTEGER:
+        return DeserializationLimit.TermType.INTEGER;
+      case STRING:
+        return DeserializationLimit.TermType.STRING;
+      case DATE:
+        return DeserializationLimit.TermType.DATE;
+      case BYTES:
+        return DeserializationLimit.TermType.BYTES;
+      case BOOL:
+        return DeserializationLimit.TermType.BOOL;
+      case SET:
+        return DeserializationLimit.TermType.SET;
+      case NULL:
+        return DeserializationLimit.TermType.NULL;
+      case ARRAY:
+        return DeserializationLimit.TermType.ARRAY;
+      case MAP:
+        return DeserializationLimit.TermType.MAP;
+      case VARIABLE:
+      case CONTENT_NOT_SET:
+        // not values, so they have no type
+        return null;
+      default:
+        throw new IllegalStateException("unhandled term kind " + content);
     }
   }
 
@@ -621,7 +677,8 @@ public abstract class Term extends Op {
       return "array";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserializeV2(
+        Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasArray()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected array"));
@@ -629,8 +686,14 @@ public abstract class Term extends Op {
         java.util.List<Term> values = new ArrayList<>();
         Schema.Array s = term.getArray();
 
+        if (s.getArrayCount() > limits.getMaxArrayLength()) {
+          return Result.err(
+              new Error.FormatError.DeserializationLimitError(
+                  Error.FormatError.DeserializationLimitError.Reason.ARRAY_TOO_LONG));
+        }
+
         for (Schema.TermV2 l : s.getArrayList()) {
-          var res = Term.deserializeEnumV2(l);
+          var res = Term.deserializeEnumV2(l, limits, symbols);
           if (res.isErr()) {
             return Result.err(res.getErr());
           } else {
@@ -726,7 +789,8 @@ public abstract class Term extends Op {
       return "map";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserializeV2(
+        Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasMap()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected map"));
@@ -734,12 +798,18 @@ public abstract class Term extends Op {
       java.util.HashMap<MapKey, Term> values = new HashMap<>();
       Schema.Map s = term.getMap();
 
+      if (s.getEntriesCount() > limits.getMaxMapLength()) {
+        return Result.err(
+            new Error.FormatError.DeserializationLimitError(
+                Error.FormatError.DeserializationLimitError.Reason.MAP_TOO_LONG));
+      }
+
       for (Schema.MapEntry l : s.getEntriesList()) {
-        var resKey = MapKey.deserializeMapKeyEnum(l.getKey());
+        var resKey = MapKey.deserializeMapKeyEnum(l.getKey(), limits, symbols);
         if (resKey.isErr()) {
           return Result.err(resKey.getErr());
         }
-        var resValue = Term.deserializeEnumV2(l.getValue());
+        var resValue = Term.deserializeEnumV2(l.getValue(), limits, symbols);
         if (resValue.isErr()) {
           return Result.err(resValue.getErr());
         }
@@ -842,7 +912,8 @@ public abstract class Term extends Op {
       return "set";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserializeV2(
+        Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasSet()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected set"));
@@ -850,8 +921,14 @@ public abstract class Term extends Op {
         java.util.HashSet<Term> values = new HashSet<>();
         Schema.TermSet s = term.getSet();
 
+        if (s.getSetCount() > limits.getMaxSetLength()) {
+          return Result.err(
+              new Error.FormatError.DeserializationLimitError(
+                  Error.FormatError.DeserializationLimitError.Reason.SET_TOO_LONG));
+        }
+
         for (Schema.TermV2 l : s.getSetList()) {
-          var res = Term.deserializeEnumV2(l);
+          var res = Term.deserializeEnumV2(l, limits, symbols);
           if (res.isErr()) {
             return Result.err(res.getErr());
           } else {

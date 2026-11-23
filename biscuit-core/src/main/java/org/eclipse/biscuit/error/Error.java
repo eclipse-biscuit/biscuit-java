@@ -195,6 +195,105 @@ public abstract class Error extends Exception {
       }
     }
 
+    /** The token contains a feature which is not permitted by the DeserializationLimit it was checked with */
+    public static final class DeserializationLimitError extends FormatError {
+      /** The way in which a token violated the DeserializationLimit */
+      public enum Reason {
+        TOKEN_TOO_LARGE("Biscuit is too large"),
+        BLOCK_TOO_LARGE("Biscuit Datalog block is too large"),
+        TOO_MANY_BLOCKS("Biscuit contains too many blocks"),
+        TOO_MANY_FACTS("Biscuit block contains too many facts"),
+        TOO_MANY_RULES("Biscuit block contains too many rules"),
+        TOO_MANY_CHECKS("Biscuit block contains too many checks"),
+        TOO_MANY_SYMBOLS("Biscuit block contains too many symbols"),
+        TOO_MANY_PUBLIC_KEYS("Biscuit block contains too many public keys"),
+        TOO_MANY_QUERIES("Biscuit check contains too many queries"),
+        TOO_MANY_PREDICATES("Biscuit rule or query body contains too many predicates"),
+        TOO_MANY_EXPRESSIONS("Biscuit rule or query body contains too many expressions"),
+        TOO_MANY_OPS("Biscuit expression contains too many operations"),
+        TOO_MANY_TERMS("Biscuit fact or predicate contains too many terms"),
+        NAME_TOO_LONG("Biscuit contains a name which is too long"),
+        STRING_TOO_LONG("Biscuit contains a string which is too long"),
+        BYTES_TOO_LONG("Biscuit contains a bytes value which is too long"),
+        SET_TOO_LONG("Biscuit contains a set which is too long"),
+        ARRAY_TOO_LONG("Biscuit contains an array which is too long"),
+        MAP_TOO_LONG("Biscuit contains a map which is too long"),
+        CLOSURES_NOT_ALLOWED("Biscuit contains closures, which are not allowed"),
+        SIGNATURE_VERSION_TOO_LOW("Biscuit block uses a signature version which is too low"),
+        INTERNAL_SIGNING_ALGORITHM_NOT_ALLOWED(
+            "Biscuit block is signed with an algorithm which is not allowed"),
+        EXTERNAL_SIGNING_ALGORITHM_NOT_ALLOWED(
+            "Biscuit block has a third party signature with an algorithm which is not allowed"),
+        BINARY_OPERATION_NOT_ALLOWED("Biscuit contains a binary operation which is not allowed"),
+        UNARY_OPERATION_NOT_ALLOWED("Biscuit contains a unary operation which is not allowed"),
+        EXTERNAL_FUNCTION_NOT_ALLOWED("Biscuit calls a foreign function which is not allowed"),
+        TERM_TYPE_NOT_ALLOWED("Biscuit contains a term of a type which is not allowed"),
+        MAP_KEY_TYPE_NOT_ALLOWED("Biscuit contains a map key of a type which is not allowed"),
+        TRUSTED_SCOPE_NOT_ALLOWED("Biscuit trusts a scope which is not allowed"),
+        CONTEXT_TOO_LONG("Biscuit block contains a context which is too long"),
+        CHECK_KIND_NOT_ALLOWED("Biscuit contains a kind of check which is not allowed"),
+        SEALED_TOKENS_NOT_ALLOWED("Biscuit is sealed, which is not allowed"),
+        UNSEALED_TOKENS_NOT_ALLOWED("Biscuit is not sealed, which is not allowed"),
+        ATTENUATIONS_WITH_EXTERNAL_SIGNATURES_NOT_ALLOWED(
+            "Biscuit contains attenuations with external signatures, which are not allowed"),
+        ATTENUATIONS_WITHOUT_EXTERNAL_SIGNATURES_NOT_ALLOWED(
+            "Biscuit contains attenuations without external signatures, which are not allowed");
+
+        private final String description;
+
+        Reason(String description) {
+          this.description = description;
+        }
+
+        public String description() {
+          return description;
+        }
+      }
+
+      private final Reason reason;
+
+      public DeserializationLimitError(Reason reason) {
+        super();
+        this.reason = reason;
+      }
+
+      public Reason getReason() {
+        return reason;
+      }
+
+      @Override
+      public String getMessage() {
+        return reason.description();
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) {
+          return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+          return false;
+        }
+        return reason == ((DeserializationLimitError) o).reason;
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(reason);
+      }
+
+      @Override
+      public String toString() {
+        return "Err(Format(DeserializationLimitError(" + this.reason + ")))";
+      }
+
+      @Override
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("DeserializationLimitError", this.reason.name()));
+      }
+    }
+
     public static final class SerializationError extends FormatError {
       private final String err;
 

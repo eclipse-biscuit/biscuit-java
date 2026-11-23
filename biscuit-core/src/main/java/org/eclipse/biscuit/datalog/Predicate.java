@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public final class Predicate {
   private final long name;
@@ -92,10 +93,21 @@ public final class Predicate {
     return builder.build();
   }
 
-  public static Result<Predicate, Error.FormatError> deserializeV2(Schema.PredicateV2 predicate) {
+  public static Result<Predicate, Error.FormatError> deserializeV2(
+      Schema.PredicateV2 predicate, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    if (predicate.getTermsCount() > limits.getMaxTermsPerPredicate()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_TERMS));
+    }
+    var nameError = limits.checkName(symbols, predicate.getName());
+    if (nameError != null) {
+      return Result.err(nameError);
+    }
+
     ArrayList<Term> terms = new ArrayList<>();
     for (Schema.TermV2 id : predicate.getTermsList()) {
-      var res = Term.deserializeEnumV2(id);
+      var res = Term.deserializeEnumV2(id, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {

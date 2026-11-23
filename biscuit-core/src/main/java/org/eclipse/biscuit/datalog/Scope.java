@@ -6,8 +6,11 @@
 package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
+import java.util.Optional;
+import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public final class Scope {
   public enum Kind {
@@ -61,6 +64,47 @@ public final class Scope {
     }
 
     return b.build();
+  }
+
+  public static Result<Scope, Error.FormatError> deserialize(
+      Schema.Scope scope, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    var res = deserialize(scope);
+    if (res.isErr()) {
+      return res;
+    }
+
+    var allowedScopes = limits.getAllowedTrustingScopes();
+    if (allowedScopes != null) {
+      DeserializationLimit.TrustedScopeKind kind;
+      switch (res.getOk().kind()) {
+        case Authority:
+          kind = DeserializationLimit.TrustedScopeKind.AUTHORITY;
+          break;
+        case Previous:
+          kind = DeserializationLimit.TrustedScopeKind.PREVIOUS;
+          break;
+        case PublicKey:
+          long index = res.getOk().getPublicKey();
+          var key =
+              index >= 0 && index <= java.lang.Integer.MAX_VALUE
+                  ? symbols.getPublicKey((int) index)
+                  : Optional.<PublicKey>empty();
+          if (key.isEmpty()) {
+            return Result.err(new Error.FormatError.UnknownPublicKey());
+          }
+          kind = DeserializationLimit.TrustedScopeKind.publicKey(key.get().getAlgorithm());
+          break;
+        default:
+          // a new kind of scope has to be mapped to a TrustedScopeKind here
+          throw new IllegalStateException("unhandled scope kind " + res.getOk().kind());
+      }
+      if (!allowedScopes.contains(kind)) {
+        return Result.err(
+            new Error.FormatError.DeserializationLimitError(
+                Error.FormatError.DeserializationLimitError.Reason.TRUSTED_SCOPE_NOT_ALLOWED));
+      }
+    }
+    return res;
   }
 
   public static Result<Scope, Error.FormatError> deserialize(Schema.Scope scope) {

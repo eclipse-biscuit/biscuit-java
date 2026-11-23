@@ -27,6 +27,7 @@ import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.Block;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 /** Intermediate representation of a token before full serialization */
 public final class SerializedBiscuit {
@@ -55,10 +56,28 @@ public final class SerializedBiscuit {
    */
   public static SerializedBiscuit fromBytes(byte[] slice, PublicKey root)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    try {
-      Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
+    return fromBytes(slice, root, DeserializationLimit.allowEverything());
+  }
 
-      return fromBytesInner(data, root);
+  /**
+   * Deserializes a SerializedBiscuit from a byte array
+   *
+   * <p>The deserializationLimit is checked before the signatures are verified
+   *
+   * @param slice
+   * @param root
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   */
+  public static SerializedBiscuit fromBytes(
+      byte[] slice, PublicKey root, DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    try {
+      DeserializationLimitChecker.checkTokenSize(slice, deserializationLimit);
+      Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
+      DeserializationLimitChecker.checkToken(data, deserializationLimit);
+
+      return fromBytesInner(data, root, deserializationLimit);
     } catch (InvalidProtocolBufferException e) {
       throw new Error.FormatError.DeserializationError(e.toString());
     }
@@ -72,8 +91,27 @@ public final class SerializedBiscuit {
    */
   public static SerializedBiscuit fromBytes(byte[] slice, KeyDelegate delegate)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
+    return fromBytes(slice, delegate, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a SerializedBiscuit from a byte array
+   *
+   * <p>The deserializationLimit is checked before the root key is looked up and before the signatures are
+   * verified
+   *
+   * @param slice
+   * @param delegate
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   */
+  public static SerializedBiscuit fromBytes(
+      byte[] slice, KeyDelegate delegate, DeserializationLimit deserializationLimit)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
     try {
+      DeserializationLimitChecker.checkTokenSize(slice, deserializationLimit);
       Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
+      DeserializationLimitChecker.checkToken(data, deserializationLimit);
 
       Optional<Integer> rootKeyId = Optional.empty();
       if (data.hasRootKeyId()) {
@@ -85,19 +123,19 @@ public final class SerializedBiscuit {
         throw new InvalidKeyException("unknown root key id");
       }
 
-      return fromBytesInner(data, root.get());
+      return fromBytesInner(data, root.get(), deserializationLimit);
     } catch (InvalidProtocolBufferException e) {
       throw new Error.FormatError.DeserializationError(e.toString());
     }
   }
 
-  static SerializedBiscuit fromBytesInner(Schema.Biscuit data, PublicKey root)
+  static SerializedBiscuit fromBytesInner(
+      Schema.Biscuit data, PublicKey root, DeserializationLimit deserializationLimit)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    SerializedBiscuit b = SerializedBiscuit.deserialize(data);
+    SerializedBiscuit b = SerializedBiscuit.deserialize(data, deserializationLimit);
     if (data.hasRootKeyId()) {
       b.rootKeyId = Optional.of(data.getRootKeyId());
     }
-
     var res = b.verify(root);
     if (res.isErr()) {
       throw res.getErr();
@@ -114,9 +152,24 @@ public final class SerializedBiscuit {
    * @throws Error.FormatError
    */
   public static SerializedBiscuit deserializeUnsafe(byte[] slice) throws Error.FormatError {
+    return deserializeUnsafe(slice, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Warning: this deserializes without verifying the signature
+   *
+   * @param slice
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return SerializedBiscuit
+   * @throws Error.FormatError
+   */
+  public static SerializedBiscuit deserializeUnsafe(
+      byte[] slice, DeserializationLimit deserializationLimit) throws Error.FormatError {
     try {
+      DeserializationLimitChecker.checkTokenSize(slice, deserializationLimit);
       Schema.Biscuit data = Schema.Biscuit.parseFrom(slice);
-      return SerializedBiscuit.deserialize(data);
+      DeserializationLimitChecker.checkToken(data, deserializationLimit);
+      return SerializedBiscuit.deserialize(data, deserializationLimit);
     } catch (InvalidProtocolBufferException e) {
       throw new Error.FormatError.DeserializationError(e.toString());
     }
@@ -126,10 +179,14 @@ public final class SerializedBiscuit {
    * Warning: this deserializes without verifying the signature
    *
    * @param data
+   * @param deserializationLimit the features the token is allowed to contain
    * @return SerializedBiscuit
    * @throws Error.FormatError
    */
-  private static SerializedBiscuit deserialize(Schema.Biscuit data) throws Error.FormatError {
+  private static SerializedBiscuit deserialize(
+      Schema.Biscuit data, DeserializationLimit deserializationLimit) throws Error.FormatError {
+    DeserializationLimitChecker.checkSignedBlocks(data, deserializationLimit);
+
     if (data.getAuthority().hasExternalSignature()) {
       throw new Error.FormatError.DeserializationError(
           "the authority block must not contain an external signature");
@@ -458,18 +515,21 @@ public final class SerializedBiscuit {
   }
 
   public Pair<Block, List<Block>> extractBlocks(SymbolTable symbolTable) throws Error {
-    var authRes = Block.fromBytes(this.authority.getBlock(), Optional.empty());
+    return extractBlocks(symbolTable, DeserializationLimit.allowEverything());
+  }
+
+  public Pair<Block, List<Block>> extractBlocks(
+      SymbolTable symbolTable, DeserializationLimit deserializationLimit) throws Error {
+    var authRes =
+        Block.fromBytes(
+            this.authority.getBlock(),
+            Optional.empty(),
+            deserializationLimit.getAuthority(),
+            symbolTable);
     if (authRes.isErr()) {
       throw authRes.getErr();
     }
     Block authority = authRes.getOk();
-    for (org.eclipse.biscuit.crypto.PublicKey pk : authority.getPublicKeys()) {
-      symbolTable.insert(pk);
-    }
-
-    for (String s : authority.getSymbolTable().symbols()) {
-      symbolTable.add(s);
-    }
 
     ArrayList<Block> blocks = new ArrayList<>();
     for (SignedBlock bdata : this.blocks) {
@@ -477,25 +537,17 @@ public final class SerializedBiscuit {
       if (bdata.getExternalSignature().isPresent()) {
         externalKey = Optional.of(bdata.getExternalSignature().get().getKey());
       }
-      var blockRes = Block.fromBytes(bdata.getBlock(), externalKey);
+      // blocks with external signatures keep their own symbol table
+      var blockRes =
+          Block.fromBytes(
+              bdata.getBlock(),
+              externalKey,
+              deserializationLimit.getAttenuations(),
+              externalKey.isPresent() ? new SymbolTable() : symbolTable);
       if (blockRes.isErr()) {
         throw blockRes.getErr();
       }
-      Block block = blockRes.getOk();
-
-      // blocks with external signatures keep their own symbol table
-      if (bdata.getExternalSignature().isPresent()) {
-        // symbolTable.insert(bdata.externalSignature.get().key);
-      } else {
-        for (String s : block.getSymbolTable().symbols()) {
-          symbolTable.add(s);
-        }
-        for (PublicKey pk : block.getPublicKeys()) {
-          symbolTable.insert(pk);
-        }
-      }
-
-      blocks.add(block);
+      blocks.add(blockRes.getOk());
     }
 
     return new Pair<>(authority, Collections.unmodifiableList(blocks));

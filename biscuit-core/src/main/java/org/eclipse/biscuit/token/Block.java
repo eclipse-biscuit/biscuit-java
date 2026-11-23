@@ -9,6 +9,7 @@ import biscuit.format.schema.Schema;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -234,6 +235,27 @@ public final class Block {
    */
   public static Result<Block, Error.FormatError> deserialize(
       Schema.Block b, Optional<PublicKey> externalKey) {
+    return deserialize(
+        b, externalKey, DeserializationLimit.PerBlock.allowEverything(), new SymbolTable());
+  }
+
+  /**
+   * Deserializes a block from its Protobuf representation, rejecting it if it contains features
+   * which are not permitted by the limits
+   *
+   * @param b
+   * @param externalKey
+   * @param limits the features the block is allowed to contain
+   * @param baseSymbols the symbols which are known before the block; this adds the block's symbols
+   *     and public keys to it, so that the block's contents can refer to them, even if the block is
+   *     then rejected
+   * @return
+   */
+  public static Result<Block, Error.FormatError> deserialize(
+      Schema.Block b,
+      Optional<PublicKey> externalKey,
+      DeserializationLimit.PerBlock limits,
+      SymbolTable baseSymbols) {
     int version = b.getVersion();
     if (version < SerializedBiscuit.MIN_SCHEMA_VERSION
         || version > SerializedBiscuit.MAX_SCHEMA_VERSION) {
@@ -242,50 +264,40 @@ public final class Block {
               SerializedBiscuit.MIN_SCHEMA_VERSION, SerializedBiscuit.MAX_SCHEMA_VERSION, version));
     }
 
+    if (b.getFactsV2Count() > limits.getMaxFacts()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_FACTS));
+    }
+    if (b.getChecksV2Count() > limits.getMaxChecks()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_CHECKS));
+    }
+    if (b.getRulesV2Count() > limits.getMaxRules()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_RULES));
+    }
+    if (b.getSymbolsCount() > limits.getMaxSymbols()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_SYMBOLS));
+    }
+    if (b.getPublicKeysCount() > limits.getMaxPublicKeys()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_PUBLIC_KEYS));
+    }
+    if (b.getContext().getBytes(StandardCharsets.UTF_8).length > limits.getMaxContextLength()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.CONTEXT_TOO_LONG));
+    }
+
     SymbolTable newSymbolTable = new SymbolTable();
     for (String s : b.getSymbolsList()) {
       newSymbolTable.add(s);
-    }
-
-    ArrayList<Fact> facts = new ArrayList<>();
-    ArrayList<Rule> rules = new ArrayList<>();
-    ArrayList<Check> checks = new ArrayList<>();
-
-    for (Schema.FactV2 fact : b.getFactsV2List()) {
-      var res = Fact.deserializeV2(fact);
-      if (res.isErr()) {
-        return Result.err(res.getErr());
-      } else {
-        facts.add(res.getOk());
-      }
-    }
-
-    for (Schema.RuleV2 rule : b.getRulesV2List()) {
-      var res = Rule.deserializeV2(rule);
-      if (res.isErr()) {
-        return Result.err(res.getErr());
-      } else {
-        rules.add(res.getOk());
-      }
-    }
-
-    for (Schema.CheckV2 check : b.getChecksV2List()) {
-      var res = Check.deserializeV2(check);
-      if (res.isErr()) {
-        return Result.err(res.getErr());
-      } else {
-        checks.add(res.getOk());
-      }
-    }
-
-    ArrayList<Scope> scopes = new ArrayList<>();
-    for (Schema.Scope scope : b.getScopeList()) {
-      var res = Scope.deserialize(scope);
-      if (res.isErr()) {
-        return Result.err(res.getErr());
-      } else {
-        scopes.add(res.getOk());
-      }
     }
 
     ArrayList<PublicKey> publicKeys = new ArrayList<>();
@@ -296,6 +308,54 @@ public final class Block {
         newSymbolTable.getPublicKeys().add(key);
       } catch (Error.FormatError e) {
         return Result.err(e);
+      }
+    }
+
+    for (PublicKey key : publicKeys) {
+      baseSymbols.insert(key);
+    }
+    for (String s : b.getSymbolsList()) {
+      baseSymbols.add(s);
+    }
+
+    ArrayList<Fact> facts = new ArrayList<>();
+    ArrayList<Rule> rules = new ArrayList<>();
+    ArrayList<Check> checks = new ArrayList<>();
+
+    for (Schema.FactV2 fact : b.getFactsV2List()) {
+      var res = Fact.deserializeV2(fact, limits, baseSymbols);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
+      } else {
+        facts.add(res.getOk());
+      }
+    }
+
+    for (Schema.RuleV2 rule : b.getRulesV2List()) {
+      var res = Rule.deserializeV2(rule, limits, baseSymbols);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
+      } else {
+        rules.add(res.getOk());
+      }
+    }
+
+    for (Schema.CheckV2 check : b.getChecksV2List()) {
+      var res = Check.deserializeV2(check, limits, baseSymbols);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
+      } else {
+        checks.add(res.getOk());
+      }
+    }
+
+    ArrayList<Scope> scopes = new ArrayList<>();
+    for (Schema.Scope scope : b.getScopeList()) {
+      var res = Scope.deserialize(scope, limits, baseSymbols);
+      if (res.isErr()) {
+        return Result.err(res.getErr());
+      } else {
+        scopes.add(res.getOk());
       }
     }
 
@@ -327,9 +387,33 @@ public final class Block {
    */
   public static Result<Block, Error.FormatError> fromBytes(
       byte[] slice, Optional<PublicKey> externalKey) {
+    return fromBytes(
+        slice, externalKey, DeserializationLimit.PerBlock.allowEverything(), new SymbolTable());
+  }
+
+  /**
+   * Deserializes a Block from a byte array, rejecting it if it contains features which are not
+   * permitted by the limits
+   *
+   * @param slice
+   * @param externalKey
+   * @param limits the features the block is allowed to contain
+   * @param baseSymbols the symbols which are known before the block
+   * @return
+   */
+  public static Result<Block, Error.FormatError> fromBytes(
+      byte[] slice,
+      Optional<PublicKey> externalKey,
+      DeserializationLimit.PerBlock limits,
+      SymbolTable baseSymbols) {
+    if (slice.length > limits.getMaxBlockSize()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.BLOCK_TOO_LARGE));
+    }
     try {
       Schema.Block data = Schema.Block.parseFrom(slice);
-      return Block.deserialize(data, externalKey);
+      return Block.deserialize(data, externalKey, limits, baseSymbols);
     } catch (InvalidProtocolBufferException e) {
       return Result.err(new Error.FormatError.DeserializationError(e.toString()));
     }
