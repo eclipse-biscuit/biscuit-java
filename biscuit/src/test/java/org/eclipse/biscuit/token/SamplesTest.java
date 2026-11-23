@@ -241,6 +241,7 @@ class SamplesTest {
                   assertEquals(world.rules, authorizerWorld.rules);
                   assertEquals(world.checks, authorizerWorld.checks);
                   assertEquals(world.policies, authorizerWorld.policies);
+                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps);
                 }
 
                 res = Result.ok(authorizeResult);
@@ -255,6 +256,7 @@ class SamplesTest {
                   assertEquals(world.rules, authorizerWorld.rules);
                   assertEquals(world.checks, authorizerWorld.checks);
                   assertEquals(world.policies, authorizerWorld.policies);
+                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps);
                 }
 
                 throw e;
@@ -263,7 +265,7 @@ class SamplesTest {
               res = Result.err(e);
             }
 
-            if (expectedResult.has("Ok")) {
+            if ("ok".equals(expectedResult.get("type").textValue())) {
               if (res.isErr()) {
                 System.out.println(
                     "validation '"
@@ -385,16 +387,19 @@ class SamplesTest {
     List<RuleSet> rules;
     List<CheckSet> checks;
     List<String> policies;
+    long elapsedSteps;
 
     public World(
         @JsonProperty("facts") List<FactSet> facts,
         @JsonProperty("rules") List<RuleSet> rules,
         @JsonProperty("checks") List<CheckSet> checks,
-        @JsonProperty("policies") List<String> policies) {
+        @JsonProperty("policies") List<String> policies,
+        @JsonProperty("elapsed_steps") long elapsedSteps) {
       this.facts = facts;
       this.rules = rules.stream().sorted().collect(Collectors.toList());
       this.checks = checks.stream().sorted().collect(Collectors.toList());
       this.policies = policies;
+      this.elapsedSteps = elapsedSteps;
     }
 
     public World(Authorizer authorizer) {
@@ -472,6 +477,8 @@ class SamplesTest {
           + checks
           + ",\npolicies="
           + policies
+          + ",\nelapsed_steps="
+          + elapsedSteps
           + '}';
     }
   }
