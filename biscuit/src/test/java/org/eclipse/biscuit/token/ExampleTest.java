@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Block;
 
 /* example code for the documentation at https://www.biscuitsec.org
@@ -30,11 +31,11 @@ public class ExampleTest {
 
   public Long authorize(KeyPair root, byte[] serializedToken)
       throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, Error {
-    return Biscuit.fromBytes(serializedToken, root.getPublicKey())
-        .authorizer()
+    return new AuthorizerBuilder()
         .addFact("resource(\"/folder1/file1\")")
         .addFact("operation(\"read\")")
         .allow()
+        .build(Biscuit.fromBytes(serializedToken, root.getPublicKey()))
         .authorize();
   }
 

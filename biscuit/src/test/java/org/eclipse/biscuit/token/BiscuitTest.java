@@ -35,6 +35,7 @@ import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.FailedCheck;
 import org.eclipse.biscuit.error.LogicError;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Block;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,19 +152,21 @@ public class BiscuitTest {
     // check
     System.out.println("will check the token for resource=file1 and operation=read");
 
-    Authorizer authorizer = finalToken.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addFact("operation(\"read\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addFact("operation(\"read\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(finalToken);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
     System.out.println("will check the token for resource=file2 and operation=write");
 
-    Authorizer authorizer2 = finalToken.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addFact("operation(\"write\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addFact("operation(\"write\")");
+    authorizer2Builder.addPolicy("allow if true");
 
+    Authorizer authorizer2 = authorizer2Builder.build(finalToken);
     try {
       authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error e) {
@@ -209,16 +212,18 @@ public class BiscuitTest {
     KeyPair keypair2 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     Biscuit b2 = b.attenuate(rng, keypair2, block2);
 
-    Authorizer v1 = b2.authorizer();
-    v1.addFact("resource(\"/folder1/file1\")");
-    v1.addFact("operation(\"read\")");
-    v1.allow();
+    AuthorizerBuilder v1Builder = new AuthorizerBuilder();
+    v1Builder.addFact("resource(\"/folder1/file1\")");
+    v1Builder.addFact("operation(\"read\")");
+    v1Builder.allow();
+    Authorizer v1 = v1Builder.build(b2);
     v1.authorize();
 
-    Authorizer v2 = b2.authorizer();
-    v2.addFact("resource(\"/folder2/file3\")");
-    v2.addFact("operation(\"read\")");
-    v2.allow();
+    AuthorizerBuilder v2Builder = new AuthorizerBuilder();
+    v2Builder.addFact("resource(\"/folder2/file3\")");
+    v2Builder.addFact("operation(\"read\")");
+    v2Builder.allow();
+    Authorizer v2 = v2Builder.build(b2);
     try {
       v2.authorize();
       fail();
@@ -226,10 +231,11 @@ public class BiscuitTest {
       // Empty
     }
 
-    Authorizer v3 = b2.authorizer();
-    v3.addFact("resource(\"/folder2/file1\")");
-    v3.addFact("operation(\"write\")");
-    v3.allow();
+    AuthorizerBuilder v3Builder = new AuthorizerBuilder();
+    v3Builder.addFact("resource(\"/folder2/file1\")");
+    v3Builder.addFact("operation(\"write\")");
+    v3Builder.allow();
+    Authorizer v3 = v3Builder.build(b2);
     try {
       v3.authorize();
       fail();
@@ -318,28 +324,34 @@ public class BiscuitTest {
     KeyPair keypair2 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     Biscuit b2 = b.attenuate(rng, keypair2, block2);
 
-    Authorizer v1 = b2.authorizer();
-    v1.allow();
+    AuthorizerBuilder v1Builder = new AuthorizerBuilder();
+    v1Builder.allow();
 
-    Authorizer v2 = v1.clone();
-
-    v2.addFact("resource(\"/folder1/file1\")");
-    v2.addFact("operation(\"read\")");
+    Authorizer v2 =
+        new AuthorizerBuilder()
+            .merge(v1Builder)
+            .addFact("resource(\"/folder1/file1\")")
+            .addFact("operation(\"read\")")
+            .build(b2);
 
     v2.authorize();
 
-    Authorizer v3 = v1.clone();
-
-    v3.addFact("resource(\"/folder2/file3\")");
-    v3.addFact("operation(\"read\")");
+    Authorizer v3 =
+        new AuthorizerBuilder()
+            .merge(v1Builder)
+            .addFact("resource(\"/folder2/file3\")")
+            .addFact("operation(\"read\")")
+            .build(b2);
 
     Assertions.assertThrows(Error.class, v3::authorize);
     System.out.println(v3.formatWorld());
 
-    Authorizer v4 = v1.clone();
-
-    v4.addFact("resource(\"/folder2/file1\")");
-    v4.addFact("operation(\"write\")");
+    Authorizer v4 =
+        new AuthorizerBuilder()
+            .merge(v1Builder)
+            .addFact("resource(\"/folder2/file1\")")
+            .addFact("operation(\"write\")")
+            .build(b2);
 
     var e = Assertions.assertThrows(Error.class, v4::authorize);
 
@@ -388,17 +400,15 @@ public class BiscuitTest {
     KeyPair keypair2 = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     Biscuit b2 = b.attenuate(rng, keypair2, block2);
 
-    Authorizer v1 = new Authorizer();
-    v1.allow();
+    AuthorizerBuilder v1Builder = new AuthorizerBuilder();
+    v1Builder.allow();
 
-    v1.authorize();
+    v1Builder.buildUnauthenticated().authorize();
 
-    v1.addToken(b2);
+    v1Builder.addFact("resource(\"/folder2/file1\")");
+    v1Builder.addFact("operation(\"write\")");
 
-    v1.addFact("resource(\"/folder2/file1\")");
-    v1.addFact("operation(\"write\")");
-
-    assertThrows(Error.class, v1::authorize);
+    assertThrows(Error.class, v1Builder.build(b2)::authorize);
   }
 
   @Test
@@ -496,19 +506,21 @@ public class BiscuitTest {
     // check
     System.out.println("will check the token for resource=file1 and operation=read");
 
-    Authorizer authorizer = finalToken.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addFact("operation(\"read\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addFact("operation(\"read\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(finalToken);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
     System.out.println("will check the token for resource=file2 and operation=write");
 
-    Authorizer authorizer2 = finalToken.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addFact("operation(\"write\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addFact("operation(\"write\")");
+    authorizer2Builder.addPolicy("allow if true");
 
+    Authorizer authorizer2 = authorizer2Builder.build(finalToken);
     try {
       authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error e) {
@@ -623,18 +635,20 @@ public class BiscuitTest {
     // check
     System.out.println("will check the token for resource=file1 and operation=read");
 
-    Authorizer authorizer = finalToken.authorizer();
-    authorizer.addFact("resource(\"file1\")");
-    authorizer.addFact("operation(\"read\")");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("resource(\"file1\")");
+    authorizerBuilder.addFact("operation(\"read\")");
+    authorizerBuilder.addPolicy("allow if true");
+    Authorizer authorizer = authorizerBuilder.build(finalToken);
     authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
 
     System.out.println("will check the token for resource=file2 and operation=write");
 
-    Authorizer authorizer2 = finalToken.authorizer();
-    authorizer2.addFact("resource(\"file2\")");
-    authorizer2.addFact("operation(\"write\")");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("resource(\"file2\")");
+    authorizer2Builder.addFact("operation(\"write\")");
+    authorizer2Builder.addPolicy("allow if true");
+    Authorizer authorizer2 = authorizer2Builder.build(finalToken);
     try {
       authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error e) {
@@ -742,12 +756,13 @@ public class BiscuitTest {
             .addAuthorityCheck(
                 "check all operation($op), allowed_operations($allowed), $allowed.contains($op)")
             .build();
-    Authorizer authorizer = biscuit.verify(root.getPublicKey()).authorizer();
-    authorizer.addFact("operation(\"read\")");
-    authorizer.addFact("operation(\"write\")");
-    authorizer.addFact("allowed_operations({\"write\"})");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addFact("operation(\"read\")");
+    authorizerBuilder.addFact("operation(\"write\")");
+    authorizerBuilder.addFact("allowed_operations({\"write\"})");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(biscuit.verify(root.getPublicKey()));
     try {
       authorizer.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
     } catch (Error.FailedLogic e) {
@@ -765,12 +780,13 @@ public class BiscuitTest {
           e);
     }
 
-    Authorizer authorizer2 = biscuit.verify(root.getPublicKey()).authorizer();
-    authorizer2.addFact("operation(\"read\")");
-    authorizer2.addFact("operation(\"write\")");
-    authorizer2.addFact("allowed_operations({\"read\", \"write\"})");
-    authorizer2.addPolicy("allow if true");
+    AuthorizerBuilder authorizer2Builder = new AuthorizerBuilder();
+    authorizer2Builder.addFact("operation(\"read\")");
+    authorizer2Builder.addFact("operation(\"write\")");
+    authorizer2Builder.addFact("allowed_operations({\"read\", \"write\"})");
+    authorizer2Builder.addPolicy("allow if true");
 
+    Authorizer authorizer2 = authorizer2Builder.build(biscuit.verify(root.getPublicKey()));
     authorizer2.authorize(new RunLimits(500, 100, Duration.ofMillis(500)));
   }
 }

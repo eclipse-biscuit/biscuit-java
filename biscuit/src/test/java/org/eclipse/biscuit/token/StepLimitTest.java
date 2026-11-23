@@ -8,6 +8,7 @@ package org.eclipse.biscuit.token;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import biscuit.format.schema.Schema;
 import java.security.SecureRandom;
@@ -15,6 +16,7 @@ import java.time.Duration;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.datalog.RunLimits;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -57,9 +59,10 @@ public class StepLimitTest {
     }
     block.addAuthorityRule("b($0) <- f($0), f($1), f($2), f($3)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(1000)));
   }
 
@@ -72,9 +75,10 @@ public class StepLimitTest {
     }
     block.addAuthorityRule("b($0) <- f($0), f($1)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
   }
 
@@ -89,9 +93,10 @@ public class StepLimitTest {
     }
     block.addAuthorityRule("b($0) <- f($0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(10)));
   }
 
@@ -106,16 +111,17 @@ public class StepLimitTest {
     }
     block.addAuthorityRule("b($0) <- f($0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(9)));
   }
 
   @Test
   public void zeroBudgetWithNothingToDoAuthorizes() throws Exception {
-    Authorizer authorizer = new Authorizer();
-    authorizer.addPolicy("allow if true");
+    Authorizer authorizer =
+        new AuthorizerBuilder().addPolicy("allow if true").buildUnauthenticated();
 
     assertDoesNotThrow(() -> authorizer.authorize(steps(0)));
   }
@@ -127,9 +133,10 @@ public class StepLimitTest {
     block.addAuthorityFact("f(1)");
     block.addAuthorityRule("b($0) <- f($0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(0)));
   }
 
@@ -145,9 +152,10 @@ public class StepLimitTest {
     block.addAuthorityRule("b($0) <- f($0)");
     block.addAuthorityRule("c($0) <- f($0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(15)));
   }
 
@@ -160,78 +168,107 @@ public class StepLimitTest {
     }
     block.addAuthorityRule("g($0) <- f($0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
     RunLimits limits = new RunLimits(10, 1_000_000, Duration.ofDays(1), 1_000_000);
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManyFacts.class, () -> authorizer.authorize(limits));
   }
 
   @Test
   public void explicitLimitsGiveEachAuthorizationAFullBudget() throws Exception {
-    // First run costs 16 steps (8 facts, two passes). The second run finds nothing new, so one
-    // pass of 8 steps. 16 + 8 would not fit in 20, so this only passes if the second call gets
-    // 20 steps on top of the ones already taken.
+    // The check visits the 8 facts and compares each one: 16 steps per authorization. 16 + 16
+    // would not fit in 20, so this only passes if the second call gets 20 steps on top of the ones
+    // already taken.
     KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     var block = Biscuit.builder(keyPair);
     for (int i = 0; i < 8; i++) {
       block.addAuthorityFact("f(" + i + ")");
     }
-    block.addAuthorityRule("b($0) <- f($0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    Authorizer authorizer =
+        new AuthorizerBuilder()
+            .addCheck("check all f($0), $0 >= 0")
+            .addPolicy("allow if true")
+            .build(block.build());
 
     assertDoesNotThrow(() -> authorizer.authorize(steps(20)));
     assertDoesNotThrow(() -> authorizer.authorize(steps(20)));
   }
 
   @Test
-  public void defaultLimitsCountTheStepsAlreadyTaken() throws Exception {
-    // The first run takes 1000 steps (500 facts, two passes), which leaves none of the default
-    // 1000 steps for the second one. It fails on its first step, well before the default timeout.
-    Authorizer authorizer = defaultBudgetTaken();
+  public void authorizerLimitsCountTheStepsAlreadyTaken() throws Exception {
+    // The first call takes 1001 steps: 1000 for the evaluation (500 facts, two passes) and 1 for
+    // the check. That is more than the authorizer's 1000 steps, so the second call fails on its
+    // first step.
+    Authorizer authorizer = authorizerBudgetTaken();
 
-    assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1001)));
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize());
   }
 
   @Test
-  public void queryWithDefaultLimitsCountsTheStepsTakenByAuthorize() throws Exception {
-    Authorizer authorizer = defaultBudgetTaken();
+  public void queryWithAuthorizerLimitsCountsTheStepsTakenByAuthorize() throws Exception {
+    Authorizer authorizer = authorizerBudgetTaken();
 
-    assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1001)));
     assertThrows(Error.TooManySteps.class, () -> authorizer.query("q($0) <- b($0)"));
   }
 
   @Test
   public void clonedAuthorizerKeepsTheStepsTaken() throws Exception {
-    Authorizer authorizer = defaultBudgetTaken();
+    Authorizer authorizer = authorizerBudgetTaken();
 
-    assertDoesNotThrow(() -> authorizer.authorize(steps(1000)));
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1001)));
     Authorizer cloned = authorizer.clone();
     assertThrows(Error.TooManySteps.class, () -> cloned.authorize());
   }
 
   @Test
   public void maximumBudgetDoesNotOverflowAfterStepsWereTaken() throws Exception {
-    Authorizer authorizer = defaultBudgetTaken();
+    Authorizer authorizer = authorizerBudgetTaken();
 
     assertDoesNotThrow(() -> authorizer.authorize(steps(Long.MAX_VALUE)));
     assertDoesNotThrow(() -> authorizer.authorize(steps(Long.MAX_VALUE)));
   }
 
-  private Authorizer defaultBudgetTaken() throws Exception {
+  @Test
+  public void evaluationRunsOnlyOnce() throws Exception {
+    // Running the evaluation again would take 500 steps, the check alone takes 1.
+    Authorizer authorizer = authorizerBudgetTaken();
+
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1001)));
+    assertDoesNotThrow(() -> authorizer.authorize(steps(1)));
+    assertEquals(1002, authorizer.elapsedSteps());
+  }
+
+  @Test
+  public void buildDoesNotRunTheEvaluation() throws Exception {
+    AuthorizerBuilder builder = new AuthorizerBuilder().addPolicy("allow if true");
+    builder.setLimits(steps(10));
+    Authorizer authorizer = builder.build(fiveHundredFacts());
+
+    assertTrue(authorizer.executionTime().isEmpty());
+    assertThrows(Error.TooManySteps.class, () -> authorizer.authorize());
+  }
+
+  private Biscuit fiveHundredFacts() throws Exception {
     KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     var block = Biscuit.builder(keyPair);
     for (int i = 0; i < 500; i++) {
       block.addAuthorityFact("f(" + i + ")");
     }
     block.addAuthorityRule("b($0) <- f($0)");
+    return block.build();
+  }
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
-    return authorizer;
+  private Authorizer authorizerBudgetTaken() throws Exception {
+    return new AuthorizerBuilder()
+        .addCheck("check if 1 == 1")
+        .addPolicy("allow if true")
+        .setLimits(steps(1000))
+        .build(fiveHundredFacts());
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -246,9 +283,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TWENTY + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.any($1 -> $1 == -1)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(40)));
   }
 
@@ -261,9 +299,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TWENTY + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.any($1 -> $1 == 0)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(8)));
   }
 
@@ -275,11 +314,14 @@ public class StepLimitTest {
     block.addAuthorityFact("x([100, " + TWENTY + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.all($1 -> $1 < 50)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Biscuit token = block.build();
+    Authorizer authorizer = authorizerBuilder.build(token);
+    Authorizer tooSmall = authorizerBuilder.build(token);
     assertDoesNotThrow(() -> authorizer.authorize(steps(4)));
-    assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(3)));
+    assertThrows(Error.TooManySteps.class, () -> tooSmall.authorize(steps(3)));
   }
 
   @Test
@@ -290,9 +332,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TWENTY + ", 100])");
     block.addAuthorityRule("ok(1) <- x($0), $0.all($1 -> $1 < 50)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(43)));
     assertDoesNotThrow(() -> authorizer.authorize(steps(44)));
   }
@@ -305,9 +348,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TWENTY + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.any($1 -> $1 == -1)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(42)));
   }
 
@@ -320,9 +364,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TWENTY + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.any($1 -> $1 + 1 + 1 + 1 + 1 == -1)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(50)));
   }
 
@@ -335,9 +380,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TWENTY + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.any($1 -> false)");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(10)));
   }
 
@@ -349,9 +395,10 @@ public class StepLimitTest {
     block.addAuthorityFact("x([" + TEN + "])");
     block.addAuthorityRule("ok(1) <- x($0), $0.any($1 -> $0.any($2 -> $2 == 999))");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(new RunLimits().getMaxSteps())));
   }
 
@@ -365,9 +412,10 @@ public class StepLimitTest {
     block.addAuthorityRule(
         "ok(1) <- x($0), $0.any($1 -> $0.any($2 -> $0.any($3 -> $0.any($4 -> $4 == 999))))");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(
         Error.TooManySteps.class, () -> authorizer.authorize(steps(new RunLimits().getMaxSteps())));
   }
@@ -385,10 +433,11 @@ public class StepLimitTest {
     var block = Biscuit.builder(keyPair);
     block.addAuthorityFact("x([" + TWENTY + "])");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("check if x($a), $a.any($e -> $e == 19)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("check if x($a), $a.any($e -> $e == 19)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(10)));
   }
 
@@ -399,10 +448,11 @@ public class StepLimitTest {
     var block = Biscuit.builder(keyPair);
     block.addAuthorityFact("x([" + TWENTY + "])");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("reject if x($a), $a.any($e -> $e == 19)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("reject if x($a), $a.any($e -> $e == 19)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(10)));
   }
 
@@ -412,10 +462,11 @@ public class StepLimitTest {
     var block = Biscuit.builder(keyPair);
     block.addAuthorityFact("x([" + TWENTY + "])");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("reject if x($a), ($a.any($e -> $e == 19)).try_or(false)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("reject if x($a), ($a.any($e -> $e == 19)).try_or(false)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(10)));
   }
 
@@ -424,10 +475,11 @@ public class StepLimitTest {
     KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     var block = Biscuit.builder(keyPair);
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("reject if ([" + TWENTY + "].any($e -> $e == 19)).try_or(false)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("reject if ([" + TWENTY + "].any($e -> $e == 19)).try_or(false)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(10)));
   }
 
@@ -436,10 +488,11 @@ public class StepLimitTest {
     KeyPair keyPair = KeyPair.generate(Schema.PublicKey.Algorithm.Ed25519, rng);
     var block = Biscuit.builder(keyPair);
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("check all ([" + TWENTY + "].any($e -> $e == 19)).try_or(true)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("check all ([" + TWENTY + "].any($e -> $e == 19)).try_or(true)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(1_000)));
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(10)));
   }
@@ -454,10 +507,11 @@ public class StepLimitTest {
       block.addAuthorityFact("f(" + i + ")");
     }
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("check all f($a)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("check all f($a)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertDoesNotThrow(() -> authorizer.authorize(steps(1_000)));
     assertThrows(Error.TooManySteps.class, () -> authorizer.authorize(steps(3)));
   }
@@ -469,30 +523,32 @@ public class StepLimitTest {
     var block = Biscuit.builder(keyPair);
     block.addAuthorityFact("x([" + TWENTY + "])");
 
-    Authorizer authorizer = block.build().authorizer();
-    authorizer.addCheck("reject if x($a), $a.any($e -> $e == 19)");
-    authorizer.addCheck("reject if ([" + TWENTY + "].any($e -> $e == 19)).try_or(false)");
-    authorizer.addPolicy("allow if true");
+    AuthorizerBuilder authorizerBuilder = new AuthorizerBuilder();
+    authorizerBuilder.addCheck("reject if x($a), $a.any($e -> $e == 19)");
+    authorizerBuilder.addCheck("reject if ([" + TWENTY + "].any($e -> $e == 19)).try_or(false)");
+    authorizerBuilder.addPolicy("allow if true");
 
+    Authorizer authorizer = authorizerBuilder.build(block.build());
     assertThrows(Error.FailedLogic.class, () -> authorizer.authorize(steps(1_000)));
   }
 
   @Test
   public void expressionOnlyChecksCountTowardTheBudget() throws Exception {
     // Each check costs 1 any + 20 * (1 call + 1 comparison) = 41 steps.
-    Authorizer oneCheck = new Authorizer();
-    oneCheck.addCheck("check if [" + TWENTY + "].any($e -> $e == 19)");
-    oneCheck.addPolicy("allow if true");
-
-    Authorizer oneCheckUnderBudget = new Authorizer();
-    oneCheckUnderBudget.addCheck("check if [" + TWENTY + "].any($e -> $e == 19)");
-    oneCheckUnderBudget.addPolicy("allow if true");
+    AuthorizerBuilder oneCheckBuilder =
+        new AuthorizerBuilder()
+            .addCheck("check if [" + TWENTY + "].any($e -> $e == 19)")
+            .addPolicy("allow if true");
+    Authorizer oneCheck = oneCheckBuilder.buildUnauthenticated();
+    Authorizer oneCheckUnderBudget = oneCheckBuilder.buildUnauthenticated();
 
     // The checks share one budget: 41 + 41 = 82 steps.
-    Authorizer twoChecks = new Authorizer();
-    twoChecks.addCheck("check if [" + TWENTY + "].any($e -> $e == 19)");
-    twoChecks.addCheck("check if [" + TWENTY + "].any($e -> $e == 19)");
-    twoChecks.addPolicy("allow if true");
+    Authorizer twoChecks =
+        new AuthorizerBuilder()
+            .addCheck("check if [" + TWENTY + "].any($e -> $e == 19)")
+            .addCheck("check if [" + TWENTY + "].any($e -> $e == 19)")
+            .addPolicy("allow if true")
+            .buildUnauthenticated();
 
     assertDoesNotThrow(() -> oneCheck.authorize(steps(41)));
     assertThrows(Error.TooManySteps.class, () -> oneCheckUnderBudget.authorize(steps(40)));
