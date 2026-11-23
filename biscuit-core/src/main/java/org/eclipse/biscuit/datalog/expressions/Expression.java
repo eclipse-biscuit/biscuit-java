@@ -18,6 +18,7 @@ import org.eclipse.biscuit.datalog.TemporarySymbolTable;
 import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public final class Expression {
   private final ArrayList<Op> ops;
@@ -72,11 +73,14 @@ public final class Expression {
     return b.build();
   }
 
-  public static Result<Expression, Error.FormatError> deserializeV2(Schema.ExpressionV2 e) {
+  public static Result<Expression, Error.FormatError> deserializeV2(
+      Schema.ExpressionV2 e, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     ArrayList<Op> ops = new ArrayList<>();
+    // closures share the limit with the expression they are nested in
+    int[] remainingOps = {limits.getMaxOpsPerExpression()};
 
     for (Schema.Op op : e.getOpsList()) {
-      var res = Op.deserializeV2(op);
+      var res = Op.deserializeV2(op, limits, symbols, remainingOps);
 
       if (res.isErr()) {
         return Result.err(res.getErr());

@@ -21,6 +21,7 @@ import org.eclipse.biscuit.datalog.*;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.regex.PatternMatcher;
+import org.eclipse.biscuit.token.DeserializationLimit;
 import org.eclipse.biscuit.token.builder.Expression;
 
 public abstract class Op {
@@ -35,19 +36,63 @@ public abstract class Op {
 
   public abstract Schema.Op serialize();
 
-  public static Result<Op, Error.FormatError> deserializeV2(Schema.Op op) {
+  public static Result<Op, Error.FormatError> deserializeV2(
+      Schema.Op op, DeserializationLimit.PerBlock limits, SymbolTable symbols, int[] remainingOps) {
+    if (remainingOps[0] <= 0) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_OPS));
+    }
+    remainingOps[0]--;
+
     if (op.hasValue()) {
-      var res = Term.deserializeEnumV2(op.getValue());
+      var res = Term.deserializeEnumV2(op.getValue(), limits, symbols);
       return res.isOk() ? Result.ok(res.getOk()) : Result.err(res.getErr());
     } else if (op.hasUnary()) {
-      return Op.Unary.deserializeV2(op.getUnary());
+      return Op.Unary.deserializeV2(op.getUnary(), limits, symbols);
     } else if (op.hasBinary()) {
-      return Op.Binary.deserializeV1(op.getBinary());
+      return Op.Binary.deserializeV1(op.getBinary(), limits, symbols);
     } else if (op.hasClosure()) {
-      return Op.Closure.deserializeV1(op.getClosure());
+      if (!limits.getAllowClosures()) {
+        return Result.err(
+            new Error.FormatError.DeserializationLimitError(
+                Error.FormatError.DeserializationLimitError.Reason.CLOSURES_NOT_ALLOWED));
+      }
+      return Op.Closure.deserializeV1(op.getClosure(), limits, symbols, remainingOps);
     } else {
       return Result.err(new Error.FormatError.DeserializationError("invalid unary operation"));
     }
+  }
+
+  /**
+   * Checks the name of a foreign function: it must not be too long and, if the allowed functions
+   * are restricted, must be one of them
+   *
+   * @return the error if the call is not allowed, or null
+   */
+  private static Error.FormatError checkExternalFunction(
+      long nameIndex,
+      DeserializationLimit.PerBlock limits,
+      SymbolTable symbols,
+      java.util.Set<String> allowedFunctions) {
+    var nameError = limits.checkName(symbols, nameIndex);
+    if (nameError != null) {
+      return nameError;
+    }
+    if (allowedFunctions != null) {
+      var name =
+          nameIndex >= 0 && nameIndex <= java.lang.Integer.MAX_VALUE
+              ? symbols.getSymbol((int) nameIndex)
+              : Optional.<String>empty();
+      if (name.isEmpty()) {
+        return new Error.FormatError.DeserializationError("unknown symbol " + nameIndex);
+      }
+      if (!allowedFunctions.contains(name.get())) {
+        return new Error.FormatError.DeserializationLimitError(
+            Error.FormatError.DeserializationLimitError.Reason.EXTERNAL_FUNCTION_NOT_ALLOWED);
+      }
+    }
+    return null;
   }
 
   public enum UnaryOp {
@@ -170,6 +215,29 @@ public abstract class Op {
       b.setUnary(b1.build());
 
       return b.build();
+    }
+
+    public static Result<Op, Error.FormatError> deserializeV2(
+        Schema.OpUnary op, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+      if (op.getKind() == Schema.OpUnary.Kind.Ffi && op.hasFfiName()) {
+        var error =
+            checkExternalFunction(
+                op.getFfiName(), limits, symbols, limits.getAllowedUnaryExternalFunctions());
+        if (error != null) {
+          return Result.err(error);
+        }
+      }
+
+      var res = deserializeV2(op);
+      var allowedOps = limits.getAllowedUnaryOps();
+      if (allowedOps != null
+          && res.isOk()
+          && !allowedOps.contains(((Op.Unary) res.getOk()).getOp())) {
+        return Result.err(
+            new Error.FormatError.DeserializationLimitError(
+                Error.FormatError.DeserializationLimitError.Reason.UNARY_OPERATION_NOT_ALLOWED));
+      }
+      return res;
     }
 
     public static Result<Op, Error.FormatError> deserializeV2(Schema.OpUnary op) {
@@ -975,6 +1043,29 @@ public abstract class Op {
       return b.build();
     }
 
+    public static Result<Op, Error.FormatError> deserializeV1(
+        Schema.OpBinary op, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+      if (op.getKind() == Schema.OpBinary.Kind.Ffi && op.hasFfiName()) {
+        var error =
+            checkExternalFunction(
+                op.getFfiName(), limits, symbols, limits.getAllowedBinaryExternalFunctions());
+        if (error != null) {
+          return Result.err(error);
+        }
+      }
+
+      var res = deserializeV1(op);
+      var allowedOps = limits.getAllowedBinaryOps();
+      if (allowedOps != null
+          && res.isOk()
+          && !allowedOps.contains(((Op.Binary) res.getOk()).getOp())) {
+        return Result.err(
+            new Error.FormatError.DeserializationLimitError(
+                Error.FormatError.DeserializationLimitError.Reason.BINARY_OPERATION_NOT_ALLOWED));
+      }
+      return res;
+    }
+
     public static Result<Op, Error.FormatError> deserializeV1(Schema.OpBinary op) {
       switch (op.getKind()) {
         case LessThan:
@@ -1175,16 +1266,24 @@ public abstract class Op {
       return b.build();
     }
 
-    public static Result<Op, Error.FormatError> deserializeV1(Schema.OpClosure closure) {
+    public static Result<Op, Error.FormatError> deserializeV1(
+        Schema.OpClosure closure,
+        DeserializationLimit.PerBlock limits,
+        SymbolTable symbols,
+        int[] remainingOps) {
       ArrayList<Long> params = new ArrayList<>();
       ArrayList<Op> ops = new ArrayList<>();
 
-      for (long param : closure.getParamsList()) {
-        params.add(param);
+      for (int param : closure.getParamsList()) {
+        var nameError = limits.checkName(symbols, java.lang.Integer.toUnsignedLong(param));
+        if (nameError != null) {
+          return Result.err(nameError);
+        }
+        params.add((long) param);
       }
 
       for (Schema.Op op : closure.getOpsList()) {
-        var res = Op.deserializeV2(op);
+        var res = Op.deserializeV2(op, limits, symbols, remainingOps);
         if (res.isErr()) {
           return Result.err(res.getErr());
         } else {

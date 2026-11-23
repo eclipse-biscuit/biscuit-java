@@ -57,7 +57,23 @@ public class UnverifiedBiscuit {
    * @return Biscuit
    */
   public static UnverifiedBiscuit fromBase64Url(String data) throws Error {
-    return UnverifiedBiscuit.fromBytes(Base64.getUrlDecoder().decode(data));
+    return UnverifiedBiscuit.fromBase64Url(data, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a Biscuit token from a base64 url (RFC4648_URLSAFE) string, rejecting it if it
+   * contains features which are not permitted by the deserializationLimit
+   *
+   * <p>This method uses the default symbol table
+   *
+   * @param data
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return Biscuit
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static UnverifiedBiscuit fromBase64Url(
+      String data, DeserializationLimit deserializationLimit) throws Error {
+    return UnverifiedBiscuit.fromBytes(Base64.getUrlDecoder().decode(data), deserializationLimit);
   }
 
   /**
@@ -69,7 +85,23 @@ public class UnverifiedBiscuit {
    * @return
    */
   public static UnverifiedBiscuit fromBytes(byte[] data) throws Error {
-    return UnverifiedBiscuit.fromBytesWithSymbols(data, defaultSymbolTable());
+    return UnverifiedBiscuit.fromBytes(data, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a Biscuit token from a byte array, rejecting it if it contains features which
+   * are not permitted by the deserializationLimit
+   *
+   * <p>This method uses the default symbol table
+   *
+   * @param data
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static UnverifiedBiscuit fromBytes(byte[] data, DeserializationLimit deserializationLimit)
+      throws Error {
+    return UnverifiedBiscuit.fromBytesWithSymbols(data, defaultSymbolTable(), deserializationLimit);
   }
 
   /**
@@ -80,8 +112,26 @@ public class UnverifiedBiscuit {
    */
   public static UnverifiedBiscuit fromBytesWithSymbols(byte[] data, SymbolTable symbolTable)
       throws Error {
-    SerializedBiscuit ser = SerializedBiscuit.deserializeUnsafe(data);
-    return UnverifiedBiscuit.fromSerializedBiscuit(ser, symbolTable);
+    return fromBytesWithSymbols(data, symbolTable, DeserializationLimit.allowEverything());
+  }
+
+  /**
+   * Deserializes a UnverifiedBiscuit from a byte array, rejecting it if it contains features which
+   * are not permitted by the deserializationLimit
+   *
+   * <p>This method does not verify the signatures.
+   *
+   * @param data
+   * @param symbolTable
+   * @param deserializationLimit the features the token is allowed to contain
+   * @return UnverifiedBiscuit
+   * @throws Error.FormatError.DeserializationLimitError if the token violates the deserializationLimit
+   */
+  public static UnverifiedBiscuit fromBytesWithSymbols(
+      byte[] data, SymbolTable symbolTable, DeserializationLimit deserializationLimit)
+      throws Error {
+    SerializedBiscuit ser = SerializedBiscuit.deserializeUnsafe(data, deserializationLimit);
+    return UnverifiedBiscuit.fromSerializedBiscuit(ser, symbolTable, deserializationLimit);
   }
 
   /**
@@ -90,8 +140,9 @@ public class UnverifiedBiscuit {
    * @return UnverifiedBiscuit
    */
   private static UnverifiedBiscuit fromSerializedBiscuit(
-      SerializedBiscuit ser, SymbolTable symbolTable) throws Error {
-    var t = ser.extractBlocks(symbolTable);
+      SerializedBiscuit ser, SymbolTable symbolTable, DeserializationLimit deserializationLimit)
+      throws Error {
+    var t = ser.extractBlocks(symbolTable, deserializationLimit);
     return new UnverifiedBiscuit(t._1, t._2, symbolTable, ser);
   }
 

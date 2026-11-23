@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public final class Check {
   public enum Kind {
@@ -62,7 +63,8 @@ public final class Check {
     return b.build();
   }
 
-  public static Result<Check, Error.FormatError> deserializeV2(Schema.CheckV2 check) {
+  public static Result<Check, Error.FormatError> deserializeV2(
+      Schema.CheckV2 check, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     ArrayList<Rule> queries = new ArrayList<>();
 
     Kind kind;
@@ -81,8 +83,20 @@ public final class Check {
         break;
     }
 
+    var allowedKinds = limits.getAllowedCheckKinds();
+    if (allowedKinds != null && !allowedKinds.contains(kind)) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.CHECK_KIND_NOT_ALLOWED));
+    }
+    if (check.getQueriesCount() > limits.getMaxQueriesPerCheck()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_QUERIES));
+    }
+
     for (Schema.RuleV2 query : check.getQueriesList()) {
-      var res = Rule.deserializeV2(query);
+      var res = Rule.deserializeV2(query, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {

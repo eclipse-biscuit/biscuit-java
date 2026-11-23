@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public final class Fact {
   private final Predicate predicate;
@@ -56,8 +57,9 @@ public final class Fact {
     return Schema.FactV2.newBuilder().setPredicate(this.predicate.serialize()).build();
   }
 
-  public static Result<Fact, Error.FormatError> deserializeV2(Schema.FactV2 fact) {
-    var res = Predicate.deserializeV2(fact.getPredicate());
+  public static Result<Fact, Error.FormatError> deserializeV2(
+      Schema.FactV2 fact, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    var res = Predicate.deserializeV2(fact.getPredicate(), limits, symbols);
     if (res.isErr()) {
       return Result.err(res.getErr());
     } else {

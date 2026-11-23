@@ -20,6 +20,7 @@ import java.util.stream.StreamSupport;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
+import org.eclipse.biscuit.token.DeserializationLimit;
 
 public final class Rule {
   private final Predicate head;
@@ -224,10 +225,22 @@ public final class Rule {
     return b.build();
   }
 
-  public static Result<Rule, Error.FormatError> deserializeV2(Schema.RuleV2 rule) {
+  public static Result<Rule, Error.FormatError> deserializeV2(
+      Schema.RuleV2 rule, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    if (rule.getBodyCount() > limits.getMaxPredicatesPerBody()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_PREDICATES));
+    }
+    if (rule.getExpressionsCount() > limits.getMaxExpressionsPerBody()) {
+      return Result.err(
+          new Error.FormatError.DeserializationLimitError(
+              Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_EXPRESSIONS));
+    }
+
     ArrayList<Predicate> body = new ArrayList<>();
     for (Schema.PredicateV2 predicate : rule.getBodyList()) {
-      var res = Predicate.deserializeV2(predicate);
+      var res = Predicate.deserializeV2(predicate, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -237,7 +250,7 @@ public final class Rule {
 
     ArrayList<Expression> expressions = new ArrayList<>();
     for (Schema.ExpressionV2 expression : rule.getExpressionsList()) {
-      var res = Expression.deserializeV2(expression);
+      var res = Expression.deserializeV2(expression, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -247,7 +260,7 @@ public final class Rule {
 
     ArrayList<Scope> scopes = new ArrayList<>();
     for (Schema.Scope scope : rule.getScopeList()) {
-      var res = Scope.deserialize(scope);
+      var res = Scope.deserialize(scope, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -255,7 +268,7 @@ public final class Rule {
       }
     }
 
-    var res = Predicate.deserializeV2(rule.getHead());
+    var res = Predicate.deserializeV2(rule.getHead(), limits, symbols);
     if (res.isErr()) {
       Error.FormatError e = res.getErr();
       return Result.err(e);
