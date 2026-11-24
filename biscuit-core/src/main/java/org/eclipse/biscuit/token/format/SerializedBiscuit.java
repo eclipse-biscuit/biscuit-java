@@ -435,7 +435,7 @@ public final class SerializedBiscuit {
       } else {
         return Result.err(
             new Error.FormatError.Signature.InvalidSignature(
-                "signature error: Verification equation was not satisfied"));
+                "signature error"));
       }
     } else {
       byte[] finalSignature = this.proof.getSignature().get();

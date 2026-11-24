@@ -201,9 +201,9 @@ class SamplesTest {
 
               List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
               ArrayNode validationRevocationIds = (ArrayNode) validation.get("revocation_ids");
-              assertEquals(revocationIds.size(), validationRevocationIds.size());
+              assertEquals(revocationIds.size(), validationRevocationIds.size(),"revocation_ids size");
               for (int i = 0; i < revocationIds.size(); i++) {
-                assertEquals(validationRevocationIds.get(i).asText(), revocationIds.get(i).toHex());
+                assertEquals(validationRevocationIds.get(i).asText(), revocationIds.get(i).toHex(),"revocation_ids");
               }
 
               // TODO Add check of the token
@@ -237,11 +237,11 @@ class SamplesTest {
                       new ObjectMapper().treeToValue(validation.get("world"), World.class);
 
                   World authorizerWorld = new World(authorizer);
-                  assertEquals(world.factMap(), authorizerWorld.factMap());
-                  assertEquals(world.rules, authorizerWorld.rules);
-                  assertEquals(world.checks, authorizerWorld.checks);
-                  assertEquals(world.policies, authorizerWorld.policies);
-                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps);
+                  assertEquals(world.factMap(), authorizerWorld.factMap(), "facts");
+                  assertEquals(world.rules, authorizerWorld.rules, "rules");
+                  assertEquals(world.checks, authorizerWorld.checks, "checks");
+                  assertEquals(world.policies, authorizerWorld.policies, "policies");
+                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps, "elapsed_steps");
                 }
 
                 res = Result.ok(authorizeResult);
@@ -252,11 +252,11 @@ class SamplesTest {
                       new ObjectMapper().treeToValue(validation.get("world"), World.class);
 
                   World authorizerWorld = new World(authorizer);
-                  assertEquals(world.factMap(), authorizerWorld.factMap());
-                  assertEquals(world.rules, authorizerWorld.rules);
-                  assertEquals(world.checks, authorizerWorld.checks);
-                  assertEquals(world.policies, authorizerWorld.policies);
-                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps);
+                  assertEquals(world.factMap(), authorizerWorld.factMap(), "facts");
+                  assertEquals(world.rules, authorizerWorld.rules, "rules");
+                  assertEquals(world.checks, authorizerWorld.checks, "checks");
+                  assertEquals(world.policies, authorizerWorld.policies, "policies");
+                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps, "elapsed_steps");
                 }
 
                 throw e;
@@ -271,22 +271,22 @@ class SamplesTest {
                     "validation '"
                         + validationName
                         + "' expected result Ok("
-                        + expectedResult.get("Ok").asLong()
+                        + expectedResult.get("value").asLong()
                         + "), got error");
                 throw res.getErr();
               } else {
-                assertEquals(expectedResult.get("Ok").asLong(), res.getOk());
+                assertEquals(expectedResult.get("value").asLong(), res.getOk());
               }
             } else {
               if (res.isErr()) {
-                if (res.getErr() instanceof Error) {
+                if (res.getErr() instanceof Error && "err".equals(expectedResult.get("type").textValue())) {
                   Error e = (Error) res.getErr();
                   System.out.println("validation '" + validationName + "' got error: " + e);
 
                   // Serialize and deserialize the error to ensure the jackson node types match.
                   var objectMapper = new ObjectMapper();
                   var result = objectMapper.readTree(objectMapper.writeValueAsString(e.toJson()));
-                  assertEquals(expectedResult.get("Err"), result);
+                  assertEquals(expectedResult.get("value"), result);
                 } else {
                   throw res.getErr();
                 }
@@ -295,7 +295,7 @@ class SamplesTest {
                     "validation '"
                         + validationName
                         + "' expected result error("
-                        + expectedResult.get("Err")
+                        + expectedResult.get("value")
                         + "), got success: "
                         + res.getOk());
               }
@@ -453,6 +453,7 @@ class SamplesTest {
               .collect(Collectors.toList());
       this.policies =
           authorizer.getPolicies().stream().map(p -> p.toString()).collect(Collectors.toList());
+      this.elapsedSteps = authorizer.elapsedSteps();
       Collections.sort(this.rules);
       Collections.sort(this.checks);
     }

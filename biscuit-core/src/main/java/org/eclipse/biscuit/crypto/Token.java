@@ -85,7 +85,7 @@ class Token {
     } else {
       return Result.err(
           new Error.FormatError.Signature.InvalidSignature(
-              "signature error: Verification equation was not satisfied"));
+              "signature error"));
     }
   }
 }

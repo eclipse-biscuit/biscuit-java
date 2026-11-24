@@ -54,7 +54,7 @@ public abstract class LogicError {
 
     @Override
     public JsonNode toJson() {
-      return TextNode.valueOf("InvalidAuthorityFact");
+      return objectMapper.createObjectNode().put("type", "invalid_authority_fact");
     }
   }
 
@@ -89,8 +89,12 @@ public abstract class LogicError {
 
     @Override
     public JsonNode toJson() {
-      ObjectNode child = objectMapper.createObjectNode().put("error", this.err);
-      return objectMapper.createObjectNode().set("InvalidAmbientFact", child);
+      ObjectNode child =
+          objectMapper.createObjectNode().put("type", "error").put("value", this.err);
+      return objectMapper
+          .createObjectNode()
+          .put("type", "invalid_ambient_fact")
+          .set("value", child);
     }
   }
 
@@ -128,7 +132,7 @@ public abstract class LogicError {
     @Override
     public JsonNode toJson() {
       ObjectNode child = objectMapper.createObjectNode().put("id", id).put("error", err);
-      return objectMapper.createObjectNode().set("InvalidBlockFact", child);
+      return objectMapper.createObjectNode().put("type", "invalid_block_fact").set("value", child);
     }
   }
 
@@ -168,7 +172,7 @@ public abstract class LogicError {
       ArrayNode child = objectMapper.createArrayNode();
       child.add(id);
       child.add(err);
-      return objectMapper.createObjectNode().set("InvalidBlockRule", child);
+      return objectMapper.createObjectNode().put("type","invalid_block_rule").set("value", child);
     }
   }
 
@@ -208,7 +212,7 @@ public abstract class LogicError {
       ArrayNode child = objectMapper.createArrayNode();
       child.add(id);
       child.add(err);
-      return objectMapper.createObjectNode().set("InvalidBlockScope", child);
+      return objectMapper.createObjectNode().put("type", "invalid_block_scope").set("value", child);
     }
   }
 
@@ -265,7 +269,7 @@ public abstract class LogicError {
       ObjectNode unauthorized = objectMapper.createObjectNode();
       unauthorized.set("policy", policy.toJson());
       unauthorized.set("checks", checks);
-      return objectMapper.createObjectNode().set("Unauthorized", unauthorized);
+      return objectMapper.createObjectNode().put("type", "unauthorized").set("value", unauthorized);
     }
   }
 
@@ -318,7 +322,7 @@ public abstract class LogicError {
       for (FailedCheck t : this.errors) {
         errors.add(t.toJson());
       }
-      return objectMapper.createObjectNode().set("NoMatchingPolicy", errors);
+      return objectMapper.createObjectNode().put("type", "no_matching_policy").set("value", errors);
     }
   }
 
@@ -328,7 +332,7 @@ public abstract class LogicError {
 
     @Override
     public JsonNode toJson() {
-      return TextNode.valueOf("AuthorizerNotEmpty");
+      return objectMapper.createObjectNode().put("type", "authorizer_not_empty");
     }
 
     @Override
@@ -354,7 +358,7 @@ public abstract class LogicError {
 
       @Override
       public JsonNode toJson() {
-        return objectMapper.createObjectNode().put("Allow", nb);
+        return objectMapper.createObjectNode().put("type", "allow").put("value", nb);
       }
     }
 
@@ -372,7 +376,7 @@ public abstract class LogicError {
 
       @Override
       public JsonNode toJson() {
-        return objectMapper.createObjectNode().put("Deny", nb);
+        return objectMapper.createObjectNode().put("type", "deny").put("value", nb);
       }
     }
   }
