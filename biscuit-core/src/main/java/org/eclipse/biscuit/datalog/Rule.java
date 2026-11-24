@@ -207,8 +207,8 @@ public final class Rule {
     this.scopes = scopes;
   }
 
-  public Schema.RuleV2 serialize() {
-    Schema.RuleV2.Builder b = Schema.RuleV2.newBuilder().setHead(this.head.serialize());
+  public Schema.Rule serialize() {
+    Schema.Rule.Builder b = Schema.Rule.newBuilder().setHead(this.head.serialize());
 
     for (Predicate predicate : this.body) {
       b.addBody(predicate.serialize());
@@ -225,8 +225,8 @@ public final class Rule {
     return b.build();
   }
 
-  public static Result<Rule, Error.FormatError> deserializeV2(
-      Schema.RuleV2 rule, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+  public static Result<Rule, Error.FormatError> deserialize(
+      Schema.Rule rule, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     if (rule.getBodyCount() > limits.getMaxPredicatesPerBody()) {
       return Result.err(
           new Error.FormatError.DeserializationLimitError(
@@ -239,8 +239,8 @@ public final class Rule {
     }
 
     ArrayList<Predicate> body = new ArrayList<>();
-    for (Schema.PredicateV2 predicate : rule.getBodyList()) {
-      var res = Predicate.deserializeV2(predicate, limits, symbols);
+    for (Schema.Predicate predicate : rule.getBodyList()) {
+      var res = Predicate.deserialize(predicate, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -249,8 +249,8 @@ public final class Rule {
     }
 
     ArrayList<Expression> expressions = new ArrayList<>();
-    for (Schema.ExpressionV2 expression : rule.getExpressionsList()) {
-      var res = Expression.deserializeV2(expression, limits, symbols);
+    for (Schema.Expression expression : rule.getExpressionsList()) {
+      var res = Expression.deserialize(expression, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -268,7 +268,7 @@ public final class Rule {
       }
     }
 
-    var res = Predicate.deserializeV2(rule.getHead(), limits, symbols);
+    var res = Predicate.deserialize(rule.getHead(), limits, symbols);
     if (res.isErr()) {
       Error.FormatError e = res.getErr();
       return Result.err(e);

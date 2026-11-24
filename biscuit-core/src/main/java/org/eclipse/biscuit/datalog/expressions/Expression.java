@@ -63,8 +63,8 @@ public final class Expression {
     }
   }
 
-  public Schema.ExpressionV2 serialize() {
-    Schema.ExpressionV2.Builder b = Schema.ExpressionV2.newBuilder();
+  public Schema.Expression serialize() {
+    Schema.Expression.Builder b = Schema.Expression.newBuilder();
 
     for (Op op : this.ops) {
       b.addOps(op.serialize());
@@ -73,14 +73,14 @@ public final class Expression {
     return b.build();
   }
 
-  public static Result<Expression, Error.FormatError> deserializeV2(
-      Schema.ExpressionV2 e, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+  public static Result<Expression, Error.FormatError> deserialize(
+      Schema.Expression e, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     ArrayList<Op> ops = new ArrayList<>();
     // closures share the limit with the expression they are nested in
     int[] remainingOps = {limits.getMaxOpsPerExpression()};
 
     for (Schema.Op op : e.getOpsList()) {
-      var res = Op.deserializeV2(op, limits, symbols, remainingOps);
+      var res = Op.deserialize(op, limits, symbols, remainingOps);
 
       if (res.isErr()) {
         return Result.err(res.getErr());

@@ -23,7 +23,7 @@ public abstract class Term extends Op {
 
   public abstract boolean match(Term other);
 
-  public abstract Schema.TermV2 serializeTerm();
+  public abstract Schema.Term serializeTerm();
 
   public abstract String typeOf();
 
@@ -61,8 +61,8 @@ public abstract class Term extends Op {
     return s;
   }
 
-  public static Result<Term, Error.FormatError> deserializeEnumV2(
-      Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+  public static Result<Term, Error.FormatError> deserializeEnum(
+      Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     var allowedTypes = limits.getAllowedTermTypes();
     // a variable is not a value, so it has no type
     var type = termType(term.getContentCase());
@@ -74,39 +74,39 @@ public abstract class Term extends Op {
 
     switch (term.getContentCase()) {
       case DATE:
-        return Date.deserializeV2(term);
+        return Date.deserialize(term);
       case INTEGER:
-        return Integer.deserializeV2(term);
+        return Integer.deserialize(term);
       case STRING:
         var stringError = limits.checkString(symbols, term.getString());
         if (stringError != null) {
           return Result.err(stringError);
         }
-        return Str.deserializeV2(term);
+        return Str.deserialize(term);
       case BYTES:
         if (term.getBytes().size() > limits.getMaxBytesLength()) {
           return Result.err(
               new Error.FormatError.DeserializationLimitError(
                   Error.FormatError.DeserializationLimitError.Reason.BYTES_TOO_LONG));
         }
-        return Bytes.deserializeV2(term);
+        return Bytes.deserialize(term);
       case VARIABLE:
         var nameError =
             limits.checkName(symbols, java.lang.Integer.toUnsignedLong(term.getVariable()));
         if (nameError != null) {
           return Result.err(nameError);
         }
-        return Variable.deserializeV2(term);
+        return Variable.deserialize(term);
       case BOOL:
-        return Bool.deserializeV2(term);
+        return Bool.deserialize(term);
       case SET:
-        return Set.deserializeV2(term, limits, symbols);
+        return Set.deserialize(term, limits, symbols);
       case NULL:
-        return Null.deserializeV2(term);
+        return Null.deserialize(term);
       case ARRAY:
-        return Array.deserializeV2(term, limits, symbols);
+        return Array.deserialize(term, limits, symbols);
       case MAP:
-        return Map.deserializeV2(term, limits, symbols);
+        return Map.deserialize(term, limits, symbols);
       default:
         return Result.err(
             new Error.FormatError.DeserializationError(
@@ -114,7 +114,7 @@ public abstract class Term extends Op {
     }
   }
 
-  private static DeserializationLimit.TermType termType(Schema.TermV2.ContentCase content) {
+  private static DeserializationLimit.TermType termType(Schema.Term.ContentCase content) {
     switch (content) {
       case INTEGER:
         return DeserializationLimit.TermType.INTEGER;
@@ -172,15 +172,15 @@ public abstract class Term extends Op {
       return "null";
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setNull(Schema.Empty.newBuilder().build()).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setNull(Schema.Empty.newBuilder().build()).build();
     }
 
     public String typeOf() {
       return "null";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasNull()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected null"));
@@ -237,15 +237,15 @@ public abstract class Term extends Op {
       return "@" + this.value;
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setDate(this.value).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setDate(this.value).build();
     }
 
     public String typeOf() {
       return "date";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasDate()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected date"));
@@ -304,8 +304,8 @@ public abstract class Term extends Op {
       return String.valueOf(this.value);
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setInteger(this.value).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setInteger(this.value).build();
     }
 
     public String typeOf() {
@@ -316,7 +316,7 @@ public abstract class Term extends Op {
       return Schema.MapKey.newBuilder().setInteger(this.value).build();
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasInteger()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected integer"));
@@ -386,15 +386,15 @@ public abstract class Term extends Op {
       return this.value.toString();
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setBytes(ByteString.copyFrom(this.value)).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setBytes(ByteString.copyFrom(this.value)).build();
     }
 
     public String typeOf() {
       return "bytes";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasBytes()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected byte array"));
@@ -448,8 +448,8 @@ public abstract class Term extends Op {
       return Long.hashCode(value);
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setString(this.value).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setString(this.value).build();
     }
 
     public String typeOf() {
@@ -460,7 +460,7 @@ public abstract class Term extends Op {
       return Schema.MapKey.newBuilder().setString(this.value).build();
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasString()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected string"));
@@ -528,15 +528,15 @@ public abstract class Term extends Op {
       return this.value + "?";
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setVariable((int) this.value).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setVariable((int) this.value).build();
     }
 
     public String typeOf() {
       throw new InternalError();
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasVariable()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected variable"));
@@ -596,15 +596,15 @@ public abstract class Term extends Op {
       return String.valueOf(this.value);
     }
 
-    public Schema.TermV2 serializeTerm() {
-      return Schema.TermV2.newBuilder().setBool(this.value).build();
+    public Schema.Term serializeTerm() {
+      return Schema.Term.newBuilder().setBool(this.value).build();
     }
 
     public String typeOf() {
       return "bool";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(Schema.TermV2 term) {
+    public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasBool()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected boolean"));
@@ -663,22 +663,22 @@ public abstract class Term extends Op {
       return String.valueOf(value);
     }
 
-    public Schema.TermV2 serializeTerm() {
+    public Schema.Term serializeTerm() {
       Schema.Array.Builder s = Schema.Array.newBuilder();
 
       for (Term l : this.value) {
         s.addArray(l.serializeTerm());
       }
 
-      return Schema.TermV2.newBuilder().setArray(s).build();
+      return Schema.Term.newBuilder().setArray(s).build();
     }
 
     public String typeOf() {
       return "array";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(
-        Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    public static Result<Term, Error.FormatError> deserialize(
+        Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasArray()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected array"));
@@ -692,8 +692,8 @@ public abstract class Term extends Op {
                   Error.FormatError.DeserializationLimitError.Reason.ARRAY_TOO_LONG));
         }
 
-        for (Schema.TermV2 l : s.getArrayList()) {
-          var res = Term.deserializeEnumV2(l, limits, symbols);
+        for (Schema.Term l : s.getArrayList()) {
+          var res = Term.deserializeEnum(l, limits, symbols);
           if (res.isErr()) {
             return Result.err(res.getErr());
           } else {
@@ -772,7 +772,7 @@ public abstract class Term extends Op {
       return String.valueOf(value);
     }
 
-    public Schema.TermV2 serializeTerm() {
+    public Schema.Term serializeTerm() {
       Schema.Map.Builder s = Schema.Map.newBuilder();
 
       for (java.util.Map.Entry<MapKey, Term> i : this.value.entrySet()) {
@@ -782,15 +782,15 @@ public abstract class Term extends Op {
         s.addEntries(m);
       }
 
-      return Schema.TermV2.newBuilder().setMap(s).build();
+      return Schema.Term.newBuilder().setMap(s).build();
     }
 
     public String typeOf() {
       return "map";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(
-        Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    public static Result<Term, Error.FormatError> deserialize(
+        Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasMap()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected map"));
@@ -809,7 +809,7 @@ public abstract class Term extends Op {
         if (resKey.isErr()) {
           return Result.err(resKey.getErr());
         }
-        var resValue = Term.deserializeEnumV2(l.getValue(), limits, symbols);
+        var resValue = Term.deserializeEnum(l.getValue(), limits, symbols);
         if (resValue.isErr()) {
           return Result.err(resValue.getErr());
         }
@@ -898,22 +898,22 @@ public abstract class Term extends Op {
       return s + "}";
     }
 
-    public Schema.TermV2 serializeTerm() {
+    public Schema.Term serializeTerm() {
       Schema.TermSet.Builder s = Schema.TermSet.newBuilder();
 
       for (Term l : this.value) {
         s.addSet(l.serializeTerm());
       }
 
-      return Schema.TermV2.newBuilder().setSet(s).build();
+      return Schema.Term.newBuilder().setSet(s).build();
     }
 
     public String typeOf() {
       return "set";
     }
 
-    public static Result<Term, Error.FormatError> deserializeV2(
-        Schema.TermV2 term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    public static Result<Term, Error.FormatError> deserialize(
+        Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasSet()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected set"));
@@ -927,8 +927,8 @@ public abstract class Term extends Op {
                   Error.FormatError.DeserializationLimitError.Reason.SET_TOO_LONG));
         }
 
-        for (Schema.TermV2 l : s.getSetList()) {
-          var res = Term.deserializeEnumV2(l, limits, symbols);
+        for (Schema.Term l : s.getSetList()) {
+          var res = Term.deserializeEnum(l, limits, symbols);
           if (res.isErr()) {
             return Result.err(res.getErr());
           } else {

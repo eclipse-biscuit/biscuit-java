@@ -53,13 +53,13 @@ public final class Fact {
     return this.predicate.toString();
   }
 
-  public Schema.FactV2 serialize() {
-    return Schema.FactV2.newBuilder().setPredicate(this.predicate.serialize()).build();
+  public Schema.Fact serialize() {
+    return Schema.Fact.newBuilder().setPredicate(this.predicate.serialize()).build();
   }
 
-  public static Result<Fact, Error.FormatError> deserializeV2(
-      Schema.FactV2 fact, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
-    var res = Predicate.deserializeV2(fact.getPredicate(), limits, symbols);
+  public static Result<Fact, Error.FormatError> deserialize(
+      Schema.Fact fact, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+    var res = Predicate.deserialize(fact.getPredicate(), limits, symbols);
     if (res.isErr()) {
       return Result.err(res.getErr());
     } else {

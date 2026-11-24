@@ -83,8 +83,8 @@ public final class Predicate {
         + ")";
   }
 
-  public Schema.PredicateV2 serialize() {
-    Schema.PredicateV2.Builder builder = Schema.PredicateV2.newBuilder().setName(this.name);
+  public Schema.Predicate serialize() {
+    Schema.Predicate.Builder builder = Schema.Predicate.newBuilder().setName(this.name);
 
     for (Term term : this.terms) {
       builder.addTerms(term.serializeTerm());
@@ -93,8 +93,8 @@ public final class Predicate {
     return builder.build();
   }
 
-  public static Result<Predicate, Error.FormatError> deserializeV2(
-      Schema.PredicateV2 predicate, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+  public static Result<Predicate, Error.FormatError> deserialize(
+      Schema.Predicate predicate, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     if (predicate.getTermsCount() > limits.getMaxTermsPerPredicate()) {
       return Result.err(
           new Error.FormatError.DeserializationLimitError(
@@ -106,8 +106,8 @@ public final class Predicate {
     }
 
     ArrayList<Term> terms = new ArrayList<>();
-    for (Schema.TermV2 id : predicate.getTermsList()) {
-      var res = Term.deserializeEnumV2(id, limits, symbols);
+    for (Schema.Term id : predicate.getTermsList()) {
+      var res = Term.deserializeEnum(id, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {

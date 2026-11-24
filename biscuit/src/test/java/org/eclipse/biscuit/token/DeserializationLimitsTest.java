@@ -394,8 +394,8 @@ public class DeserializationLimitsTest {
   @Test
   public void testATermWithNoContentIsRejectedWithItsKindInTheMessage() {
     var result =
-        org.eclipse.biscuit.datalog.Term.deserializeEnumV2(
-            Schema.TermV2.getDefaultInstance(),
+        org.eclipse.biscuit.datalog.Term.deserializeEnum(
+            Schema.Term.getDefaultInstance(),
             PerBlock.allowEverything(),
             new org.eclipse.biscuit.datalog.SymbolTable());
 

@@ -36,7 +36,7 @@ public abstract class Op {
 
   public abstract Schema.Op serialize();
 
-  public static Result<Op, Error.FormatError> deserializeV2(
+  public static Result<Op, Error.FormatError> deserialize(
       Schema.Op op, DeserializationLimit.PerBlock limits, SymbolTable symbols, int[] remainingOps) {
     if (remainingOps[0] <= 0) {
       return Result.err(
@@ -46,10 +46,10 @@ public abstract class Op {
     remainingOps[0]--;
 
     if (op.hasValue()) {
-      var res = Term.deserializeEnumV2(op.getValue(), limits, symbols);
+      var res = Term.deserializeEnum(op.getValue(), limits, symbols);
       return res.isOk() ? Result.ok(res.getOk()) : Result.err(res.getErr());
     } else if (op.hasUnary()) {
-      return Op.Unary.deserializeV2(op.getUnary(), limits, symbols);
+      return Op.Unary.deserialize(op.getUnary(), limits, symbols);
     } else if (op.hasBinary()) {
       return Op.Binary.deserializeV1(op.getBinary(), limits, symbols);
     } else if (op.hasClosure()) {
@@ -217,7 +217,7 @@ public abstract class Op {
       return b.build();
     }
 
-    public static Result<Op, Error.FormatError> deserializeV2(
+    public static Result<Op, Error.FormatError> deserialize(
         Schema.OpUnary op, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (op.getKind() == Schema.OpUnary.Kind.Ffi && op.hasFfiName()) {
         var error =
@@ -228,7 +228,7 @@ public abstract class Op {
         }
       }
 
-      var res = deserializeV2(op);
+      var res = deserialize(op);
       var allowedOps = limits.getAllowedUnaryOps();
       if (allowedOps != null
           && res.isOk()
@@ -240,7 +240,7 @@ public abstract class Op {
       return res;
     }
 
-    public static Result<Op, Error.FormatError> deserializeV2(Schema.OpUnary op) {
+    public static Result<Op, Error.FormatError> deserialize(Schema.OpUnary op) {
       switch (op.getKind()) {
         case Negate:
           return Result.ok(new Op.Unary(UnaryOp.Negate));
@@ -1033,7 +1033,7 @@ public abstract class Op {
           b1.setKind(Schema.OpBinary.Kind.All);
           break;
         case TryOr:
-          b1.setKind(Schema.OpBinary.Kind.Try);
+          b1.setKind(Schema.OpBinary.Kind.TryOr);
           break;
         default:
       }
@@ -1124,7 +1124,7 @@ public abstract class Op {
           return Result.ok(new Op.Binary(BinaryOp.Any));
         case All:
           return Result.ok(new Op.Binary(BinaryOp.All));
-        case Try:
+        case TryOr:
           return Result.ok(new Op.Binary(BinaryOp.TryOr));
         default:
           return Result.err(
@@ -1283,7 +1283,7 @@ public abstract class Op {
       }
 
       for (Schema.Op op : closure.getOpsList()) {
-        var res = Op.deserializeV2(op, limits, symbols, remainingOps);
+        var res = Op.deserialize(op, limits, symbols, remainingOps);
         if (res.isErr()) {
           return Result.err(res.getErr());
         } else {
