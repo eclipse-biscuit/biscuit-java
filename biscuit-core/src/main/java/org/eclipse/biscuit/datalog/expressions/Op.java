@@ -1204,8 +1204,6 @@ public abstract class Op {
         TemporarySymbolTable temporarySymbolTable,
         StepBudget steps)
         throws Error {
-      steps.step();
-
       if (arity() != 1) {
         throw new Error.Execution("called closure with arity " + arity() + "with 1 argument");
       }
@@ -1213,6 +1211,7 @@ public abstract class Op {
         throw new Error.Execution(
             Error.Execution.Kind.ShadowedVariable, "closure parameter shadows variable");
       }
+      steps.step();
       Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
         op.evaluate(stack, variables, temporarySymbolTable, steps);
