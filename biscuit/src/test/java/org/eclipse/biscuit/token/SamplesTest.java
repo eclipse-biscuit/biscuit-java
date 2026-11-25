@@ -193,8 +193,19 @@ class SamplesTest {
                 org.eclipse.biscuit.token.Block block = token.blocks.get(i);
                 SignedBlock signedBlock = token.serializedBiscuit.getBlocks().get(i);
                 byte[] serBlock = block.toBytes().getOk();
+                // symbols must be known when a block is deserialized: blocks without an external
+                // key share the token's symbol table, the others have their own
+                SymbolTable baseSymbols =
+                    block.getExternalKey().isPresent()
+                        ? new SymbolTable()
+                        : new SymbolTable(token.symbolTable);
                 org.eclipse.biscuit.token.Block deserBlock =
-                    fromBytes(serBlock, block.getExternalKey()).getOk();
+                    fromBytes(
+                            serBlock,
+                            block.getExternalKey(),
+                            DeserializationLimit.PerBlock.allowEverything(),
+                            baseSymbols)
+                        .getOk();
                 assertEquals(block.getVersion(), deserBlock.getVersion());
                 assertEquals(block.print(token.symbolTable), deserBlock.print(token.symbolTable));
               }
