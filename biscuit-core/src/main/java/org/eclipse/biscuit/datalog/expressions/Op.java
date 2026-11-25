@@ -1183,11 +1183,10 @@ public abstract class Op {
     Term call(
         Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepBudget steps)
         throws Error {
-      steps.step();
-
       if (arity() != 0) {
         throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
       }
+      steps.step();
       Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
         op.evaluate(stack, variables, temporarySymbolTable, steps);
