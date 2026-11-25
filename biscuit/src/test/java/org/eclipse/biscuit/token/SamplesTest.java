@@ -26,12 +26,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.crypto.KeyPair;
@@ -43,6 +43,7 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Check;
+import org.eclipse.biscuit.token.builder.Utils;
 import org.eclipse.biscuit.token.builder.parser.Parser;
 import org.eclipse.biscuit.token.format.SignedBlock;
 import org.junit.jupiter.api.DynamicTest;
@@ -212,9 +213,13 @@ class SamplesTest {
 
               List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
               ArrayNode validationRevocationIds = (ArrayNode) validation.get("revocation_ids");
-              assertEquals(revocationIds.size(), validationRevocationIds.size(),"revocation_ids size");
+              assertEquals(
+                  revocationIds.size(), validationRevocationIds.size(), "revocation_ids size");
               for (int i = 0; i < revocationIds.size(); i++) {
-                assertEquals(validationRevocationIds.get(i).asText(), revocationIds.get(i).toHex(),"revocation_ids");
+                assertEquals(
+                    validationRevocationIds.get(i).asText(),
+                    revocationIds.get(i).toHex(),
+                    "revocation_ids");
               }
 
               // TODO Add check of the token
@@ -290,7 +295,8 @@ class SamplesTest {
               }
             } else {
               if (res.isErr()) {
-                if (res.getErr() instanceof Error && "err".equals(expectedResult.get("type").textValue())) {
+                if (res.getErr() instanceof Error
+                    && "err".equals(expectedResult.get("type").textValue())) {
                   Error e = (Error) res.getErr();
                   System.out.println("validation '" + validationName + "' got error: " + e);
 
@@ -469,8 +475,9 @@ class SamplesTest {
       Collections.sort(this.checks);
     }
 
-    public HashMap<List<Long>, List<String>> factMap() {
-      HashMap<List<Long>, List<String>> worldFacts = new HashMap<>();
+    public Map<List<Long>, List<String>> factMap() {
+      Map<List<Long>, List<String>> worldFacts =
+          new TreeMap<>(Utils.listComparator(Long::compareTo));
       for (FactSet f : this.facts) {
         worldFacts.put(f.origin, f.facts);
       }

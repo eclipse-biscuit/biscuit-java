@@ -7,6 +7,7 @@ package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
@@ -14,10 +15,15 @@ import java.util.stream.Collectors;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.DeserializationLimit;
+import org.eclipse.biscuit.token.builder.Utils;
 
 public final class Predicate {
   private final long name;
   private final List<Term> terms;
+
+  public static Comparator<Predicate> comparator =
+      Comparator.comparing(Predicate::name)
+          .thenComparing(Predicate::terms, Utils.listComparator(Term.comparator));
 
   public long name() {
     return this.name;

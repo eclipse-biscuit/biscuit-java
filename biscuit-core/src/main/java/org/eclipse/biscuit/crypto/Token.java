@@ -83,9 +83,7 @@ class Token {
     if (this.next.getPublicKey().equals(currentKey)) {
       return Result.ok(null);
     } else {
-      return Result.err(
-          new Error.FormatError.Signature.InvalidSignature(
-              "signature error"));
+      return Result.err(new Error.FormatError.Signature.InvalidSignature("signature error"));
     }
   }
 }

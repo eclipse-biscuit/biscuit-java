@@ -10,11 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.token.builder.Utils;
 import org.junit.jupiter.api.Test;
 
 public class ExpressionTest {
@@ -37,7 +38,7 @@ public class ExpressionTest {
 
     assertEquals("!1 < $var", e.print(symbolTable).get());
 
-    HashMap<Long, Term> variables = new HashMap<>();
+    Map<Long, Term> variables = new TreeMap<>();
     variables.put(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2L, new Term.Integer(0));
 
     assertEquals(
@@ -68,7 +69,7 @@ public class ExpressionTest {
     assertEquals(
         new Term.Str(SymbolTable.DEFAULT_SYMBOLS_OFFSET + 2),
         e.evaluate(
-            new HashMap<>(),
+            new TreeMap<>(),
             new TemporarySymbolTable(symbolTable),
             new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
@@ -92,7 +93,7 @@ public class ExpressionTest {
     assertEquals(
         new Term.Bool(true),
         e.evaluate(
-            new HashMap<>(),
+            new TreeMap<>(),
             new TemporarySymbolTable(symbolTable),
             new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
@@ -117,7 +118,7 @@ public class ExpressionTest {
     assertEquals(
         new Term.Bool(false),
         e.evaluate(
-            new HashMap<>(),
+            new TreeMap<>(),
             new TemporarySymbolTable(symbolTable),
             new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
@@ -131,11 +132,14 @@ public class ExpressionTest {
             new ArrayList<>(
                 Arrays.asList(
                     new Term.Set(
-                        new HashSet<>(
+                        Utils.treeSetWithComparator(
                             Arrays.asList(
-                                new Term.Integer(1), new Term.Integer(2), new Term.Integer(3)))),
+                                new Term.Integer(1), new Term.Integer(2), new Term.Integer(3)),
+                            Term.comparator)),
                     new Term.Set(
-                        new HashSet<>(Arrays.asList(new Term.Integer(1), new Term.Integer(2)))),
+                        Utils.treeSetWithComparator(
+                            Arrays.asList(new Term.Integer(1), new Term.Integer(2)),
+                            Term.comparator)),
                     new Op.Binary(Op.BinaryOp.Intersection),
                     new Term.Integer(1),
                     new Op.Binary(Op.BinaryOp.Contains))));
@@ -145,7 +149,7 @@ public class ExpressionTest {
     assertEquals(
         new Term.Bool(true),
         e.evaluate(
-            new HashMap<>(),
+            new TreeMap<>(),
             new TemporarySymbolTable(symbolTable),
             new StepCounter().budget(new RunLimits().getMaxSteps())));
   }
@@ -153,7 +157,7 @@ public class ExpressionTest {
   private static Term evaluate(Op... ops) throws Error {
     return new Expression(new ArrayList<>(Arrays.asList(ops)))
         .evaluate(
-            new HashMap<>(),
+            new TreeMap<>(),
             new TemporarySymbolTable(new SymbolTable()),
             new StepCounter().budget(new RunLimits().getMaxSteps()));
   }

@@ -10,22 +10,45 @@ import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.DeserializationLimit;
+import org.eclipse.biscuit.token.builder.Utils;
 
 public abstract class Term extends Op {
+  public enum TermType {
+    VARIABLE,
+    INTEGER,
+    STRING,
+    DATE,
+    BYTES,
+    BOOL,
+    SET,
+    NULL,
+    ARRAY,
+    MAP
+  }
+
+  public enum MapKeyType {
+    INTEGER,
+    STRING
+  }
 
   public abstract boolean match(Term other);
 
   public abstract Schema.Term serializeTerm();
 
   public abstract String typeOf();
+
+  public abstract TermType getTermType();
 
   public abstract org.eclipse.biscuit.token.builder.Term toTerm(SymbolTable symbolTable);
 
@@ -114,26 +137,83 @@ public abstract class Term extends Op {
     }
   }
 
-  private static DeserializationLimit.TermType termType(Schema.Term.ContentCase content) {
+  /**
+   * Total order on terms: first by {@link TermType} (in declaration order), then by value. Strings
+   * are compared by symbol index, as in {@link MapKey#comparator}.
+   */
+  public static Comparator<Term> comparator =
+      new Comparator<Term>() {
+        @Override
+        public int compare(Term o1, Term o2) {
+          int c = o1.getTermType().compareTo(o2.getTermType());
+          if (c != 0) {
+            return c;
+          }
+          switch (o1.getTermType()) {
+            case VARIABLE:
+              return Long.compare(((Variable) o1).value(), ((Variable) o2).value());
+            case INTEGER:
+              return Long.compare(((Integer) o1).value(), ((Integer) o2).value());
+            case STRING:
+              return Long.compare(((Str) o1).value(), ((Str) o2).value());
+            case DATE:
+              return Long.compare(((Date) o1).value(), ((Date) o2).value());
+            case BYTES:
+              return Arrays.compareUnsigned(((Bytes) o1).value(), ((Bytes) o2).value());
+            case BOOL:
+              return Boolean.compare(((Bool) o1).value(), ((Bool) o2).value());
+            case NULL:
+              return 0;
+            case SET:
+              return Utils.iteratorComparator(Term.comparator)
+                  .compare(((Set) o1).value().iterator(), ((Set) o2).value().iterator());
+            case ARRAY:
+              return Utils.iteratorComparator(Term.comparator)
+                  .compare(((Array) o1).value().iterator(), ((Array) o2).value().iterator());
+            case MAP:
+              return Utils.iteratorComparator(MAP_ENTRY_COMPARATOR)
+                  .compare(
+                      ((Map) o1).value().entrySet().iterator(),
+                      ((Map) o2).value().entrySet().iterator());
+            default:
+              throw new IllegalStateException("unhandled term type " + o1.getTermType());
+          }
+        }
+      };
+
+  private static final Comparator<java.util.Map.Entry<MapKey, Term>> MAP_ENTRY_COMPARATOR =
+      new Comparator<java.util.Map.Entry<MapKey, Term>>() {
+        @Override
+        public int compare(
+            java.util.Map.Entry<MapKey, Term> e1, java.util.Map.Entry<MapKey, Term> e2) {
+          int c = MapKey.comparator.compare(e1.getKey(), e2.getKey());
+          if (c != 0) {
+            return c;
+          }
+          return Term.comparator.compare(e1.getValue(), e2.getValue());
+        }
+      };
+
+  private static TermType termType(Schema.Term.ContentCase content) {
     switch (content) {
       case INTEGER:
-        return DeserializationLimit.TermType.INTEGER;
+        return TermType.INTEGER;
       case STRING:
-        return DeserializationLimit.TermType.STRING;
+        return TermType.STRING;
       case DATE:
-        return DeserializationLimit.TermType.DATE;
+        return TermType.DATE;
       case BYTES:
-        return DeserializationLimit.TermType.BYTES;
+        return TermType.BYTES;
       case BOOL:
-        return DeserializationLimit.TermType.BOOL;
+        return TermType.BOOL;
       case SET:
-        return DeserializationLimit.TermType.SET;
+        return TermType.SET;
       case NULL:
-        return DeserializationLimit.TermType.NULL;
+        return TermType.NULL;
       case ARRAY:
-        return DeserializationLimit.TermType.ARRAY;
+        return TermType.ARRAY;
       case MAP:
-        return DeserializationLimit.TermType.MAP;
+        return TermType.MAP;
       case VARIABLE:
       case CONTENT_NOT_SET:
         // not values, so they have no type
@@ -178,6 +258,11 @@ public abstract class Term extends Op {
 
     public String typeOf() {
       return "null";
+    }
+
+    @Override
+    public TermType getTermType() {
+      return TermType.NULL;
     }
 
     public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
@@ -245,6 +330,11 @@ public abstract class Term extends Op {
       return "date";
     }
 
+    @Override
+    public TermType getTermType() {
+      return TermType.DATE;
+    }
+
     public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasDate()) {
         return Result.err(
@@ -310,6 +400,16 @@ public abstract class Term extends Op {
 
     public String typeOf() {
       return "integer";
+    }
+
+    @Override
+    public TermType getTermType() {
+      return TermType.INTEGER;
+    }
+
+    @Override
+    public MapKeyType getMapKeyType() {
+      return MapKeyType.INTEGER;
     }
 
     public Schema.MapKey serializeMapKey() {
@@ -394,6 +494,11 @@ public abstract class Term extends Op {
       return "bytes";
     }
 
+    @Override
+    public TermType getTermType() {
+      return TermType.BYTES;
+    }
+
     public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasBytes()) {
         return Result.err(
@@ -454,6 +559,16 @@ public abstract class Term extends Op {
 
     public String typeOf() {
       return "string";
+    }
+
+    @Override
+    public TermType getTermType() {
+      return TermType.STRING;
+    }
+
+    @Override
+    public MapKeyType getMapKeyType() {
+      return MapKeyType.STRING;
     }
 
     public Schema.MapKey serializeMapKey() {
@@ -536,6 +651,11 @@ public abstract class Term extends Op {
       throw new InternalError();
     }
 
+    @Override
+    public TermType getTermType() {
+      return TermType.VARIABLE;
+    }
+
     public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
       if (!term.hasVariable()) {
         return Result.err(
@@ -602,6 +722,11 @@ public abstract class Term extends Op {
 
     public String typeOf() {
       return "bool";
+    }
+
+    @Override
+    public TermType getTermType() {
+      return TermType.BOOL;
     }
 
     public static Result<Term, Error.FormatError> deserialize(Schema.Term term) {
@@ -677,6 +802,11 @@ public abstract class Term extends Op {
       return "array";
     }
 
+    @Override
+    public TermType getTermType() {
+      return TermType.ARRAY;
+    }
+
     public static Result<Term, Error.FormatError> deserialize(
         Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasArray()) {
@@ -728,9 +858,9 @@ public abstract class Term extends Op {
   }
 
   public static final class Map extends Term {
-    private final HashMap<MapKey, Term> value;
+    private final SortedMap<MapKey, Term> value;
 
-    public HashMap<MapKey, Term> value() {
+    public SortedMap<MapKey, Term> value() {
       return this.value;
     }
 
@@ -744,7 +874,7 @@ public abstract class Term extends Op {
       return false;
     }
 
-    public Map(final HashMap<MapKey, Term> value) {
+    public Map(final SortedMap<MapKey, Term> value) {
       this.value = value;
     }
 
@@ -789,13 +919,18 @@ public abstract class Term extends Op {
       return "map";
     }
 
+    @Override
+    public TermType getTermType() {
+      return TermType.MAP;
+    }
+
     public static Result<Term, Error.FormatError> deserialize(
         Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasMap()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected map"));
       }
-      java.util.HashMap<MapKey, Term> values = new HashMap<>();
+      java.util.TreeMap<MapKey, Term> values = new TreeMap<>(MapKey.comparator);
       Schema.Map s = term.getMap();
 
       if (s.getEntriesCount() > limits.getMaxMapLength()) {
@@ -830,8 +965,8 @@ public abstract class Term extends Op {
     }
 
     public org.eclipse.biscuit.token.builder.Term toTerm(SymbolTable symbolTable) {
-      HashMap<org.eclipse.biscuit.token.builder.MapKey, org.eclipse.biscuit.token.builder.Term> s =
-          new HashMap<>();
+      TreeMap<org.eclipse.biscuit.token.builder.MapKey, org.eclipse.biscuit.token.builder.Term> s =
+          new TreeMap<>(org.eclipse.biscuit.token.builder.MapKey.comparator);
 
       for (java.util.Map.Entry<MapKey, Term> i : this.value.entrySet()) {
         s.put(i.getKey().toMapKey(symbolTable), i.getValue().toTerm(symbolTable));
@@ -842,9 +977,9 @@ public abstract class Term extends Op {
   }
 
   public static final class Set extends Term {
-    private final HashSet<Term> value;
+    private final SortedSet<Term> value;
 
-    public HashSet<Term> value() {
+    public SortedSet<Term> value() {
       return this.value;
     }
 
@@ -858,7 +993,7 @@ public abstract class Term extends Op {
       return false;
     }
 
-    public Set(final HashSet<Term> value) {
+    public Set(final SortedSet<Term> value) {
       this.value = value;
     }
 
@@ -912,13 +1047,18 @@ public abstract class Term extends Op {
       return "set";
     }
 
+    @Override
+    public TermType getTermType() {
+      return TermType.SET;
+    }
+
     public static Result<Term, Error.FormatError> deserialize(
         Schema.Term term, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (!term.hasSet()) {
         return Result.err(
             new Error.FormatError.DeserializationError("invalid Term kind, expected set"));
       } else {
-        java.util.HashSet<Term> values = new HashSet<>();
+        java.util.SortedSet<Term> values = new TreeSet<>(Term.comparator);
         Schema.TermSet s = term.getSet();
 
         if (s.getSetCount() > limits.getMaxSetLength()) {
@@ -948,7 +1088,8 @@ public abstract class Term extends Op {
     }
 
     public org.eclipse.biscuit.token.builder.Term toTerm(SymbolTable symbolTable) {
-      HashSet<org.eclipse.biscuit.token.builder.Term> s = new HashSet<>();
+      SortedSet<org.eclipse.biscuit.token.builder.Term> s =
+          new TreeSet<>(org.eclipse.biscuit.token.builder.Term.comparator);
 
       for (Term i : this.value) {
         s.add(i.toTerm(symbolTable));

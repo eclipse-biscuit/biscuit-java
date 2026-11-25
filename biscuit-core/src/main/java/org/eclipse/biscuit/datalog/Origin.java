@@ -7,24 +7,25 @@ package org.eclipse.biscuit.datalog;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 
 public final class Origin {
-  private final HashSet<Long> blockIds;
+  private final TreeSet<Long> blockIds;
 
   public Origin() {
-    this.blockIds = new HashSet<>();
+    this.blockIds = new TreeSet<>();
   }
 
   public Origin(Long i) {
-    this.blockIds = new HashSet<>();
+    this.blockIds = new TreeSet<>();
     this.blockIds.add(i);
   }
 
   public Origin(int i) {
-    this.blockIds = new HashSet<>();
+    this.blockIds = new TreeSet<>();
     this.blockIds.add((long) i);
   }
 
@@ -74,6 +75,36 @@ public final class Origin {
 
     return Objects.equals(blockIds, origin.blockIds);
   }
+
+  public static Comparator<Origin> comparator =
+      new Comparator<Origin>() {
+        @Override
+        public int compare(Origin o1, Origin o2) {
+          if (o1 == null && o2 == null) {
+            return 0;
+          } else if (o1 == null) {
+            return -1;
+          } else if (o2 == null) {
+            return 1;
+          } else {
+            var o1it = o1.blockIds.iterator();
+            var o2it = o2.blockIds.iterator();
+            var c = 0;
+            while (c == 0) {
+              if (o1it.hasNext() && o2it.hasNext()) {
+                c = Long.compare(o1it.next(), o2it.next());
+              } else if (o1it.hasNext()) {
+                c = 1;
+              } else if (o2it.hasNext()) {
+                c = -1;
+              } else {
+                return c;
+              }
+            }
+            return c;
+          }
+        }
+      };
 
   @Override
   public int hashCode() {

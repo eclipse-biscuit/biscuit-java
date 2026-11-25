@@ -7,13 +7,13 @@ package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -105,7 +105,7 @@ public final class Rule {
   }
 
   private MatchedVariables variablesSet() {
-    final Set<Long> variablesSet = new HashSet<>();
+    final Set<Long> variablesSet = new TreeSet<>();
 
     for (final Predicate pred : this.body) {
       variablesSet.addAll(

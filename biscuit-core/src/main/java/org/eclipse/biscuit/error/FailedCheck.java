@@ -68,7 +68,7 @@ public abstract class FailedCheck {
       child.set("block_id", LongNode.valueOf(this.blockId));
       child.set("check_id", LongNode.valueOf(this.checkId));
       child.set("rule", TextNode.valueOf(this.rule));
-      return objectMapper.createObjectNode().put("type","block").set("value", child);
+      return objectMapper.createObjectNode().put("type", "block").set("value", child);
     }
   }
 
@@ -108,7 +108,7 @@ public abstract class FailedCheck {
       ObjectNode child = objectMapper.createObjectNode();
       child.set("check_id", LongNode.valueOf(this.checkId));
       child.set("rule", TextNode.valueOf(this.rule));
-      return objectMapper.createObjectNode().put("type","authorizer").set("value", child);
+      return objectMapper.createObjectNode().put("type", "authorizer").set("value", child);
     }
   }
 

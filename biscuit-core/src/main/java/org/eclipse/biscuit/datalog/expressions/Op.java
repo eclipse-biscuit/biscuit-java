@@ -10,13 +10,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.eclipse.biscuit.datalog.*;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
@@ -448,7 +449,7 @@ public abstract class Op {
             stack.push(new Term.Bool(array.contains(right)));
           }
           if (left instanceof Term.Map) {
-            HashMap<MapKey, Term> map = ((Term.Map) left).value();
+            SortedMap<MapKey, Term> map = ((Term.Map) left).value();
             if (right instanceof MapKey) {
               MapKey key = (MapKey) right;
               stack.push(new Term.Bool(map.containsKey(key)));
@@ -633,9 +634,9 @@ public abstract class Op {
           break;
         case Intersection:
           if (right instanceof Term.Set && left instanceof Term.Set) {
-            HashSet<Term> intersec = new HashSet<>();
-            HashSet<Term> setRight = ((Term.Set) right).value();
-            HashSet<Term> setLeft = ((Term.Set) left).value();
+            SortedSet<Term> intersec = new TreeSet<>(Term.comparator);
+            SortedSet<Term> setRight = ((Term.Set) right).value();
+            SortedSet<Term> setLeft = ((Term.Set) left).value();
             for (Term locId : setRight) {
               if (setLeft.contains(locId)) {
                 intersec.add(locId);
@@ -646,9 +647,9 @@ public abstract class Op {
           break;
         case Union:
           if (right instanceof Term.Set && left instanceof Term.Set) {
-            HashSet<Term> union = new HashSet<>();
-            HashSet<Term> setRight = ((Term.Set) right).value();
-            HashSet<Term> setLeft = ((Term.Set) left).value();
+            SortedSet<Term> union = new TreeSet<>(Term.comparator);
+            SortedSet<Term> setRight = ((Term.Set) right).value();
+            SortedSet<Term> setLeft = ((Term.Set) left).value();
             union.addAll(setRight);
             union.addAll(setLeft);
             stack.push(new Term.Set(union));
@@ -688,7 +689,7 @@ public abstract class Op {
           }
           if (right instanceof MapKey && left instanceof Term.Map) {
             MapKey key = (MapKey) right;
-            HashMap<MapKey, Term> map = ((Term.Map) left).value();
+            SortedMap<MapKey, Term> map = ((Term.Map) left).value();
             Term value = map.get(key);
             stack.push(Objects.requireNonNullElseGet(value, Term.Null::new));
           }
@@ -710,7 +711,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Set) {
-              HashSet<Term> set = ((Term.Set) left).value();
+              SortedSet<Term> set = ((Term.Set) left).value();
               for (Term elem : set) {
                 Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
@@ -722,7 +723,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Map) {
-              HashMap<MapKey, Term> map = ((Term.Map) left).value();
+              SortedMap<MapKey, Term> map = ((Term.Map) left).value();
               for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
                 List<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
                 Term returnValue =
@@ -760,7 +761,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Set) {
-              HashSet<Term> set = ((Term.Set) left).value();
+              SortedSet<Term> set = ((Term.Set) left).value();
               for (Term elem : set) {
                 Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
@@ -772,7 +773,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Map) {
-              HashMap<MapKey, Term> map = ((Term.Map) left).value();
+              SortedMap<MapKey, Term> map = ((Term.Map) left).value();
               for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
                 ArrayList<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
                 Term returnValue =

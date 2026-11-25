@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -172,7 +171,7 @@ public abstract class LogicError {
       ArrayNode child = objectMapper.createArrayNode();
       child.add(id);
       child.add(err);
-      return objectMapper.createObjectNode().put("type","invalid_block_rule").set("value", child);
+      return objectMapper.createObjectNode().put("type", "invalid_block_rule").set("value", child);
     }
   }
 

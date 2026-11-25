@@ -6,6 +6,7 @@
 package org.eclipse.biscuit.datalog;
 
 import biscuit.format.schema.Schema;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import org.eclipse.biscuit.error.Error;
@@ -56,6 +57,9 @@ public final class Fact {
   public Schema.Fact serialize() {
     return Schema.Fact.newBuilder().setPredicate(this.predicate.serialize()).build();
   }
+
+  public static Comparator<Fact> comparator =
+      Comparator.comparing(Fact::predicate, Predicate.comparator);
 
   public static Result<Fact, Error.FormatError> deserialize(
       Schema.Fact fact, DeserializationLimit.PerBlock limits, SymbolTable symbols) {

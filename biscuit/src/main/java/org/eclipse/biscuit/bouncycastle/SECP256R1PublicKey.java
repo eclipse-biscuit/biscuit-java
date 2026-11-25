@@ -115,9 +115,7 @@ class SECP256R1PublicKey extends PublicKey {
     }
 
     if (!signer.verifySignature(hash, sig[0], sig[1])) {
-      return Optional.of(
-          new Error.FormatError.Signature.InvalidSignature(
-              "signature error"));
+      return Optional.of(new Error.FormatError.Signature.InvalidSignature("signature error"));
     }
 
     return Optional.empty();

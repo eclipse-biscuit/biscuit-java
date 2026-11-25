@@ -5,6 +5,7 @@
 
 package org.eclipse.biscuit.datalog;
 
+import java.util.Comparator;
 import java.util.Objects;
 
 public final class Pair<T1, T2> {
@@ -36,5 +37,18 @@ public final class Pair<T1, T2> {
 
   public String toString() {
     return "(" + this._1 + ", " + this._2 + ")";
+  }
+
+  /** Lexicographic order: by the first element with {@code ct1}, then by the second with {@code ct2}. */
+  public static <U1, U2> Comparator<Pair<U1, U2>> comparator(
+      Comparator<? super U1> ct1, Comparator<? super U2> ct2) {
+    return Comparator.comparing((Pair<U1, U2> p) -> p._1, ct1)
+        .thenComparing((Pair<U1, U2> p) -> p._2, ct2);
+  }
+
+  /** Lexicographic order using the natural order of both elements. */
+  public static <U1 extends Comparable<? super U1>, U2 extends Comparable<? super U2>>
+      Comparator<Pair<U1, U2>> naturalComparator() {
+    return comparator(Comparator.<U1>naturalOrder(), Comparator.<U2>naturalOrder());
   }
 }

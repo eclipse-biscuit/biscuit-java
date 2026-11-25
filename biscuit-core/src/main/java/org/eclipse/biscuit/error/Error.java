@@ -996,8 +996,7 @@ public abstract class Error extends Exception {
 
     @Override
     public JsonNode toJson() {
-      var kindObj =
-          objectMapper.createObjectNode().put("type", kind2String(kind));
+      var kindObj = objectMapper.createObjectNode().put("type", kind2String(kind));
       return objectMapper.createObjectNode().put("type", "execution").set("value", kindObj);
     }
 

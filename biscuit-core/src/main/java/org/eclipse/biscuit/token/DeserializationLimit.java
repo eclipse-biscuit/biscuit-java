@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.eclipse.biscuit.datalog.Check;
 import org.eclipse.biscuit.datalog.SymbolTable;
+import org.eclipse.biscuit.datalog.Term;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
 
@@ -233,23 +234,6 @@ public final class DeserializationLimit {
     return Arrays.hashCode(state());
   }
 
-  public enum TermType {
-    INTEGER,
-    STRING,
-    DATE,
-    BYTES,
-    BOOL,
-    SET,
-    NULL,
-    ARRAY,
-    MAP
-  }
-
-  public enum MapKeyType {
-    INTEGER,
-    STRING
-  }
-
   public static final class TrustedScopeKind {
     private enum Kind {
       AUTHORITY,
@@ -319,8 +303,8 @@ public final class DeserializationLimit {
     private Set<Op.UnaryOp> allowedUnaryOps = Set.of();
     private Set<String> allowedUnaryExternalFunctions = Set.of();
     private Set<String> allowedBinaryExternalFunctions = Set.of();
-    private Set<TermType> allowedTermTypes = Set.of();
-    private Set<MapKeyType> allowedMapKeyTypes = Set.of();
+    private Set<Term.TermType> allowedTermTypes = Set.of();
+    private Set<Term.MapKeyType> allowedMapKeyTypes = Set.of();
     private Set<TrustedScopeKind> allowedTrustingScopes = Set.of();
     private Set<Check.Kind> allowedCheckKinds = Set.of();
 
@@ -607,20 +591,20 @@ public final class DeserializationLimit {
       return this;
     }
 
-    public Set<TermType> getAllowedTermTypes() {
+    public Set<Term.TermType> getAllowedTermTypes() {
       return allowedTermTypes;
     }
 
-    public PerBlock setAllowedTermTypes(Set<TermType> types) {
+    public PerBlock setAllowedTermTypes(Set<Term.TermType> types) {
       this.allowedTermTypes = copy(types);
       return this;
     }
 
-    public Set<MapKeyType> getAllowedMapKeyTypes() {
+    public Set<Term.MapKeyType> getAllowedMapKeyTypes() {
       return allowedMapKeyTypes;
     }
 
-    public PerBlock setAllowedMapKeyTypes(Set<MapKeyType> types) {
+    public PerBlock setAllowedMapKeyTypes(Set<Term.MapKeyType> types) {
       this.allowedMapKeyTypes = copy(types);
       return this;
     }
