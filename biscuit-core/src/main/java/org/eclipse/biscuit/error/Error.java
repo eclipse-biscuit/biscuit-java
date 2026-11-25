@@ -166,6 +166,45 @@ public abstract class Error extends Exception {
       }
     }
 
+    public static final class UnknownSymbol extends FormatError {
+      private final long symbol;
+
+      public UnknownSymbol(long symbol) {
+        this.symbol = symbol;
+      }
+
+      public long getSymbol() {
+        return symbol;
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) {
+          return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+          return false;
+        }
+        return symbol == ((UnknownSymbol) o).symbol;
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(symbol);
+      }
+
+      @Override
+      public JsonNode toJson() {
+        return FormatError.jsonWrapper(
+            objectMapper.createObjectNode().put("type", "unknown_symbol").put("value", symbol));
+      }
+
+      @Override
+      public String toString() {
+        return "Err(Format(UnknownSymbol(" + symbol + ")))";
+      }
+    }
+
     public static final class DeserializationError extends FormatError {
       private final String err;
 

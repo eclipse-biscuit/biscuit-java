@@ -85,7 +85,7 @@ public abstract class Op {
               ? symbols.getSymbol((int) nameIndex)
               : Optional.<String>empty();
       if (name.isEmpty()) {
-        return new Error.FormatError.DeserializationError("unknown symbol " + nameIndex);
+        return new Error.FormatError.UnknownSymbol(nameIndex);
       }
       if (!allowedFunctions.contains(name.get())) {
         return new Error.FormatError.DeserializationLimitError(

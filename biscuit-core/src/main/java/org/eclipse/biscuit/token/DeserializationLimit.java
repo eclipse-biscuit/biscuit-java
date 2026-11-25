@@ -383,15 +383,16 @@ public final class DeserializationLimit {
         long symbolIndex,
         int maxLength,
         Error.FormatError.DeserializationLimitError.Reason reason) {
-      if (maxLength == Integer.MAX_VALUE) {
-        return null;
-      }
+      // a symbol must always be known when it is referenced, whatever the limits are
       Optional<String> symbol =
           symbolIndex >= 0 && symbolIndex <= Integer.MAX_VALUE
               ? symbols.getSymbol((int) symbolIndex)
               : Optional.empty();
       if (symbol.isEmpty()) {
-        return new Error.FormatError.DeserializationError("unknown symbol " + symbolIndex);
+        return new Error.FormatError.UnknownSymbol(symbolIndex);
+      }
+      if (maxLength == Integer.MAX_VALUE) {
+        return null;
       }
       if (symbol.get().getBytes(StandardCharsets.UTF_8).length > maxLength) {
         return new Error.FormatError.DeserializationLimitError(reason);
