@@ -12,10 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import biscuit.format.schema.Schema;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.*;
 import org.eclipse.biscuit.datalog.expressions.Op;
@@ -167,11 +167,13 @@ class ParserTest {
                     new Expression.Binary(
                         Expression.OpCode.Intersection,
                         Utils.set(
-                            new HashSet<>(
-                                Arrays.asList(
-                                    Utils.integer(1), Utils.integer(2), Utils.integer(3)))),
+                            Utils.treeSetWithComparator(
+                                Arrays.asList(Utils.integer(1), Utils.integer(2), Utils.integer(3)),
+                                Term.comparator)),
                         Utils.set(
-                            new HashSet<>(Arrays.asList(Utils.integer(1), Utils.integer(2))))),
+                            Utils.treeSetWithComparator(
+                                Arrays.asList(Utils.integer(1), Utils.integer(2)),
+                                Term.comparator))),
                     Utils.integer(1)))),
         res);
   }
@@ -191,11 +193,14 @@ class ParserTest {
                         new Expression.Binary(
                             Expression.OpCode.Intersection,
                             Utils.set(
-                                new HashSet<>(
+                                Utils.treeSetWithComparator(
                                     Arrays.asList(
-                                        Utils.integer(1), Utils.integer(2), Utils.integer(3)))),
+                                        Utils.integer(1), Utils.integer(2), Utils.integer(3)),
+                                    Term.comparator)),
                             Utils.set(
-                                new HashSet<>(Arrays.asList(Utils.integer(1), Utils.integer(2)))))),
+                                Utils.treeSetWithComparator(
+                                    Arrays.asList(Utils.integer(1), Utils.integer(2)),
+                                    Term.comparator)))),
                     Utils.integer(2)))),
         res);
   }
@@ -338,7 +343,7 @@ class ParserTest {
 
     var res5 = Parser.expression("  { \"abc\", \"def\" }.contains($operation) ");
 
-    HashSet<Term> s = new HashSet<>();
+    TreeSet<Term> s = new TreeSet<>(Term.comparator);
     s.add(Utils.str("abc"));
     s.add(Utils.str("def"));
 
@@ -380,7 +385,7 @@ class ParserTest {
             new Op.Binary(Op.BinaryOp.Add)),
         ex.getOps());
 
-    Map<Long, org.eclipse.biscuit.datalog.Term> variables = new HashMap<>();
+    Map<Long, org.eclipse.biscuit.datalog.Term> variables = new TreeMap<>();
     org.eclipse.biscuit.datalog.Term value =
         ex.evaluate(
             variables,
@@ -419,7 +424,7 @@ class ParserTest {
             new Op.Binary(Op.BinaryOp.Mul)),
         ex2.getOps());
 
-    Map<Long, org.eclipse.biscuit.datalog.Term> variables2 = new HashMap<>();
+    Map<Long, org.eclipse.biscuit.datalog.Term> variables2 = new TreeMap<>();
     org.eclipse.biscuit.datalog.Term value2 =
         ex2.evaluate(
             variables2,

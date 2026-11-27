@@ -5,8 +5,8 @@
 
 package org.eclipse.biscuit.datalog;
 
-import static biscuit.format.schema.Schema.CheckV2.Kind.All;
-import static biscuit.format.schema.Schema.CheckV2.Kind.Reject;
+import static biscuit.format.schema.Schema.Check.Kind.All;
+import static biscuit.format.schema.Schema.Check.Kind.Reject;
 
 import biscuit.format.schema.Schema;
 import java.util.ArrayList;
@@ -42,8 +42,8 @@ public final class Check {
     return queries;
   }
 
-  public Schema.CheckV2 serialize() {
-    Schema.CheckV2.Builder b = Schema.CheckV2.newBuilder();
+  public Schema.Check serialize() {
+    Schema.Check.Builder b = Schema.Check.newBuilder();
 
     // do not set the kind to One to keep compatibility with older library versions
     switch (this.kind) {
@@ -63,8 +63,8 @@ public final class Check {
     return b.build();
   }
 
-  public static Result<Check, Error.FormatError> deserializeV2(
-      Schema.CheckV2 check, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
+  public static Result<Check, Error.FormatError> deserialize(
+      Schema.Check check, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
     ArrayList<Rule> queries = new ArrayList<>();
 
     Kind kind;
@@ -95,8 +95,8 @@ public final class Check {
               Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_QUERIES));
     }
 
-    for (Schema.RuleV2 query : check.getQueriesList()) {
-      var res = Rule.deserializeV2(query, limits, symbols);
+    for (Schema.Rule query : check.getQueriesList()) {
+      var res = Rule.deserialize(query, limits, symbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {

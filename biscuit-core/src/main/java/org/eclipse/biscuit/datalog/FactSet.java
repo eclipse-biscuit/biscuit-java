@@ -6,31 +6,36 @@
 package org.eclipse.biscuit.datalog;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 public final class FactSet {
   /** facts grouped by (predicate name, arity), then by origin */
-  private final HashMap<Pair<Long, Integer>, HashMap<Origin, HashSet<Fact>>> facts;
+  private final SortedMap<Pair<Long, Integer>, SortedMap<Origin, SortedSet<Fact>>> facts;
+
+  private static final Comparator<Pair<Long, Integer>> KEY_COMPARATOR = Pair.naturalComparator();
 
   public FactSet() {
-    facts = new HashMap<>();
+    facts = new TreeMap<>(KEY_COMPARATOR);
   }
 
-  public FactSet(Origin o, HashSet<Fact> factSet) {
-    facts = new HashMap<>();
+  public FactSet(Origin o, SortedSet<Fact> factSet) {
+    facts = new TreeMap<>(KEY_COMPARATOR);
     for (Fact fact : factSet) {
       add(o, fact);
     }
   }
 
   public Map<Origin, List<Fact>> byOrigin() {
-    Map<Origin, List<Fact>> origins = new HashMap<>();
-    for (HashMap<Origin, HashSet<Fact>> group : facts.values()) {
-      for (Map.Entry<Origin, HashSet<Fact>> entry : group.entrySet()) {
+    Map<Origin, List<Fact>> origins = new TreeMap<>(Origin.comparator);
+    for (SortedMap<Origin, SortedSet<Fact>> group : facts.values()) {
+      for (Map.Entry<Origin, SortedSet<Fact>> entry : group.entrySet()) {
         origins.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(entry.getValue());
       }
     }
@@ -43,14 +48,15 @@ public final class FactSet {
 
   public void add(Origin origin, Fact fact) {
     Pair<Long, Integer> key = keyOf(fact.predicate());
-    HashMap<Origin, HashSet<Fact>> group = facts.computeIfAbsent(key, k -> new HashMap<>());
-    group.computeIfAbsent(origin, k -> new HashSet<>()).add(fact);
+    SortedMap<Origin, SortedSet<Fact>> group =
+        facts.computeIfAbsent(key, k -> new TreeMap<>(Origin.comparator));
+    group.computeIfAbsent(origin, k -> new TreeSet<>(Fact.comparator)).add(fact);
   }
 
   public int size() {
     int size = 0;
-    for (HashMap<Origin, HashSet<Fact>> group : facts.values()) {
-      for (HashSet<Fact> h : group.values()) {
+    for (SortedMap<Origin, SortedSet<Fact>> group : facts.values()) {
+      for (SortedSet<Fact> h : group.values()) {
         size += h.size();
       }
     }
@@ -61,11 +67,11 @@ public final class FactSet {
   public FactSet clone() {
     FactSet newFacts = new FactSet();
 
-    for (Map.Entry<Pair<Long, Integer>, HashMap<Origin, HashSet<Fact>>> group :
+    for (Map.Entry<Pair<Long, Integer>, SortedMap<Origin, SortedSet<Fact>>> group :
         this.facts.entrySet()) {
-      HashMap<Origin, HashSet<Fact>> newGroup = new HashMap<>();
-      for (Map.Entry<Origin, HashSet<Fact>> entry : group.getValue().entrySet()) {
-        newGroup.put(entry.getKey(), new HashSet<>(entry.getValue()));
+      SortedMap<Origin, SortedSet<Fact>> newGroup = new TreeMap<>(Origin.comparator);
+      for (Map.Entry<Origin, SortedSet<Fact>> entry : group.getValue().entrySet()) {
+        newGroup.put(entry.getKey(), new TreeSet<>(entry.getValue()));
       }
       newFacts.facts.put(group.getKey(), newGroup);
     }
@@ -74,19 +80,21 @@ public final class FactSet {
   }
 
   public void merge(FactSet other) {
-    for (Map.Entry<Pair<Long, Integer>, HashMap<Origin, HashSet<Fact>>> group :
+    for (Map.Entry<Pair<Long, Integer>, SortedMap<Origin, SortedSet<Fact>>> group :
         other.facts.entrySet()) {
-      HashMap<Origin, HashSet<Fact>> ownGroup =
-          facts.computeIfAbsent(group.getKey(), k -> new HashMap<>());
-      for (Map.Entry<Origin, HashSet<Fact>> entry : group.getValue().entrySet()) {
-        ownGroup.computeIfAbsent(entry.getKey(), k -> new HashSet<>()).addAll(entry.getValue());
+      SortedMap<Origin, SortedSet<Fact>> ownGroup =
+          facts.computeIfAbsent(group.getKey(), k -> new TreeMap<>(Origin.comparator));
+      for (Map.Entry<Origin, SortedSet<Fact>> entry : group.getValue().entrySet()) {
+        ownGroup
+            .computeIfAbsent(entry.getKey(), k -> new TreeSet<>(Fact.comparator))
+            .addAll(entry.getValue());
       }
     }
   }
 
   /** trusted facts sharing the predicate's name and arity, the terms are not checked */
   public Stream<Pair<Origin, Fact>> stream(Predicate predicate, TrustedOrigins blockIds) {
-    HashMap<Origin, HashSet<Fact>> group = facts.get(keyOf(predicate));
+    SortedMap<Origin, SortedSet<Fact>> group = facts.get(keyOf(predicate));
     if (group == null) {
       return Stream.empty();
     }
@@ -98,7 +106,7 @@ public final class FactSet {
   public Stream<Fact> stream() {
     return facts.values().stream()
         .flatMap(group -> group.values().stream())
-        .flatMap(HashSet::stream);
+        .flatMap(SortedSet::stream);
   }
 
   @Override

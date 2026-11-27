@@ -9,10 +9,10 @@ import biscuit.format.schema.Schema;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import org.eclipse.biscuit.crypto.PublicKey;
 import org.eclipse.biscuit.datalog.Pair;
@@ -71,7 +71,7 @@ public final class Parser {
       return Result.ok(components);
     }
 
-    Map<Integer, List<Error>> errors = new HashMap<>();
+    Map<Integer, List<Error>> errors = new TreeMap<>();
 
     s = removeCommentsAndWhitespaces(s);
     String[] codeLines = s.split(";");
@@ -887,7 +887,7 @@ public final class Parser {
     }
     s = s.substring(1);
 
-    HashMap<MapKey, Term> v = new HashMap<>();
+    TreeMap<MapKey, Term> v = new TreeMap<>(MapKey.comparator);
     while (true) {
       s = space(s);
 
@@ -950,13 +950,13 @@ public final class Parser {
       s = space(s.substring(1));
       if (s.charAt(0) == '}') {
         s = s.substring(1);
-        return Result.ok(new Pair<>(s, new Term.Set(new HashSet<>())));
+        return Result.ok(new Pair<>(s, new Term.Set(new TreeSet<>(Term.comparator))));
       } else {
         return Result.err(new Error(s, "closing brace not found"));
       }
     }
 
-    HashSet<Term> terms = new HashSet<>();
+    TreeSet<Term> terms = new TreeSet<>(Term.comparator);
     while (true) {
 
       s = space(s);

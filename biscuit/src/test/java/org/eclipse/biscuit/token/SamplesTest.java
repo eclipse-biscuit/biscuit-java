@@ -26,12 +26,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.biscuit.crypto.KeyPair;
@@ -43,6 +43,7 @@ import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 import org.eclipse.biscuit.token.builder.AuthorizerBuilder;
 import org.eclipse.biscuit.token.builder.Check;
+import org.eclipse.biscuit.token.builder.Utils;
 import org.eclipse.biscuit.token.builder.parser.Parser;
 import org.eclipse.biscuit.token.format.SignedBlock;
 import org.junit.jupiter.api.DynamicTest;
@@ -193,17 +194,32 @@ class SamplesTest {
                 org.eclipse.biscuit.token.Block block = token.blocks.get(i);
                 SignedBlock signedBlock = token.serializedBiscuit.getBlocks().get(i);
                 byte[] serBlock = block.toBytes().getOk();
+                // symbols must be known when a block is deserialized: blocks without an external
+                // key share the token's symbol table, the others have their own
+                SymbolTable baseSymbols =
+                    block.getExternalKey().isPresent()
+                        ? new SymbolTable()
+                        : new SymbolTable(token.symbolTable);
                 org.eclipse.biscuit.token.Block deserBlock =
-                    fromBytes(serBlock, block.getExternalKey()).getOk();
+                    fromBytes(
+                            serBlock,
+                            block.getExternalKey(),
+                            DeserializationLimit.PerBlock.allowEverything(),
+                            baseSymbols)
+                        .getOk();
                 assertEquals(block.getVersion(), deserBlock.getVersion());
                 assertEquals(block.print(token.symbolTable), deserBlock.print(token.symbolTable));
               }
 
               List<RevocationIdentifier> revocationIds = token.revocationIdentifiers();
               ArrayNode validationRevocationIds = (ArrayNode) validation.get("revocation_ids");
-              assertEquals(revocationIds.size(), validationRevocationIds.size());
+              assertEquals(
+                  revocationIds.size(), validationRevocationIds.size(), "revocation_ids size");
               for (int i = 0; i < revocationIds.size(); i++) {
-                assertEquals(validationRevocationIds.get(i).asText(), revocationIds.get(i).toHex());
+                assertEquals(
+                    validationRevocationIds.get(i).asText(),
+                    revocationIds.get(i).toHex(),
+                    "revocation_ids");
               }
 
               // TODO Add check of the token
@@ -237,10 +253,11 @@ class SamplesTest {
                       new ObjectMapper().treeToValue(validation.get("world"), World.class);
 
                   World authorizerWorld = new World(authorizer);
-                  assertEquals(world.factMap(), authorizerWorld.factMap());
-                  assertEquals(world.rules, authorizerWorld.rules);
-                  assertEquals(world.checks, authorizerWorld.checks);
-                  assertEquals(world.policies, authorizerWorld.policies);
+                  assertEquals(world.factMap(), authorizerWorld.factMap(), "facts");
+                  assertEquals(world.rules, authorizerWorld.rules, "rules");
+                  assertEquals(world.checks, authorizerWorld.checks, "checks");
+                  assertEquals(world.policies, authorizerWorld.policies, "policies");
+                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps, "elapsed_steps");
                 }
 
                 res = Result.ok(authorizeResult);
@@ -251,10 +268,11 @@ class SamplesTest {
                       new ObjectMapper().treeToValue(validation.get("world"), World.class);
 
                   World authorizerWorld = new World(authorizer);
-                  assertEquals(world.factMap(), authorizerWorld.factMap());
-                  assertEquals(world.rules, authorizerWorld.rules);
-                  assertEquals(world.checks, authorizerWorld.checks);
-                  assertEquals(world.policies, authorizerWorld.policies);
+                  assertEquals(world.factMap(), authorizerWorld.factMap(), "facts");
+                  assertEquals(world.rules, authorizerWorld.rules, "rules");
+                  assertEquals(world.checks, authorizerWorld.checks, "checks");
+                  assertEquals(world.policies, authorizerWorld.policies, "policies");
+                  assertEquals(world.elapsedSteps, authorizerWorld.elapsedSteps, "elapsed_steps");
                 }
 
                 throw e;
@@ -263,28 +281,29 @@ class SamplesTest {
               res = Result.err(e);
             }
 
-            if (expectedResult.has("Ok")) {
+            if ("ok".equals(expectedResult.get("type").textValue())) {
               if (res.isErr()) {
                 System.out.println(
                     "validation '"
                         + validationName
                         + "' expected result Ok("
-                        + expectedResult.get("Ok").asLong()
+                        + expectedResult.get("value").asLong()
                         + "), got error");
                 throw res.getErr();
               } else {
-                assertEquals(expectedResult.get("Ok").asLong(), res.getOk());
+                assertEquals(expectedResult.get("value").asLong(), res.getOk());
               }
             } else {
               if (res.isErr()) {
-                if (res.getErr() instanceof Error) {
+                if (res.getErr() instanceof Error
+                    && "err".equals(expectedResult.get("type").textValue())) {
                   Error e = (Error) res.getErr();
                   System.out.println("validation '" + validationName + "' got error: " + e);
 
                   // Serialize and deserialize the error to ensure the jackson node types match.
                   var objectMapper = new ObjectMapper();
                   var result = objectMapper.readTree(objectMapper.writeValueAsString(e.toJson()));
-                  assertEquals(expectedResult.get("Err"), result);
+                  assertEquals(expectedResult.get("value"), result);
                 } else {
                   throw res.getErr();
                 }
@@ -293,7 +312,7 @@ class SamplesTest {
                     "validation '"
                         + validationName
                         + "' expected result error("
-                        + expectedResult.get("Err")
+                        + expectedResult.get("value")
                         + "), got success: "
                         + res.getOk());
               }
@@ -385,16 +404,19 @@ class SamplesTest {
     List<RuleSet> rules;
     List<CheckSet> checks;
     List<String> policies;
+    long elapsedSteps;
 
     public World(
         @JsonProperty("facts") List<FactSet> facts,
         @JsonProperty("rules") List<RuleSet> rules,
         @JsonProperty("checks") List<CheckSet> checks,
-        @JsonProperty("policies") List<String> policies) {
+        @JsonProperty("policies") List<String> policies,
+        @JsonProperty("elapsed_steps") long elapsedSteps) {
       this.facts = facts;
       this.rules = rules.stream().sorted().collect(Collectors.toList());
       this.checks = checks.stream().sorted().collect(Collectors.toList());
       this.policies = policies;
+      this.elapsedSteps = elapsedSteps;
     }
 
     public World(Authorizer authorizer) {
@@ -448,12 +470,14 @@ class SamplesTest {
               .collect(Collectors.toList());
       this.policies =
           authorizer.getPolicies().stream().map(p -> p.toString()).collect(Collectors.toList());
+      this.elapsedSteps = authorizer.elapsedSteps();
       Collections.sort(this.rules);
       Collections.sort(this.checks);
     }
 
-    public HashMap<List<Long>, List<String>> factMap() {
-      HashMap<List<Long>, List<String>> worldFacts = new HashMap<>();
+    public Map<List<Long>, List<String>> factMap() {
+      Map<List<Long>, List<String>> worldFacts =
+          new TreeMap<>(Utils.listComparator(Long::compareTo));
       for (FactSet f : this.facts) {
         worldFacts.put(f.origin, f.facts);
       }
@@ -472,6 +496,8 @@ class SamplesTest {
           + checks
           + ",\npolicies="
           + policies
+          + ",\nelapsed_steps="
+          + elapsedSteps
           + '}';
     }
   }

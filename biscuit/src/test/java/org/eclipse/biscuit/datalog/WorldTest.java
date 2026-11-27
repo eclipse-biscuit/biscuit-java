@@ -12,16 +12,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.eclipse.biscuit.datalog.expressions.Expression;
 import org.eclipse.biscuit.datalog.expressions.Op;
 import org.eclipse.biscuit.error.Error;
+import org.eclipse.biscuit.token.builder.Utils;
 import org.junit.jupiter.api.Test;
 
 public class WorldTest {
+
+  private static TreeSet<Fact> factSet(List<Fact> facts) {
+    return Utils.treeSetWithComparator(facts, Fact.comparator);
+  }
+
+  private static TreeSet<Term> termSet(List<? extends Term> terms) {
+    return Utils.treeSetWithComparator(terms, Term.comparator);
+  }
 
   @Test
   public void testFamily() throws Error {
@@ -179,11 +188,12 @@ public class WorldTest {
     final FactSet expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            Utils.treeSetWithComparator(
                 List.of(
                     new Fact(new Predicate(grandparent, List.of(a, c))),
                     new Fact(new Predicate(grandparent, List.of(b, d))),
-                    new Fact(new Predicate(grandparent, List.of(b, e))))));
+                    new Fact(new Predicate(grandparent, List.of(b, e)))),
+                Fact.comparator));
     assertEquals(expected, res);
 
     w.addRule(
@@ -297,11 +307,12 @@ public class WorldTest {
     FactSet expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            Utils.treeSetWithComparator(
                 List.of(
                     new Fact(new Predicate(join, List.of(abc, aaa))),
                     new Fact(new Predicate(join, List.of(abc, bbb))),
-                    new Fact(new Predicate(join, List.of(def, ccc))))));
+                    new Fact(new Predicate(join, List.of(def, ccc)))),
+                Fact.comparator));
     assertEquals(expected, res);
 
     res =
@@ -341,10 +352,11 @@ public class WorldTest {
     expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            Utils.treeSetWithComparator(
                 List.of(
                     new Fact(new Predicate(join, List.of(abc, aaa))),
-                    new Fact(new Predicate(join, List.of(abc, bbb))))));
+                    new Fact(new Predicate(join, List.of(abc, bbb)))),
+                Fact.comparator));
     assertEquals(expected, res);
   }
 
@@ -416,8 +428,9 @@ public class WorldTest {
     FactSet expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
-                List.of(new Fact(new Predicate(suff, List.of(app_2, syms.add("test.fr")))))));
+            Utils.treeSetWithComparator(
+                List.of(new Fact(new Predicate(suff, List.of(app_2, syms.add("test.fr"))))),
+                Fact.comparator));
     assertEquals(expected, res);
 
     res = testSuffix(w, syms, suff, route, "example.com");
@@ -428,11 +441,12 @@ public class WorldTest {
     expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            Utils.treeSetWithComparator(
                 List.of(
                     new Fact(new Predicate(suff, List.of(app_0, syms.add("example.com")))),
                     new Fact(new Predicate(suff, List.of(app_0, syms.add("www.example.com")))),
-                    new Fact(new Predicate(suff, List.of(app_1, syms.add("mx.example.com")))))));
+                    new Fact(new Predicate(suff, List.of(app_1, syms.add("mx.example.com"))))),
+                Fact.comparator));
     assertEquals(expected, res);
   }
 
@@ -498,7 +512,7 @@ public class WorldTest {
     FactSet expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            factSet(
                 List.of(
                     new Fact(
                         new Predicate(before, List.of(new Term.Date(t1.getEpochSecond()), abc))))));
@@ -539,7 +553,7 @@ public class WorldTest {
     expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            factSet(
                 List.of(
                     new Fact(
                         new Predicate(after, List.of(new Term.Date(t3.getEpochSecond()), def))))));
@@ -583,7 +597,7 @@ public class WorldTest {
                     new ArrayList<>(
                         List.of(
                             new Term.Set(
-                                new HashSet<>(List.of(new Term.Integer(0L), new Term.Integer(1L)))),
+                                termSet(List.of(new Term.Integer(0L), new Term.Integer(1L)))),
                             new Term.Variable(syms.insert("int")),
                             new Op.Binary(Op.BinaryOp.Contains))))));
     System.out.println("testing r1: " + syms.formatRule(r1));
@@ -595,8 +609,7 @@ public class WorldTest {
     FactSet expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
-                List.of(new Fact(new Predicate(int_set, List.of(abc, syms.add("test")))))));
+            factSet(List.of(new Fact(new Predicate(int_set, List.of(abc, syms.add("test")))))));
     assertEquals(expected, res);
 
     final long abcSymId = syms.insert("abc");
@@ -622,8 +635,7 @@ public class WorldTest {
                     new ArrayList<>(
                         List.of(
                             new Term.Set(
-                                new HashSet<>(
-                                    List.of(new Term.Str(abcSymId), new Term.Str(ghiSymId)))),
+                                termSet(List.of(new Term.Str(abcSymId), new Term.Str(ghiSymId)))),
                             new Term.Variable(syms.insert("sym")),
                             new Op.Binary(Op.BinaryOp.Contains),
                             new Op.Unary(Op.UnaryOp.Negate))))));
@@ -637,7 +649,7 @@ public class WorldTest {
     expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            factSet(
                 List.of(
                     new Fact(
                         new Predicate(
@@ -663,7 +675,7 @@ public class WorldTest {
                 new Expression(
                     new ArrayList<>(
                         List.of(
-                            new Term.Set(new HashSet<>(List.of(syms.add("test"), syms.add("aaa")))),
+                            new Term.Set(termSet(List.of(syms.add("test"), syms.add("aaa")))),
                             new Term.Variable(syms.insert("str")),
                             new Op.Binary(Op.BinaryOp.Contains))))));
     System.out.println("testing r3: " + syms.formatRule(r3));
@@ -675,7 +687,7 @@ public class WorldTest {
     expected =
         new FactSet(
             new Origin(0),
-            new HashSet<>(
+            factSet(
                 List.of(
                     new Fact(
                         new Predicate(

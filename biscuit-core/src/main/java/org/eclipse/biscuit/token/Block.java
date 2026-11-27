@@ -204,15 +204,15 @@ public final class Block {
     }
 
     for (Fact fact : this.facts) {
-      b.addFactsV2(fact.serialize());
+      b.addFacts(fact.serialize());
     }
 
     for (Rule rule : this.rules) {
-      b.addRulesV2(rule.serialize());
+      b.addRules(rule.serialize());
     }
 
     for (Check check : this.checks) {
-      b.addChecksV2(check.serialize());
+      b.addChecks(check.serialize());
     }
 
     for (Scope scope : this.scopes) {
@@ -264,17 +264,17 @@ public final class Block {
               SerializedBiscuit.MIN_SCHEMA_VERSION, SerializedBiscuit.MAX_SCHEMA_VERSION, version));
     }
 
-    if (b.getFactsV2Count() > limits.getMaxFacts()) {
+    if (b.getFactsCount() > limits.getMaxFacts()) {
       return Result.err(
           new Error.FormatError.DeserializationLimitError(
               Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_FACTS));
     }
-    if (b.getChecksV2Count() > limits.getMaxChecks()) {
+    if (b.getChecksCount() > limits.getMaxChecks()) {
       return Result.err(
           new Error.FormatError.DeserializationLimitError(
               Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_CHECKS));
     }
-    if (b.getRulesV2Count() > limits.getMaxRules()) {
+    if (b.getRulesCount() > limits.getMaxRules()) {
       return Result.err(
           new Error.FormatError.DeserializationLimitError(
               Error.FormatError.DeserializationLimitError.Reason.TOO_MANY_RULES));
@@ -322,8 +322,8 @@ public final class Block {
     ArrayList<Rule> rules = new ArrayList<>();
     ArrayList<Check> checks = new ArrayList<>();
 
-    for (Schema.FactV2 fact : b.getFactsV2List()) {
-      var res = Fact.deserializeV2(fact, limits, baseSymbols);
+    for (Schema.Fact fact : b.getFactsList()) {
+      var res = Fact.deserialize(fact, limits, baseSymbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -331,8 +331,8 @@ public final class Block {
       }
     }
 
-    for (Schema.RuleV2 rule : b.getRulesV2List()) {
-      var res = Rule.deserializeV2(rule, limits, baseSymbols);
+    for (Schema.Rule rule : b.getRulesList()) {
+      var res = Rule.deserialize(rule, limits, baseSymbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {
@@ -340,8 +340,8 @@ public final class Block {
       }
     }
 
-    for (Schema.CheckV2 check : b.getChecksV2List()) {
-      var res = Check.deserializeV2(check, limits, baseSymbols);
+    for (Schema.Check check : b.getChecksList()) {
+      var res = Check.deserialize(check, limits, baseSymbols);
       if (res.isErr()) {
         return Result.err(res.getErr());
       } else {

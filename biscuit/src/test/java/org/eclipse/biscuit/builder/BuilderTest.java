@@ -17,9 +17,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.eclipse.biscuit.crypto.KeyPair;
 import org.eclipse.biscuit.datalog.SymbolTable;
 import org.eclipse.biscuit.error.Error;
@@ -66,11 +64,12 @@ public class BuilderTest {
                     Expression.OpCode.Contains,
                     Utils.var("operation"),
                     new Term.Set(
-                        new HashSet<>(
+                        Utils.treeSetWithComparator(
                             Arrays.asList(
                                 Utils.str("create_topic"),
                                 Utils.str("get_topic"),
-                                Utils.str("get_topics"))))))));
+                                Utils.str("get_topics")),
+                            Term.comparator))))));
     authorityBuilder.addRule(
         Utils.constrainedRule(
             "right",
@@ -93,7 +92,9 @@ public class BuilderTest {
                 new Expression.Binary(
                     Expression.OpCode.Contains,
                     Utils.var("operation"),
-                    new Term.Set(new HashSet<>(Arrays.asList(Utils.str("lookup"))))))));
+                    new Term.Set(
+                        Utils.treeSetWithComparator(
+                            Arrays.asList(Utils.str("lookup")), Term.comparator))))));
 
     org.eclipse.biscuit.token.Block authority = authorityBuilder.build(symbolTable);
     Biscuit rootBiscuit = Biscuit.make(rng, root, authority);
@@ -121,14 +122,17 @@ public class BuilderTest {
   @Test
   public void testStringValueOfSetTerm() {
     String actual =
-        new Term.Set(Set.of(new Term.Str("a"), new Term.Str("b"), new Term.Integer((3))))
+        new Term.Set(
+                Utils.treeSetWithComparator(
+                    List.of(new Term.Str("a"), new Term.Str("b"), new Term.Integer((3))),
+                    Term.comparator))
             .toString();
     assertTrue(actual.startsWith("{"), "starts with {");
     assertTrue(actual.endsWith("}"), "ends with }");
     assertTrue(actual.contains("\"a\""), "contains a");
     assertTrue(actual.contains("\"b\""), "contains b");
     assertTrue(actual.contains("3"), "contains 3");
-    String empty = new Term.Set(new java.util.HashSet()).toString();
+    String empty = new Term.Set(new java.util.TreeSet<>(Term.comparator)).toString();
     assertEquals("{,}", empty);
   }
 

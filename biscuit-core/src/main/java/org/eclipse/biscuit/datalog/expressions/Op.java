@@ -10,13 +10,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.eclipse.biscuit.datalog.*;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
@@ -36,7 +37,7 @@ public abstract class Op {
 
   public abstract Schema.Op serialize();
 
-  public static Result<Op, Error.FormatError> deserializeV2(
+  public static Result<Op, Error.FormatError> deserialize(
       Schema.Op op, DeserializationLimit.PerBlock limits, SymbolTable symbols, int[] remainingOps) {
     if (remainingOps[0] <= 0) {
       return Result.err(
@@ -46,10 +47,10 @@ public abstract class Op {
     remainingOps[0]--;
 
     if (op.hasValue()) {
-      var res = Term.deserializeEnumV2(op.getValue(), limits, symbols);
+      var res = Term.deserializeEnum(op.getValue(), limits, symbols);
       return res.isOk() ? Result.ok(res.getOk()) : Result.err(res.getErr());
     } else if (op.hasUnary()) {
-      return Op.Unary.deserializeV2(op.getUnary(), limits, symbols);
+      return Op.Unary.deserialize(op.getUnary(), limits, symbols);
     } else if (op.hasBinary()) {
       return Op.Binary.deserializeV1(op.getBinary(), limits, symbols);
     } else if (op.hasClosure()) {
@@ -85,7 +86,7 @@ public abstract class Op {
               ? symbols.getSymbol((int) nameIndex)
               : Optional.<String>empty();
       if (name.isEmpty()) {
-        return new Error.FormatError.DeserializationError("unknown symbol " + nameIndex);
+        return new Error.FormatError.UnknownSymbol(nameIndex);
       }
       if (!allowedFunctions.contains(name.get())) {
         return new Error.FormatError.DeserializationLimitError(
@@ -217,7 +218,7 @@ public abstract class Op {
       return b.build();
     }
 
-    public static Result<Op, Error.FormatError> deserializeV2(
+    public static Result<Op, Error.FormatError> deserialize(
         Schema.OpUnary op, DeserializationLimit.PerBlock limits, SymbolTable symbols) {
       if (op.getKind() == Schema.OpUnary.Kind.Ffi && op.hasFfiName()) {
         var error =
@@ -228,7 +229,7 @@ public abstract class Op {
         }
       }
 
-      var res = deserializeV2(op);
+      var res = deserialize(op);
       var allowedOps = limits.getAllowedUnaryOps();
       if (allowedOps != null
           && res.isOk()
@@ -240,7 +241,7 @@ public abstract class Op {
       return res;
     }
 
-    public static Result<Op, Error.FormatError> deserializeV2(Schema.OpUnary op) {
+    public static Result<Op, Error.FormatError> deserialize(Schema.OpUnary op) {
       switch (op.getKind()) {
         case Negate:
           return Result.ok(new Op.Unary(UnaryOp.Negate));
@@ -448,7 +449,7 @@ public abstract class Op {
             stack.push(new Term.Bool(array.contains(right)));
           }
           if (left instanceof Term.Map) {
-            HashMap<MapKey, Term> map = ((Term.Map) left).value();
+            SortedMap<MapKey, Term> map = ((Term.Map) left).value();
             if (right instanceof MapKey) {
               MapKey key = (MapKey) right;
               stack.push(new Term.Bool(map.containsKey(key)));
@@ -633,9 +634,9 @@ public abstract class Op {
           break;
         case Intersection:
           if (right instanceof Term.Set && left instanceof Term.Set) {
-            HashSet<Term> intersec = new HashSet<>();
-            HashSet<Term> setRight = ((Term.Set) right).value();
-            HashSet<Term> setLeft = ((Term.Set) left).value();
+            SortedSet<Term> intersec = new TreeSet<>(Term.comparator);
+            SortedSet<Term> setRight = ((Term.Set) right).value();
+            SortedSet<Term> setLeft = ((Term.Set) left).value();
             for (Term locId : setRight) {
               if (setLeft.contains(locId)) {
                 intersec.add(locId);
@@ -646,9 +647,9 @@ public abstract class Op {
           break;
         case Union:
           if (right instanceof Term.Set && left instanceof Term.Set) {
-            HashSet<Term> union = new HashSet<>();
-            HashSet<Term> setRight = ((Term.Set) right).value();
-            HashSet<Term> setLeft = ((Term.Set) left).value();
+            SortedSet<Term> union = new TreeSet<>(Term.comparator);
+            SortedSet<Term> setRight = ((Term.Set) right).value();
+            SortedSet<Term> setLeft = ((Term.Set) left).value();
             union.addAll(setRight);
             union.addAll(setLeft);
             stack.push(new Term.Set(union));
@@ -688,7 +689,7 @@ public abstract class Op {
           }
           if (right instanceof MapKey && left instanceof Term.Map) {
             MapKey key = (MapKey) right;
-            HashMap<MapKey, Term> map = ((Term.Map) left).value();
+            SortedMap<MapKey, Term> map = ((Term.Map) left).value();
             Term value = map.get(key);
             stack.push(Objects.requireNonNullElseGet(value, Term.Null::new));
           }
@@ -710,7 +711,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Set) {
-              HashSet<Term> set = ((Term.Set) left).value();
+              SortedSet<Term> set = ((Term.Set) left).value();
               for (Term elem : set) {
                 Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
@@ -722,7 +723,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Map) {
-              HashMap<MapKey, Term> map = ((Term.Map) left).value();
+              SortedMap<MapKey, Term> map = ((Term.Map) left).value();
               for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
                 List<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
                 Term returnValue =
@@ -760,7 +761,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Set) {
-              HashSet<Term> set = ((Term.Set) left).value();
+              SortedSet<Term> set = ((Term.Set) left).value();
               for (Term elem : set) {
                 Term returnValue = closure.call(elem, variables, temporarySymbolTable, steps);
                 if (!(returnValue instanceof Term.Bool)) {
@@ -772,7 +773,7 @@ public abstract class Op {
                 }
               }
             } else if (left instanceof Term.Map) {
-              HashMap<MapKey, Term> map = ((Term.Map) left).value();
+              SortedMap<MapKey, Term> map = ((Term.Map) left).value();
               for (Map.Entry<MapKey, Term> entry : map.entrySet()) {
                 ArrayList<Term> params = new ArrayList<>(List.of(entry.getKey(), entry.getValue()));
                 Term returnValue =
@@ -1033,7 +1034,7 @@ public abstract class Op {
           b1.setKind(Schema.OpBinary.Kind.All);
           break;
         case TryOr:
-          b1.setKind(Schema.OpBinary.Kind.Try);
+          b1.setKind(Schema.OpBinary.Kind.TryOr);
           break;
         default:
       }
@@ -1124,7 +1125,7 @@ public abstract class Op {
           return Result.ok(new Op.Binary(BinaryOp.Any));
         case All:
           return Result.ok(new Op.Binary(BinaryOp.All));
-        case Try:
+        case TryOr:
           return Result.ok(new Op.Binary(BinaryOp.TryOr));
         default:
           return Result.err(
@@ -1183,11 +1184,10 @@ public abstract class Op {
     Term call(
         Map<Long, Term> variables, TemporarySymbolTable temporarySymbolTable, StepBudget steps)
         throws Error {
-      steps.step();
-
       if (arity() != 0) {
         throw new Error.Execution("called closure with arity " + arity() + "with no arguments");
       }
+      steps.step();
       Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
         op.evaluate(stack, variables, temporarySymbolTable, steps);
@@ -1204,8 +1204,6 @@ public abstract class Op {
         TemporarySymbolTable temporarySymbolTable,
         StepBudget steps)
         throws Error {
-      steps.step();
-
       if (arity() != 1) {
         throw new Error.Execution("called closure with arity " + arity() + "with 1 argument");
       }
@@ -1213,6 +1211,7 @@ public abstract class Op {
         throw new Error.Execution(
             Error.Execution.Kind.ShadowedVariable, "closure parameter shadows variable");
       }
+      steps.step();
       Deque<Op> stack = new ArrayDeque<>(16); // Default value
       for (Op op : ops) {
         op.evaluate(stack, variables, temporarySymbolTable, steps);
@@ -1283,7 +1282,7 @@ public abstract class Op {
       }
 
       for (Schema.Op op : closure.getOpsList()) {
-        var res = Op.deserializeV2(op, limits, symbols, remainingOps);
+        var res = Op.deserialize(op, limits, symbols, remainingOps);
         if (res.isErr()) {
           return Result.err(res.getErr());
         } else {

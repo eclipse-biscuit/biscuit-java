@@ -8,9 +8,13 @@ package org.eclipse.biscuit.token.builder;
 import static org.eclipse.biscuit.datalog.Check.Kind.ONE;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.eclipse.biscuit.error.Error;
 
 public final class Utils {
@@ -60,7 +64,7 @@ public final class Utils {
     return new Term.Variable(name);
   }
 
-  public static Term set(HashSet<Term> s) {
+  public static Term set(SortedSet<Term> s) {
     return new Term.Set(s);
   }
 
@@ -86,5 +90,41 @@ public final class Utils {
               ((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i + 1), 16));
     }
     return data;
+  }
+
+  public static <U> Comparator<List<U>> listComparator(Comparator<U> comparator) {
+    return (o1, o2) -> {
+      var c = Integer.compare(o1.size(), o2.size());
+      if (c == 0) {
+        return iteratorComparator(comparator).compare(o1.iterator(), o2.iterator());
+      } else {
+        return c;
+      }
+    };
+  }
+
+  public static <U> Comparator<Iterator<U>> iteratorComparator(Comparator<U> comparator) {
+    return (o1it, o2it) -> {
+      var c = 0;
+      while (c == 0) {
+        if (o1it.hasNext() && o2it.hasNext()) {
+          c = comparator.compare(o1it.next(), o2it.next());
+        } else if (o1it.hasNext()) {
+          c = 1;
+        } else if (o2it.hasNext()) {
+          c = -1;
+        } else {
+          return c;
+        }
+      }
+      return c;
+    };
+  }
+
+  public static <E> TreeSet<E> treeSetWithComparator(
+      Collection<? extends E> c, Comparator<? super E> comparator) {
+    var tS = new TreeSet<E>(comparator);
+    tS.addAll(c);
+    return tS;
   }
 }

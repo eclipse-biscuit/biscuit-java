@@ -433,9 +433,7 @@ public final class SerializedBiscuit {
       if (this.proof.secretKey().getPublicKey().equals(currentKey)) {
         return Result.ok(null);
       } else {
-        return Result.err(
-            new Error.FormatError.Signature.InvalidSignature(
-                "signature error: Verification equation was not satisfied"));
+        return Result.err(new Error.FormatError.Signature.InvalidSignature("signature error"));
       }
     } else {
       byte[] finalSignature = this.proof.getSignature().get();

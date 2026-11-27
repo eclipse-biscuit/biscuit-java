@@ -74,9 +74,7 @@ class Ed25519PublicKey extends PublicKey {
     sgr.init(false, this.publicKey);
     sgr.update(data, 0, data.length);
     if (!sgr.verifySignature(signature)) {
-      return Optional.of(
-          new Error.FormatError.Signature.InvalidSignature(
-              "signature error: Verification equation was not satisfied"));
+      return Optional.of(new Error.FormatError.Signature.InvalidSignature("signature error"));
     }
 
     return Optional.empty();

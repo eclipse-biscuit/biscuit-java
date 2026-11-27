@@ -5,13 +5,13 @@
 
 package org.eclipse.biscuit.datalog;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import org.eclipse.biscuit.error.Error;
 import org.eclipse.biscuit.error.Result;
 
@@ -62,7 +62,7 @@ public final class Combinator implements Iterator<Result<Pair<Origin, Map<Long, 
         // we should return a value, but only once. To prevent further
         // successful calls, we create a set of variables that cannot
         // possibly be completed, so the next call will fail
-        Set<Long> set = new HashSet<>();
+        Set<Long> set = new TreeSet<>();
         set.add((long) 0);
 
         this.variables = new MatchedVariables(set);
