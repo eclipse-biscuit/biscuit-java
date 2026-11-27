@@ -3248,8 +3248,14 @@
             "elapsed_steps": 3
           },
           "result": {
-            "type": "ok",
-            "value": 0
+            "type": "err",
+            "value": {
+              "type": "format",
+              "value": {
+                "type": "deserialization_error",
+                "value": "invalid unary operation"
+              }
+            }
           },
           "authorizer_code": "allow if true;\n",
           "revocation_ids": [
